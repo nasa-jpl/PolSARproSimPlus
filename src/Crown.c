@@ -92,10 +92,10 @@ void		Copy_Crown		(Crown *p_cwnCopy, Crown *p_cwnOriginal)
 void		Print_Crown		(Crown *p_cwn)
 {
  printf ("\n");
- Print_d3Vector (&(p_cwn->base));
- Print_d3Vector (&(p_cwn->axis));
- Print_d3Vector (&(p_cwn->x));
- Print_d3Vector (&(p_cwn->y));
+ printf("Base:"); Print_d3Vector (&(p_cwn->base));
+ printf("Axis:");Print_d3Vector (&(p_cwn->axis));
+ printf("X: ");Print_d3Vector (&(p_cwn->x));
+ printf("Y: ");Print_d3Vector (&(p_cwn->y));
  printf ("%12.5e\n", p_cwn->beta);
  printf ("%12.5e\n", p_cwn->d1);
  printf ("%12.5e\n", p_cwn->d2);

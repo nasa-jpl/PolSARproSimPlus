@@ -173,9 +173,10 @@ void		Assign_Branch	(Branch *p_b, double sr, double er, d3Vector b0, d3Vector z0
 
 void		Branch_init_list	(Branch_List *p_bl)
 {
- p_bl->head	= NULL_PTR2BRANCH_LIST;
- p_bl->tail	= NULL_PTR2BRANCH_LIST;
- p_bl->n		= 0L;
+ p_bl->head         = NULL_PTR2BRANCH_LIST;
+ p_bl->tail         = NULL_PTR2BRANCH_LIST;
+ p_bl->n            = 0L;
+ p_bl->scale_factor = 1.0;
  return;
 }
 

@@ -33,6 +33,13 @@ double		drand			(void)
  double	r = (double) rand();
  return (r/ (double) RAND_MAX);
 }
+/* threadsafe version of rand() */
+double		drand_r			(unsigned int *pseed)
+{
+ double	r = (double) rand_r(pseed);
+ return (r/ (double) RAND_MAX);
+}
+
 
 double		Gaussian_drand			(double a_bar, double a_std, double a_min, double a_max)
 {
@@ -61,6 +68,17 @@ double erand (double x)
  double y;
  while (r < FLT_EPSILON) {
   r = drand();
+ }
+ y = -x*log(r);
+ return (y);
+}
+
+double erand_r (double x, unsigned int *pseed)
+{
+ double r	= 0.0;
+ double y;
+ while (r < FLT_EPSILON) {
+  r = drand_r(pseed);
  }
  y = -x*log(r);
  return (y);

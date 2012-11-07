@@ -40,6 +40,7 @@
 #include	<math.h>
 #include	<string.h>
 #include	<ctype.h>
+#include <pthread.h>
 
 #include	"Allometrics.h"
 #include	"Attenuation.h"
@@ -82,5 +83,20 @@
 #include	"Tree.h"
 #include	"Trig.h"
 #include	"YLkp.h"
+
+
+/* global mutex for image memory access */
+pthread_mutex_t PolSARproSim_HHmutex;
+pthread_mutex_t PolSARproSim_HVmutex;
+pthread_mutex_t PolSARproSim_VVmutex;
+
+
+/***************************************/
+/* SMP structure for Threads with  */
+/***************************************/
+
+typedef struct pspsim_thread_tag{
+   PolSARproSim_Record    *pPR;
+}PolSARproSim_Thread_Arg;
 
 #endif

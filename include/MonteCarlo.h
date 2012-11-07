@@ -34,9 +34,11 @@
 #include	<math.h>
 #include	<float.h>
 
-double		drand					(void);
+double		drand                (void);
+double		drand_r              (unsigned int *pseed);
 double		Gaussian_drand			(double a_bar, double a_std, double a_min, double a_max);
-double		Normal_Distribution		(void);
-double		erand					(double x);
+double		Normal_Distribution	(void);
+double		erand                (double x);
+double		erand_r              (double x, unsigned int *pseed);
 
 #endif

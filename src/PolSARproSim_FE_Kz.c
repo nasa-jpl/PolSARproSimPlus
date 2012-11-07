@@ -60,8 +60,10 @@ void free_matrix_float(float **m,int nrh);
 
 
 /* ROUTINES DECLARATION */
-#include "../lib/matrix.h"
-#include "../lib/util.h"
+//#include "../lib/matrix.h"
+//#include "../lib/util.h"
+#include "matrix.h"
+#include "util.h"
 
 
 /*******************************************************************************

@@ -66,7 +66,7 @@ typedef struct leaf_tag {
 
 void		Create_Leaf		(Leaf *pL);
 void		Destroy_Leaf	(Leaf *pL);
-void		Copy_Leaf		(Leaf *pLCopy, Leaf *pLOriginal);
+void		Copy_Leaf     (Leaf *pLCopy, Leaf *pLOriginal);
 void		Print_Leaf		(Leaf *pL);
 void		Assign_Leaf		(Leaf *pL, int species, double d1, double d2, double d3, double theta, double phi,
 							 double moisture, Complex permittivity, d3Vector cl);
@@ -76,23 +76,24 @@ void		Assign_Leaf		(Leaf *pL, int species, double d1, double d2, double d3, doub
 /*************************************/
 
 typedef struct leaf_list_tag {
- struct		leaf_tag *head;
- struct		leaf_tag *tail;
- long		n;
+ struct leaf_tag *head;
+ struct leaf_tag *tail;
+ long   n;
+ double scale_factor; /* To allow foliage MC scaling --RAedit */
 } Leaf_List;
 
 void		Leaf_init_list		(Leaf_List *pLl);
-int			Leaf_head_add		(Leaf_List *pLl, Leaf *pL);
-int			Leaf_head_sub		(Leaf_List *pLl, Leaf *pL);
+int			Leaf_head_add     (Leaf_List *pLl, Leaf *pL);
+int			Leaf_head_sub     (Leaf_List *pLl, Leaf *pL);
 void		Leaf_head_print		(Leaf_List *pLl);
-int			Leaf_tail_add		(Leaf_List *pLl, Leaf *pL);
-int			Leaf_tail_sub		(Leaf_List *pLl, Leaf *pL);
+int			Leaf_tail_add     (Leaf_List *pLl, Leaf *pL);
+int			Leaf_tail_sub     (Leaf_List *pLl, Leaf *pL);
 void		Leaf_tail_print		(Leaf_List *pLl);
 long		Leaf_List_length	(Leaf_List *pLl);
 Leaf*		Leaf_List_head		(Leaf_List *pLl);
 Leaf*		Leaf_List_tail		(Leaf_List *pLl);
-int			Leaf_insert			(Leaf_List *pLl, Leaf *pL, long m);
-int			Leaf_delete			(Leaf_List *pLl, Leaf *pL, long m);
+int			Leaf_insert       (Leaf_List *pLl, Leaf *pL, long m);
+int			Leaf_delete       (Leaf_List *pLl, Leaf *pL, long m);
 void		Leaf_empty_list		(Leaf_List *pLl);
 void		Leaf_List_Copy		(Leaf_List *pLL_Copy, Leaf_List *pLL_Org);
 
@@ -100,8 +101,8 @@ void		Leaf_List_Copy		(Leaf_List *pLL_Copy, Leaf_List *pLL_Org);
 /* Leaf definitions */
 /********************/
 
-#define		NO_LEAF_ERRORS						0
-#define		NULL_PTR2LEAF						0
+#define		NO_LEAF_ERRORS              0
+#define		NULL_PTR2LEAF               0
 #define		NULL_PTR2LEAF_LIST					0
 #define		LEAF_DIRECTION_ROUNDING_LIMIT		FLT_EPSILON
 
@@ -109,9 +110,9 @@ void		Leaf_List_Copy		(Leaf_List *pLL_Copy, Leaf_List *pLL_Org);
 /* Leaf species enumeration */
 /****************************/
 
-#define		POLSARPROSIM_PINE_NEEDLE			0
-#define		POLSARPROSIM_DECIDUOUS_LEAF			1
-#define		POLSARPROSIM_NON_LEAF				99
+#define		POLSARPROSIM_PINE_NEEDLE      0
+#define		POLSARPROSIM_DECIDUOUS_LEAF		1
+#define		POLSARPROSIM_NON_LEAF         99
 
 /*************************/
 /* Other leaf prototypes */

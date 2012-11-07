@@ -309,14 +309,14 @@ void		Tree_Location_Generation		(PolSARproSim_Record *pPR)
    TreeDiscList[iTree].t.y		= y;
    TreeDiscList[iTree].t.height	= pPR->Tree_Location[iTree].height;
    TreeDiscList[iTree].t.radius	= pPR->Tree_Location[iTree].radius;
-   iTree++;
+      iTree++;
   }
  }
 
 /*********************************/
 /* Output initial tree locations */
 /*********************************/
-/*
+
  fprintf (pPR->pLogFile, "\n");
  fprintf (pPR->pLogFile, "Initial tree locations ...\n");
  fprintf (pPR->pLogFile, "\n");
@@ -328,7 +328,7 @@ void		Tree_Location_Generation		(PolSARproSim_Record *pPR)
    iTree++;
   }
  }
-*/
+
  fprintf (pPR->pLogFile, "\n");
  fflush  (pPR->pLogFile);
 
@@ -410,13 +410,16 @@ void		Tree_Location_Generation		(PolSARproSim_Record *pPR)
    New_Tree_Location[jTree].y		= yr + y_shift;
    New_Tree_Location[jTree].height	= pPR->Tree_Location[iTree].height;
    New_Tree_Location[jTree].radius	= pPR->Tree_Location[iTree].radius;
+   New_Tree_Location[jTree].species = pPR->species; //added to allow species allometry definition --RAedit
    jTree++;
   }
  }
  free (pPR->Tree_Location);
  pPR->Tree_Location	= New_Tree_Location;
  pPR->Trees			= Stand_Number;
-
+ /* Add this line to allow the SpeciesDatabase to have the correct number */
+ pPR->SpeciesDataBase[pPR->species].Trees = pPR->Trees;
+ 
 /*******************************************************************/
 /* Note that the following will simply help to avoid crashes later */
 /*******************************************************************/

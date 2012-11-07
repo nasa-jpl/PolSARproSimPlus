@@ -71,12 +71,30 @@
 #include	"Tree.h"
 #include	"Trig.h"
 #include	"YLkp.h"
-
+#include "PolSARproSim.h"
 /*****************************************************************/
 /* Direct ground interferometric SAR image calculation prototype */
 /*****************************************************************/
 
+int		PolSARproSim_Direct_Ground_SMP		(PolSARproSim_Record *pPR);
 int		PolSARproSim_Direct_Ground				(PolSARproSim_Record *pPR);
+
+
+/* Thread argument structure */
+typedef struct direct_ground_threadarg_tag{
+   double                  x;
+   int                     thread_id;
+   PolSARproSim_Record     *pPR;
+   double                  weight_average;
+   double                  weight_count;
+   double                  Sigma0HH;
+   double                  Sigma0HV;
+   double                  Sigma0VH;
+   double                  Sigma0VV;
+   Complex                 AvgShhvv, zhhvv;
+   double                  Sigma0_count;
+}Direct_Ground_Thread_Arg;
+
 
 #define	NO_POLSARPROSIM_DIRECTGROUND_ERRORS			0
 

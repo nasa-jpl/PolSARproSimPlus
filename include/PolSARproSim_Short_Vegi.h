@@ -72,6 +72,7 @@
 #include	"Tree.h"
 #include	"Trig.h"
 #include	"YLkp.h"
+#include "PolSARproSim.h"
 
 /********************************************************************/
 /* Short vegetation interferometric SAR image calculation prototype */
@@ -79,6 +80,28 @@
 
 int		PolSARproSim_Short_Vegetation_Direct		(PolSARproSim_Record *pPR);
 int		PolSARproSim_Short_Vegetation_Bounce		(PolSARproSim_Record *pPR);
+
+int		PolSARproSim_Short_Vegetation_Direct_SMP		(PolSARproSim_Record *pPR);
+int		PolSARproSim_Short_Vegetation_Bounce_SMP		(PolSARproSim_Record *pPR);
+
+
+/* Thread argument structure */
+typedef struct short_veg_threadarg_tag{
+   int                     thread_id;
+   double                  xp;
+   PolSARproSim_Record     *pPR;
+   double                  weight_average;
+   double                  weight_count;
+   double                  Sigma0HH;
+   double                  Sigma0HV;
+   double                  Sigma0VH;
+   double                  Sigma0VV;
+   Complex                 AvgShhvv, zhhvv;
+   double                  Sigma0_count;
+}Short_Veg_Thread_Arg;
+
+pthread_mutex_t ShortVeg_mutex;
+
 
 #define	NO_POLSARPROSIM_SHORT_VEGI_ERRORS			0
 

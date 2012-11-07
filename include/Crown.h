@@ -42,20 +42,20 @@
 /******************************/
 
 typedef struct crown_tag {
- int		shape;					/* Crown shape																						*/
- double		beta;					/* The angle between the crown axis and a line between the crown tip and a point on the base edge	*/
- double		d1;						/* The semi-major axis of the ellipsoid or cone/cylinder length in metres							*/
- double		d2;						/* The semi-minor axis of the ellipsoid or cone/cylinder base radius in metres						*/
- double		d3;						/* The truncation length from ellipsoid tip or cone/cylinder length in metres						*/
- double		volume;					/* Approximate crown volume (m^3) for non-sloping bounding planes.									*/
- d3Vector	base;					/* A point in the centre of the base of the crown volume											*/
- d3Vector	axis;					/* A unit vector in the major axial direction														*/
- d3Vector	x;						/* A unit vector normal to the major axial direction												*/
- d3Vector	y;						/* A unit vector normal to both axis and x															*/
- double		sx;						/* The slope in the global x direction of a bounding plane											*/
- double		sy;						/* The slope in the global y direction of a bounding plane											*/
- struct		crown_tag *next;
- struct		crown_tag *prev;
+   int		shape;					/* Crown shape																						*/
+   double		beta;					/* The angle between the crown axis and a line between the crown tip and a point on the base edge	*/
+   double		d1;						/* The semi-major axis of the ellipsoid or cone/cylinder length in metres							*/
+   double		d2;						/* The semi-minor axis of the ellipsoid or cone/cylinder base radius in metres						*/
+   double		d3;						/* The truncation length from ellipsoid tip or cone/cylinder length in metres						*/
+   double		volume;					/* Approximate crown volume (m^3) for non-sloping bounding planes.									*/
+   d3Vector	base;					/* A point in the centre of the base of the crown volume											*/
+   d3Vector	axis;					/* A unit vector in the major axial direction														*/
+   d3Vector	x;						/* A unit vector normal to the major axial direction												*/
+   d3Vector	y;						/* A unit vector normal to both axis and x															*/
+   double		sx;						/* The slope in the global x direction of a bounding plane											*/
+   double		sy;						/* The slope in the global y direction of a bounding plane											*/
+   struct		crown_tag *next;
+   struct		crown_tag *prev;
 } Crown;
 
 /*****************************/
@@ -67,16 +67,16 @@ void		Destroy_Crown	(Crown *p_cwn);
 void		Copy_Crown		(Crown *p_cwnCopy, Crown *p_cwnOriginal);
 void		Print_Crown		(Crown *p_cwn);
 void		Assign_Crown	(Crown *p_cwn, int shape, double beta, double d1, double d2, double d3,
-							 d3Vector base, d3Vector axis, double sx, double sy);
+                         d3Vector base, d3Vector axis, double sx, double sy);
 
 /*************************************/
 /* Doubly linked list implementation */
 /*************************************/
 
 typedef struct crown_list_tag {
- struct		crown_tag *head;
- struct		crown_tag *tail;
- long		n;
+   struct		crown_tag *head;
+   struct		crown_tag *tail;
+   long		n;
 } Crown_List;
 
 void		Crown_init_list			(Crown_List *p_cwnl);

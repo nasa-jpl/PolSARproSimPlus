@@ -61,8 +61,8 @@ typedef struct branch_tag {
  d3Vector	b0;					/* The branch beginning										*/
  d3Vector	z0;					/* The initial branch direction								*/
  d3Vector	p;					/* The tropism direction for this branch					*/
- int		id;					/* Unique number for this branch in a tree					*/
- int		idorg;				/* The number of the parent branch for this branch			*/
+ int      id;					/* Unique number for this branch in a tree					*/
+ int      idorg;				/* The number of the parent branch for this branch			*/
  struct		branch_tag *next;
  struct		branch_tag *prev;
 } Branch;
@@ -87,22 +87,23 @@ void		Assign_Branch	(Branch *p_b, double sr, double er, d3Vector b0, d3Vector z0
 typedef struct branch_list_tag {
  struct		branch_tag *head;
  struct		branch_tag *tail;
- long		n;
+ long     n;
+ double   scale_factor; /* added this scale factor for tertiary branches */
 } Branch_List;
 
-void		Branch_init_list		(Branch_List *p_bl);
-int			Branch_head_add			(Branch_List *p_bl, Branch *p_b);
-int			Branch_head_sub			(Branch_List *p_bl, Branch *p_b);
-void		Branch_head_print		(Branch_List *p_bl);
-int			Branch_tail_add			(Branch_List *p_bl, Branch *p_b);
-int			Branch_tail_sub			(Branch_List *p_bl, Branch *p_b);
-void		Branch_tail_print		(Branch_List *p_bl);
-long		Branch_List_length		(Branch_List *p_bl);
+void      Branch_init_list		(Branch_List *p_bl);
+int       Branch_head_add			(Branch_List *p_bl, Branch *p_b);
+int       Branch_head_sub			(Branch_List *p_bl, Branch *p_b);
+void      Branch_head_print		(Branch_List *p_bl);
+int       Branch_tail_add			(Branch_List *p_bl, Branch *p_b);
+int       Branch_tail_sub			(Branch_List *p_bl, Branch *p_b);
+void      Branch_tail_print		(Branch_List *p_bl);
+long      Branch_List_length	(Branch_List *p_bl);
 Branch*		Branch_List_head		(Branch_List *p_bl);
 Branch*		Branch_List_tail		(Branch_List *p_bl);
-int			Branch_insert			(Branch_List *p_bl, Branch *p_b, long m);
-int			Branch_delete			(Branch_List *p_bl, Branch *p_b, long m);
-void		Branch_empty_list		(Branch_List *p_bl);
+int       Branch_insert       (Branch_List *p_bl, Branch *p_b, long m);
+int       Branch_delete       (Branch_List *p_bl, Branch *p_b, long m);
+void      Branch_empty_list		(Branch_List *p_bl);
 
 void		Branch_List_Copy		(Branch_List *pBL_Copy, Branch_List *pBL_Org);
 
@@ -112,8 +113,8 @@ void		Branch_List_Copy		(Branch_List *pBL_Copy, Branch_List *pBL_Org);
 
 #define		NO_BRANCH_ERRORS					0
 #define		NULL_PTR2BRANCH						0
-#define		NULL_PTR2BRANCH_LIST				0
-#define		ALPHA_GOLDEN						1.61803399		/* Golden ratio for use with branch curvature					*/
+#define		NULL_PTR2BRANCH_LIST			0
+#define		ALPHA_GOLDEN              1.61803399		/* Golden ratio for use with branch curvature					*/
 #define		BRANCH_DIRECTION_ROUNDING_LIMIT		FLT_EPSILON
 
 /***************************/

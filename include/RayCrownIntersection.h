@@ -72,4 +72,9 @@ int			RayCrownConeIntersection		(Ray *pR, Crown *pC, d3Vector *pS1, double *alph
 											 d3Vector *pS2, double *alpha2);
 int			RayCrownSpheroidIntersection	(Ray *pR, Crown *pC, d3Vector *pS1, double *alpha1, 
 											 d3Vector *pS2, double *alpha2);
+int			RayCrownIntersection_Amap			(Ray *pR, Crown *pC,	d3Vector *pS1,	double *alpha1, 
+                                        d3Vector *pS2, double *alpha2);
+int			RayCrownSpheroidIntersection_Amap	(Ray *pR, Crown *pC, d3Vector *pS1, double *alpha1, 
+											 d3Vector *pS2, double *alpha2);
+
 #endif

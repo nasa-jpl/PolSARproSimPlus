@@ -49,17 +49,20 @@
 /******************************/
 
 typedef struct tree_tag {
- int				species;			/* Species of tree													*/
- d3Vector			base;				/* Stem base position												*/
- double				height;				/* Length of stem in the stem direction								*/
- double				radius;				/* The nominal maximum crownn radius								*/
- Branch_List		Stem;				/* List of tree trunks, can be more than one						*/
- Branch_List		Primary;			/* List of living primary branches									*/
- Branch_List		Dry;				/* List of dry primary branches										*/
- Branch_List		Secondary;			/* List of secondary branches										*/
- Branch_List		Tertiary;			/* List of tertiary branches										*/
- Leaf_List			Foliage;			/* List of leaves													*/
- Crown_List			CrownVolume;		/* List of volumes occupied by tertiary branches and leaves			*/
+ int            species;			/* Species of tree                                              */
+ d3Vector       base;         /* Stem base position                                           */
+ double         height;				/* Length of stem in the stem direction                         */
+ double         radius;				/* The nominal maximum crownn radius                            */
+ double         dbh;          /* This is the stem diameter at breast height     --RAedit      */
+ double         canopy_depth; /* This is the canopy depth                       --RAedit      */
+ double         canopy_dry_depth;  /* This the dry canopy depth                 --RAedit      */
+ Branch_List		Stem;         /* List of tree trunks, can be more than one                    */
+ Branch_List		Primary;			/* List of living primary branches                              */
+ Branch_List		Dry;          /* List of dry primary branches                                 */
+ Branch_List		Secondary;		/* List of secondary branches                                   */
+ Branch_List		Tertiary;			/* List of tertiary branches                                    */
+ Leaf_List			Foliage;			/* List of leaves                                               */
+ Crown_List			CrownVolume;	/* List of volumes occupied by tertiary branches and leaves			*/
  struct	tree_tag	*next;
  struct	tree_tag	*prev;
 } Tree;

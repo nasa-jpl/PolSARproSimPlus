@@ -76,6 +76,7 @@
 /***************************************/
 
 double		vegi_polar_angle				(void);
+double		vegi_polar_angle_r			(unsigned int *pseed);
 
 /*******************/
 /* Tree generation */

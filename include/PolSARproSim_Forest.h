@@ -126,7 +126,22 @@ int		Delete_SAR_Geometry				(SarGeometry *pSG);
 
 int		PolSARproSim_Forest_Direct		(PolSARproSim_Record *pPR);
 int		PolSARproSim_Forest_Bounce		(PolSARproSim_Record *pPR);
+int		PolSARproSim_Forest_SMP       (PolSARproSim_Record *pPR);
 
 #define	NO_POLSARPROSIM_FOREST_ERRORS			0
+
+/***************************************/
+/* SMP structure for Image Tree arg    */
+/***************************************/
+
+typedef struct imgtree_threadarg_tag{
+   Tree                   tree1;
+   SarGeometry            *pSG;
+   SarGeometry            *pSG2;
+   PolSARproSim_Record    *pPR;
+   int                    itree;
+}ImageTree_Thread_Arg;
+
+
 
 #endif
