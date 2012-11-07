@@ -1,4 +1,4 @@
-HOME = /Users/rahmed/pspsim_dev
+HOME = /Users/rahmed/pspsim_dev_new
 SRCDIR = $(HOME)/src
 LIBDIR = $(HOME)/lib
 INCDIR = -I$(HOME)/include -I/usr/include/libxml2/
