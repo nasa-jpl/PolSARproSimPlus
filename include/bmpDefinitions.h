@@ -30,7 +30,7 @@
 #define __BMPDEFINITIONS_H__
 
 typedef unsigned short int	BMP_WORD;
-typedef unsigned int		BMP_DWORD;
+typedef unsigned int       BMP_DWORD;
 typedef signed int			BMP_LONG;
 typedef unsigned char		BMP_BYTE;
 

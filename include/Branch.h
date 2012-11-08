@@ -39,30 +39,30 @@
 #include	"MonteCarlo.h"
 #include	"Trig.h"
 
-/******************************/
+/*******************************/
 /* Branch structure definition */
-/******************************/
+/*******************************/
 
 typedef struct branch_tag {
- double		l;					/* The length of the branch in metres						*/
+ double		l;                /* The length of the branch in metres                    */
  double		start_radius;		/* The start radius of the branch in metres					*/
- double		end_radius;			/* The end radius of the branch in metres					*/
+ double		end_radius;			/* The end radius of the branch in metres                */
  double		dp;					/* The tropism factor for the initial direction				*/
  double		dp_coeff;			/* The tropism coefficient for the initial direction		*/
- double		phix;				/* A curvature random angle									*/ 
- double		phiy;				/* A curvature random angle									*/
- double		phicx;				/* A curvature random angle									*/
- double		phicy;				/* A curvature random angle									*/
- double		lamdacx;			/* A curvature random wavelength							*/
- double		lamdacy;			/* A curvature random wavelength							*/
- double		gamma;				/* The curvature scaling									*/
- double		moisture;			/* Fractional moisture content of branch					*/
- Complex	permittivity;		/* The effective dielectric permittivity of the cylinder	*/
- d3Vector	b0;					/* The branch beginning										*/
- d3Vector	z0;					/* The initial branch direction								*/
- d3Vector	p;					/* The tropism direction for this branch					*/
- int      id;					/* Unique number for this branch in a tree					*/
- int      idorg;				/* The number of the parent branch for this branch			*/
+ double		phix;             /* A curvature random angle                              */ 
+ double		phiy;             /* A curvature random angle                              */
+ double		phicx;				/* A curvature random angle                              */
+ double		phicy;				/* A curvature random angle                              */
+ double		lamdacx;          /* A curvature random wavelength                         */
+ double		lamdacy;          /* A curvature random wavelength                         */
+ double		gamma;				/* The curvature scaling                                 */
+ double		moisture;			/* Fractional moisture content of branch                 */
+ Complex    permittivity;		/* The effective dielectric permittivity of the cylinder	*/
+ d3Vector	b0;					/* The branch beginning                                  */
+ d3Vector	z0;					/* The initial branch direction                          */
+ d3Vector	p;                /* The tropism direction for this branch                 */
+ int        id;					/* Unique number for this branch in a tree					*/
+ int        idorg;				/* The number of the parent branch for this branch			*/
  struct		branch_tag *next;
  struct		branch_tag *prev;
 } Branch;
@@ -87,43 +87,42 @@ void		Assign_Branch	(Branch *p_b, double sr, double er, d3Vector b0, d3Vector z0
 typedef struct branch_list_tag {
  struct		branch_tag *head;
  struct		branch_tag *tail;
- long     n;
- double   scale_factor; /* added this scale factor for tertiary branches */
+ long       n;
+ double     scale_factor; /* added this scale factor for tertiary branches */
 } Branch_List;
 
-void      Branch_init_list		(Branch_List *p_bl);
-int       Branch_head_add			(Branch_List *p_bl, Branch *p_b);
-int       Branch_head_sub			(Branch_List *p_bl, Branch *p_b);
-void      Branch_head_print		(Branch_List *p_bl);
-int       Branch_tail_add			(Branch_List *p_bl, Branch *p_b);
-int       Branch_tail_sub			(Branch_List *p_bl, Branch *p_b);
-void      Branch_tail_print		(Branch_List *p_bl);
-long      Branch_List_length	(Branch_List *p_bl);
-Branch*		Branch_List_head		(Branch_List *p_bl);
-Branch*		Branch_List_tail		(Branch_List *p_bl);
-int       Branch_insert       (Branch_List *p_bl, Branch *p_b, long m);
-int       Branch_delete       (Branch_List *p_bl, Branch *p_b, long m);
-void      Branch_empty_list		(Branch_List *p_bl);
-
-void		Branch_List_Copy		(Branch_List *pBL_Copy, Branch_List *pBL_Org);
+void        Branch_init_list		(Branch_List *p_bl);
+int         Branch_head_add		(Branch_List *p_bl, Branch *p_b);
+int         Branch_head_sub		(Branch_List *p_bl, Branch *p_b);
+void        Branch_head_print		(Branch_List *p_bl);
+int         Branch_tail_add		(Branch_List *p_bl, Branch *p_b);
+int         Branch_tail_sub		(Branch_List *p_bl, Branch *p_b);
+void        Branch_tail_print		(Branch_List *p_bl);
+long        Branch_List_length	(Branch_List *p_bl);
+Branch*     Branch_List_head		(Branch_List *p_bl);
+Branch*     Branch_List_tail		(Branch_List *p_bl);
+int         Branch_insert        (Branch_List *p_bl, Branch *p_b, long m);
+int         Branch_delete        (Branch_List *p_bl, Branch *p_b, long m);
+void        Branch_empty_list		(Branch_List *p_bl);
+void        Branch_List_Copy		(Branch_List *pBL_Copy, Branch_List *pBL_Org);
 
 /**********************/
 /* Branch definitions */
 /**********************/
 
-#define		NO_BRANCH_ERRORS					0
-#define		NULL_PTR2BRANCH						0
-#define		NULL_PTR2BRANCH_LIST			0
-#define		ALPHA_GOLDEN              1.61803399		/* Golden ratio for use with branch curvature					*/
+#define		NO_BRANCH_ERRORS                    0
+#define		NULL_PTR2BRANCH                     0
+#define		NULL_PTR2BRANCH_LIST                0
+#define		ALPHA_GOLDEN                        1.61803399		/* Golden ratio for use with branch curvature	*/
 #define		BRANCH_DIRECTION_ROUNDING_LIMIT		FLT_EPSILON
 
 /***************************/
 /* Other branch prototypes */
 /***************************/
 
-int			Branch_Directions	(Branch *pB, double t, d3Vector *pX, d3Vector *pY, d3Vector *pZ);
-d3Vector	Branch_Crookedness	(Branch *pB, double t);
-d3Vector	Branch_Centre		(Branch *pB, double t);
-double		Branch_Radius		(Branch *pB, double t);
+int			Branch_Directions    (Branch *pB, double t, d3Vector *pX, d3Vector *pY, d3Vector *pZ);
+d3Vector    Branch_Crookedness	(Branch *pB, double t);
+d3Vector    Branch_Centre        (Branch *pB, double t);
+double		Branch_Radius        (Branch *pB, double t);
 
 #endif

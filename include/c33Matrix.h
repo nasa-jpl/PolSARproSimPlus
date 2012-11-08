@@ -41,17 +41,17 @@ typedef struct c33matrix_tag {
  Complex  m[9];
 } c33Matrix;
 
-void		Create_c33Matrix			(c33Matrix *p_c33m);
-void		Destroy_c33Matrix			(c33Matrix *p_c33m);
-c33Matrix	Zero_c33Matrix				(void);
-c33Matrix	Idem_c33Matrix				(void);
-void		Print_c33Matrix				(c33Matrix c33m);
+void        Create_c33Matrix           (c33Matrix *p_c33m);
+void        Destroy_c33Matrix          (c33Matrix *p_c33m);
+c33Matrix	Zero_c33Matrix             (void);
+c33Matrix	Idem_c33Matrix             (void);
+void        Print_c33Matrix				(c33Matrix c33m);
 c33Matrix	c33Matrix_Complex_product	(c33Matrix c33m,	Complex x);
-c3Vector	c33Matrix_c3Vector_product	(c33Matrix c33m,	c3Vector c3v);
+c3Vector    c33Matrix_c3Vector_product	(c33Matrix c33m,	c3Vector c3v);
 c33Matrix	c3Vector_dyadic_product		(c3Vector c3v1,		c3Vector c3v2);
-c33Matrix	c33Matrix_product			(c33Matrix c33m1,	c33Matrix c33m2);
-c33Matrix	c33Matrix_sum				(c33Matrix c33m1,	c33Matrix c33m2);
-c33Matrix	c33Matrix_difference		(c33Matrix c33m1,	c33Matrix c33m2);
+c33Matrix	c33Matrix_product          (c33Matrix c33m1,	c33Matrix c33m2);
+c33Matrix	c33Matrix_sum              (c33Matrix c33m1,	c33Matrix c33m2);
+c33Matrix	c33Matrix_difference       (c33Matrix c33m1,	c33Matrix c33m2);
 
 #endif
 

@@ -109,7 +109,7 @@ typedef struct sargeometry_tag {
  double			Sigma0HV;
  double			Sigma0VH;
  double			Sigma0VV;
- Complex		AvgShhvv, zhhvv;
+ Complex       AvgShhvv, zhhvv;
  double			Sigma0_count;
 } SarGeometry;
 

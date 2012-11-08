@@ -1266,7 +1266,7 @@ void	drawTree	(Tree *pT, Graphic_Record *pGR, SIM_Record *pZb, Drawing_Record *p
          xp	= d3Vector_cross_product (yp, np);
          d3Vector_insitu_normalise (&xp);
       }
-      printf("No. of crowns: %ld\n", pT->CrownVolume.n); 
+      //printf("No. of crowns: %ld\n", pT->CrownVolume.n); 
       for (iCrown=0L; iCrown < pT->CrownVolume.n; iCrown++) {
          if(pC != NULL_PTR2CROWN){
             Nazimuth	= (int) (2.0*DPI_RAD*pC->d2 / dres);

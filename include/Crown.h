@@ -42,18 +42,18 @@
 /******************************/
 
 typedef struct crown_tag {
-   int		shape;					/* Crown shape																						*/
+   int         shape;				/* Crown shape																						*/
    double		beta;					/* The angle between the crown axis and a line between the crown tip and a point on the base edge	*/
-   double		d1;						/* The semi-major axis of the ellipsoid or cone/cylinder length in metres							*/
-   double		d2;						/* The semi-minor axis of the ellipsoid or cone/cylinder base radius in metres						*/
-   double		d3;						/* The truncation length from ellipsoid tip or cone/cylinder length in metres						*/
-   double		volume;					/* Approximate crown volume (m^3) for non-sloping bounding planes.									*/
-   d3Vector	base;					/* A point in the centre of the base of the crown volume											*/
-   d3Vector	axis;					/* A unit vector in the major axial direction														*/
-   d3Vector	x;						/* A unit vector normal to the major axial direction												*/
-   d3Vector	y;						/* A unit vector normal to both axis and x															*/
-   double		sx;						/* The slope in the global x direction of a bounding plane											*/
-   double		sy;						/* The slope in the global y direction of a bounding plane											*/
+   double		d1;					/* The semi-major axis of the ellipsoid or cone/cylinder length in metres							*/
+   double		d2;					/* The semi-minor axis of the ellipsoid or cone/cylinder base radius in metres						*/
+   double		d3;					/* The truncation length from ellipsoid tip or cone/cylinder length in metres						*/
+   double		volume;				/* Approximate crown volume (m^3) for non-sloping bounding planes.									*/
+   d3Vector    base;					/* A point in the centre of the base of the crown volume											*/
+   d3Vector    axis;					/* A unit vector in the major axial direction														*/
+   d3Vector    x;						/* A unit vector normal to the major axial direction												*/
+   d3Vector    y;						/* A unit vector normal to both axis and x															*/
+   double		sx;					/* The slope in the global x direction of a bounding plane											*/
+   double		sy;					/* The slope in the global y direction of a bounding plane											*/
    struct		crown_tag *next;
    struct		crown_tag *prev;
 } Crown;
@@ -76,31 +76,31 @@ void		Assign_Crown	(Crown *p_cwn, int shape, double beta, double d1, double d2, 
 typedef struct crown_list_tag {
    struct		crown_tag *head;
    struct		crown_tag *tail;
-   long		n;
+   long        n;
 } Crown_List;
 
-void		Crown_init_list			(Crown_List *p_cwnl);
+void        Crown_init_list		(Crown_List *p_cwnl);
 int			Crown_head_add			(Crown_List *p_cwnl, Crown *p_cwn);
 int			Crown_head_sub			(Crown_List *p_cwnl, Crown *p_cwn);
-void		Crown_head_print		(Crown_List *p_cwnl);
+void        Crown_head_print		(Crown_List *p_cwnl);
 int			Crown_tail_add			(Crown_List *p_cwnl, Crown *p_cwn);
 int			Crown_tail_sub			(Crown_List *p_cwnl, Crown *p_cwn);
-void		Crown_tail_print		(Crown_List *p_cwnl);
-long		Crown_List_length		(Crown_List *p_cwnl);
-Crown*		Crown_List_head			(Crown_List *p_cwnl);
-Crown*		Crown_List_tail			(Crown_List *p_cwnl);
+void        Crown_tail_print		(Crown_List *p_cwnl);
+long        Crown_List_length		(Crown_List *p_cwnl);
+Crown*		Crown_List_head		(Crown_List *p_cwnl);
+Crown*		Crown_List_tail		(Crown_List *p_cwnl);
 int			Crown_insert			(Crown_List *p_cwnl, Crown *p_cwn, long m);
 int			Crown_delete			(Crown_List *p_cwnl, Crown *p_cwn, long m);
-void		Crown_empty_list		(Crown_List *p_cwnl);
+void        Crown_empty_list		(Crown_List *p_cwnl);
 
-void		Crown_List_Copy			(Crown_List *pCL_Copy, Crown_List *pCL_Org);
+void        Crown_List_Copy		(Crown_List *pCL_Copy, Crown_List *pCL_Org);
 
 /*********************/
 /* Crown definitions */
 /*********************/
 
 #define		NO_CROWN_ERRORS		0
-#define		NULL_PTR2CROWN		0
+#define		NULL_PTR2CROWN       0
 #define		NULL_PTR2CROWN_LIST	0
 
 /****************************/

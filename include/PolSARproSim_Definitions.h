@@ -39,11 +39,6 @@
 /* Tree species enumeration */
 /****************************/
 
-//#define	POLSARPROSIM_HEDGE						0		/* The "hedge" (deciduous, homogeneous cylinder)				*/
-//#define	POLSARPROSIM_PINE001					1		/* Homemade Scots Pine with Spheroidal crown					*/
-//#define	POLSARPROSIM_PINE002					2		/* Homemade Scots Pine with Conical crown						*/
-//#define	POLSARPROSIM_PINE003					3		/* Homemade Scots Pine with 50% pY Spheroidal/Conical crown		*/
-//#define	POLSARPROSIM_DECIDUOUS001				4		/* A Deciduous tree												*/
 #define POLSARPROSIM_NULL_SPECIES				99		/* Not a tree type, just an initialisation value				*/
 
 /**************************************/
@@ -51,9 +46,6 @@
 /**************************************/
 
 #define	TREE_STDDEV_FACTOR                           0.050	/* Standard deviation as a fraction of the mean for Guassian variables	*/
-//#define	POLSARPROSIM_TERTIARY_STDEV_FACTOR				0.050
-//#define	POLSARPROSIM_HEDGE_TERTIARY_BRANCH_LENGTH		1.500	/* 1.500 */
-//#define	POLSARPROSIM_HEDGE_TERTIARY_BRANCH_RADIUS		0.011	/* 0.015 */
 
 /*******************************/
 /* Scene generation parameters */
@@ -108,29 +100,6 @@
 #define	TREE_DISC_TEMP_ALPHA                   9.0
 #define	TREE_DISC_ROTATION_ANGLE               22.5
 #define	TREE_DISC_NIMAGES                      1
-
-/*****************************/
-/* Tree realisation controls */
-/*****************************/
-
-//#define	POLSARPROSIM_HEDGE_TERTIARY_FACTOR				10.0		/* Scale factors controlling the number of tertiary branch		*/
-//#define	POLSARPROSIM_PINE001_TERTIARY_FACTOR			10.0		/* elements generated during the realisation of a single tree	*/
-//#define	POLSARPROSIM_PINE002_TERTIARY_FACTOR			10.0
-//#define	POLSARPROSIM_PINE003_TERTIARY_FACTOR			10.0
-//#define	POLSARPROSIM_DECIDUOUS001_TERTIARY_FACTOR		10.0
-
-//#define	POLSARPROSIM_HEDGE_FOLIAGE_FACTOR				10.0		/* Scale factors controlling the number of leaves				*/
-//#define	POLSARPROSIM_PINE001_FOLIAGE_FACTOR				10.0		/* generated during the realisation of a single tree			*/
-//#define	POLSARPROSIM_PINE002_FOLIAGE_FACTOR				10.0
-//#define	POLSARPROSIM_PINE003_FOLIAGE_FACTOR				10.0
-//#define	POLSARPROSIM_DECIDUOUS001_FOLIAGE_FACTOR		10.0
-
-/********************************************************/
-/* Nominal tertiary and foliage realisation definitions */
-/********************************************************/
-
-//#define	POLSARPROSIM_NOMINAL_TERTIARY_NUMBER			10
-//#define	POLSARPROSIM_NOMINAL_FOLIAGE_NUMBER				10
 
 /*********************************************/
 /* Short vegetation layer default parameters */
@@ -297,19 +266,6 @@
 /*******************/
 
 #define	POLSARPROSIM_SAR_BRANCH_FACTOR					0.5			/* Controls the length of branch subdivisions in calculating SAR images			*/
-
-//#define	POLSARPROSIM_HEDGE_SAR_TERTIARY_FACTOR			120.0		/* Scale factors controlling the number of tertiary branch		*/
-//#define	POLSARPROSIM_PINE001_SAR_TERTIARY_FACTOR		120.0		/* elements generated during the realisation of a single tree	*/
-//#define	POLSARPROSIM_PINE002_SAR_TERTIARY_FACTOR		120.0		/* for the purposes of SAR image generation rather than simply	*/
-//#define	POLSARPROSIM_PINE003_SAR_TERTIARY_FACTOR		120.0		/* graphic rendering of the cartoon forest image.				*/
-//#define	POLSARPROSIM_DECIDUOUS001_SAR_TERTIARY_FACTOR	120.0		/* This is the number of realisations per pixel area for crowns	*/
-//
-//#define	POLSARPROSIM_HEDGE_SAR_FOLIAGE_FACTOR			30.0		/* Scale factors controlling the number of foliage elements		*/
-//#define	POLSARPROSIM_PINE001_SAR_FOLIAGE_FACTOR			30.0		/* generated during the realisation of a single tree			*/
-//#define	POLSARPROSIM_PINE002_SAR_FOLIAGE_FACTOR			30.0		/* for the purposes of SAR image generation rather than simply	*/
-//#define	POLSARPROSIM_PINE003_SAR_FOLIAGE_FACTOR			30.0		/* graphic rendering of the cartoon forest image.				*/
-//#define	POLSARPROSIM_DECIDUOUS001_SAR_FOLIAGE_FACTOR	30.0		/* This is the number of realisations per pixel area for crowns	*/
-
 #define	POLSARPROSIM_SAR_GRG_TERTIARY_BRANCHES			0			/* Flag values for choice of scattering model					*/
 #define	POLSARPROSIM_SAR_INF_TERTIARY_BRANCHES			1
 

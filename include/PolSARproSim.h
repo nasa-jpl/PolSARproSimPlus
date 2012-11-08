@@ -91,12 +91,4 @@ pthread_mutex_t PolSARproSim_HVmutex;
 pthread_mutex_t PolSARproSim_VVmutex;
 
 
-/***************************************/
-/* SMP structure for Threads with  */
-/***************************************/
-
-typedef struct pspsim_thread_tag{
-   PolSARproSim_Record    *pPR;
-}PolSARproSim_Thread_Arg;
-
 #endif
