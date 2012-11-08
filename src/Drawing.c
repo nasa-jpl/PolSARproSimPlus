@@ -1830,7 +1830,7 @@ void		Forest_Graphic					(PolSARproSim_Record *pPR)
    Create_Tree (&tree1);
    for (itree=0; itree<pPR->Trees; itree++) {
       Realise_Tree	(&tree1, itree, pPR);
-      printf("Realised the Tree %d, %d\n", itree, tree1.species);
+      //printf("Realised the Tree %d, %d\n", itree, tree1.species);
       drawTree		(&tree1, &Forest_Image, &Zbuffer, &dRec);
    }
    Destroy_Tree (&tree1);
