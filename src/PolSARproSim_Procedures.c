@@ -3143,8 +3143,8 @@ void     *Compute_Alphas   (void *threadarg)
       number_of_leaves = tree1.Foliage.n;
       for (iLeaf=0L; iLeaf < number_of_leaves; iLeaf++){
          Leaf_Depolarization_Factors (pL, &leafL1, &leafL2, &leafL3);
-         leaf_moisture           = pL->moisture; //Leaf_Moisture	(pPR->species, pPR);
-         leaf_permittivity       = pL->permittivity; //vegetation_permittivity	(leaf_moisture, pPR->frequency);
+         leaf_moisture           = pL->moisture; 
+         leaf_permittivity       = pL->permittivity; 
          leaf_epsm1              = xy_complex (leaf_permittivity.x-1.0, leaf_permittivity.y);
          Alpha                   = Leaf_Polarisability (pL, leafL1, leafL2, leafL3);
          Alpha_Leaf_Sum          = c33Matrix_sum (Alpha_Leaf_Sum, c33Matrix_Complex_product (Alpha, leaf_epsm1));
@@ -4004,9 +4004,6 @@ void		Attenuation_Map					(PolSARproSim_Record *pPR)
                /* Living crown contribution */
                /*****************************/
                for (itree=0; itree<pPR->Trees; itree++) {
-                  /* Changing the comparison to include per tree radius instead of mean crown radius Cr -- RAedit */
-                  /* if (fabs (x-pPR->Tree_Location[itree].x) <= Cr) {                                            */
-                  /*  if (y > (pPR->Tree_Location[itree].y - Cr)) {                                               */
                   if (fabs (x-pPR->Tree_Location[itree].x) <= pPR->Tree_Location[itree].radius) {
                      if (y > (pPR->Tree_Location[itree].y - pPR->Tree_Location[itree].radius)) {
                         /***********************************************/
@@ -4070,9 +4067,6 @@ void		Attenuation_Map					(PolSARproSim_Record *pPR)
                /**************************************/
                
                for (itree=0; itree<pPR->Trees; itree++) {
-                  /* Changing the comparison to include per tree radius instead of mean crown radius Cr -- RAedit */
-                  /* if (fabs (x-pPR->Tree_Location[itree].x) <= Cr) {                                            */
-                  /*  if (y > (pPR->Tree_Location[itree].y - Cr)) {                                               */
                   if (fabs (x-pPR->Tree_Location[itree].x) <= pPR->Tree_Location[itree].radius) {
                      if (y > (pPR->Tree_Location[itree].y - pPR->Tree_Location[itree].radius)) {
                         /***********************************************/
@@ -4170,9 +4164,6 @@ void		Attenuation_Map					(PolSARproSim_Record *pPR)
             /* Living crown contribution */
             /*****************************/
             for (itree=0; itree<pPR->Trees; itree++) {
-               /* Changing the comparison to include per tree radius instead of mean crown radius Cr -- RAedit  */
-               /* if (fabs (x-pPR->Tree_Location[itree].x) <= Cr) {                                             */
-               /*  if (y > (pPR->Tree_Location[itree].y - Cr)) {                                                */
                if (fabs (x-pPR->Tree_Location[itree].x) <= pPR->Tree_Location[itree].radius) {
                   if (y > (pPR->Tree_Location[itree].y - pPR->Tree_Location[itree].radius)) {
                      /***********************************************/
@@ -4236,9 +4227,6 @@ void		Attenuation_Map					(PolSARproSim_Record *pPR)
             /**************************************/
                         
             for (itree=0; itree<pPR->Trees; itree++) {
-               /* Changing the comparison to include per tree radius instead of mean crown radius Cr -- RAedit */
-               /* if (fabs (x-pPR->Tree_Location[itree].x) <= Cr) {                                            */
-               /*  if (y > (pPR->Tree_Location[itree].y - Cr)) {                                               */
                if (fabs (x-pPR->Tree_Location[itree].x) <= pPR->Tree_Location[itree].radius) {
                   if (y > (pPR->Tree_Location[itree].y - pPR->Tree_Location[itree].radius)) {
                      /***********************************************/
@@ -5954,16 +5942,6 @@ double		Estimate_SAR_Foliage (Tree *pT, PolSARproSim_Record *pPR, long *nf)
    /****************************************************************/
    /* Determine the number of desired foliage element realisations */
    /****************************************************************/
-   /*
-    switch (pT->species) {
-    case	POLSARPROSIM_HEDGE:        sfgn_factor	= POLSARPROSIM_HEDGE_SAR_FOLIAGE_FACTOR;           break;
-    case	POLSARPROSIM_PINE001:		sfgn_factor	= POLSARPROSIM_PINE001_SAR_FOLIAGE_FACTOR;			break;
-    case	POLSARPROSIM_PINE002:		sfgn_factor	= POLSARPROSIM_PINE002_SAR_FOLIAGE_FACTOR;			break;
-    case	POLSARPROSIM_PINE003:		sfgn_factor	= POLSARPROSIM_PINE003_SAR_FOLIAGE_FACTOR;			break;
-    case	POLSARPROSIM_DECIDUOUS001:	sfgn_factor	= POLSARPROSIM_DECIDUOUS001_SAR_FOLIAGE_FACTOR;			break;
-    default:				sfgn_factor	= POLSARPROSIM_PINE001_SAR_FOLIAGE_FACTOR;			break;
-    }
-    */
    sfgn_factor = pPR->SpeciesDataBase[pT->species].leaf_number_factor;
    sfgn			= (long) (sfgn_factor*crown_area/(pPR->azimuth_resolution*pPR->ground_range_resolution[0]));
    sfgn++;

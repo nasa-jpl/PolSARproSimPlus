@@ -707,8 +707,6 @@ int		Image_Tree_Bounce		(Tree *pT, SarGeometry *pSG, PolSARproSim_Record *pPR)
    /* Image the stems */
    /*******************/
 #ifndef POLSARPROSIM_NO_SAR_STEMS
-   /*if (pPR->species != POLSARPROSIM_HEDGE) { Original code              */
-   /* if (pT->species != POLSARPROSIM_HEDGE) { First --RAedit             */
    if (pT->Stem.head != NULL_PTR2BRANCH_LIST){ /* Image stem if it exists */  
       pB			= pT->Stem.head;
       weight_sum	= 0.0;
@@ -732,9 +730,7 @@ int		Image_Tree_Bounce		(Tree *pT, SarGeometry *pSG, PolSARproSim_Record *pPR)
    /**************************/
 #ifndef POLSARPROSIM_NO_SAR_PRIMARIES
    /****** Image the dry part ********/
-   /* if ((pPR->species == POLSARPROSIM_PINE001) || (pPR->species == POLSARPROSIM_PINE002) || (pPR->species == POLSARPROSIM_PINE003)){*/ /* Origial         */
-   /* if ((pT->species == POLSARPROSIM_PINE001) || (pT->species == POLSARPROSIM_PINE002) || (pT->species == POLSARPROSIM_PINE003)){   */ /* First --RAedit  */
-   if(pT->Dry.head != NULL_PTR2BRANCH_LIST) { /* Only image the dry crown if it exists. Checking this way removes reliance on species definition  --RAedit  */
+    if(pT->Dry.head != NULL_PTR2BRANCH_LIST) { /* Only image the dry crown if it exists. Checking this way removes reliance on species definition  --RAedit  */
       pB           = pT->Dry.head;
       weight_sum	= 0.0;
       weight_count	= 0.0;
@@ -752,8 +748,6 @@ int		Image_Tree_Bounce		(Tree *pT, SarGeometry *pSG, PolSARproSim_Record *pPR)
       weight_avg	= weight_sum/weight_count;
    }
    /****** Image the live part *****/
-   /*if (pPR->species != POLSARPROSIM_HEDGE) { Original                                             */
-   /* if (pT->species != POLSARPROSIM_HEDGE) { First --RAedit                                       */
    if(pT->Primary.head != NULL_PTR2BRANCH_LIST){ /* Image wet primary branches only if they exist   */
       pB			= pT->Primary.head;
       weight_sum	= 0.0;
@@ -776,8 +770,6 @@ int		Image_Tree_Bounce		(Tree *pT, SarGeometry *pSG, PolSARproSim_Record *pPR)
    /* Image secondary branches */
    /****************************/
 #ifndef POLSARPROSIM_NO_SAR_SECONDARIES
-   /*if (pPR->species != POLSARPROSIM_HEDGE) { Original                                       */
-   /* if (pT->species != POLSARPROSIM_HEDGE) { First --RAedit                                 */
    if(pT->Secondary.head != NULL_PTR2BRANCH){ /* Image secondary branches only if they exist  */
       pB			= pT->Secondary.head;
       weight_sum	= 0.0;
@@ -1033,7 +1025,6 @@ int		Image_Tree_Direct		(Tree *pT, SarGeometry *pSG, PolSARproSim_Record *pPR)
    int              Cscatt_Flag;
    double           leafL1, leafL2, leafL3; //to calculate leaf depolarization factors
    
-//   double            weight_sum2;
    /************************************
     ** This part edited out along with **
     ** the Tertiary imaging section    **
@@ -1074,12 +1065,9 @@ int		Image_Tree_Direct		(Tree *pT, SarGeometry *pSG, PolSARproSim_Record *pPR)
    /* Image the stems */
    /*******************/
 #ifndef POLSARPROSIM_NO_SAR_STEMS
-   /*if (pPR->species != POLSARPROSIM_HEDGE) { Original                                       */
-   /*if (pT->species != POLSARPROSIM_HEDGE) { Remove Global species dependance --RAedit       */
-   if(pT->Stem.head != NULL_PTR2BRANCH_LIST){ /* Image Stem only if it exists                 */
+    if(pT->Stem.head != NULL_PTR2BRANCH_LIST){ /* Image Stem only if it exists                 */
       pB			= pT->Stem.head;
       weight_sum	= 0.0;
-      //weight_sum2	= 0.0;
       weight_count	= 0.0;
       for (iBranch=0L; iBranch < pT->Stem.n; iBranch++) {
          Nsections	= (int) (pB->l/bsecl) + 1;
@@ -1088,7 +1076,6 @@ int		Image_Tree_Direct		(Tree *pT, SarGeometry *pSG, PolSARproSim_Record *pPR)
          for (i_section = 0; i_section < Nsections; i_section++) {
             rtn_value	= Cylinder_from_Branch (&cyl1, pB, i_section, Nsections);
             weight_sum	+= Image_Cylinder_Direct (&cyl1, pSG, pPR, 1.0, Cscatt_Flag);
-//            weight_sum2	+= Image_Cylinder_Bounce (&cyl1, pSG, pPR, 1.0, Cscatt_Flag);
             weight_count	+= 1.0;
          }
          pB			= pB->next;
@@ -1100,8 +1087,6 @@ int		Image_Tree_Direct		(Tree *pT, SarGeometry *pSG, PolSARproSim_Record *pPR)
    /* Image primary branches */
    /**************************/
 #ifndef POLSARPROSIM_NO_SAR_PRIMARIES
-   /*if ((pPR->species == POLSARPROSIM_PINE001) || (pPR->species == POLSARPROSIM_PINE002) || (pPR->species == POLSARPROSIM_PINE003)){ Original    */
-   /*if ((pT->species == POLSARPROSIM_PINE001) || (pT->species == POLSARPROSIM_PINE002) || (pT->species == POLSARPROSIM_PINE003)){ First --RAedit */
    if(pT->Dry.head != NULL_PTR2BRANCH_LIST) {       /* Image Dry Primary branches onl if they exist                                      --RAedit */
       pB			= pT->Dry.head;
       weight_sum	= 0.0;
@@ -1113,15 +1098,12 @@ int		Image_Tree_Direct		(Tree *pT, SarGeometry *pSG, PolSARproSim_Record *pPR)
          for (i_section = 0; i_section < Nsections; i_section++) {
             rtn_value	= Cylinder_from_Branch (&cyl1, pB, i_section, Nsections);
             weight_sum	+= Image_Cylinder_Direct (&cyl1, pSG, pPR, 1.0, Cscatt_Flag);
-//            weight_sum2	+= Image_Cylinder_Bounce (&cyl1, pSG, pPR, 1.0, Cscatt_Flag);
             weight_count	+= 1.0;
          }
          pB			= pB->next;
       }
       weight_avg	= weight_sum/weight_count;
    }
-   /*if (pPR->species != POLSARPROSIM_HEDGE) { Original                                       */
-   /*if (pT->species != POLSARPROSIM_HEDGE)  {  Remove Global species dependance -- RAedit    */
    if(pT->Primary.head != NULL_PTR2BRANCH_LIST) { /* Image live primaries only if they exist  */
       pB			= pT->Primary.head;
       weight_sum	= 0.0;
@@ -1133,7 +1115,6 @@ int		Image_Tree_Direct		(Tree *pT, SarGeometry *pSG, PolSARproSim_Record *pPR)
          for (i_section = 0; i_section < Nsections; i_section++) {
             rtn_value	= Cylinder_from_Branch (&cyl1, pB, i_section, Nsections);
             weight_sum	+= Image_Cylinder_Direct (&cyl1, pSG, pPR, 1.0, Cscatt_Flag);
-//            weight_sum2	+= Image_Cylinder_Bounce (&cyl1, pSG, pPR, 1.0, Cscatt_Flag);
             weight_count	+= 1.0;
          }
          pB			= pB->next;
@@ -1145,8 +1126,6 @@ int		Image_Tree_Direct		(Tree *pT, SarGeometry *pSG, PolSARproSim_Record *pPR)
    /* Image secondary branches */
    /****************************/
 #ifndef POLSARPROSIM_NO_SAR_SECONDARIES
-   /*if (pPR->species != POLSARPROSIM_HEDGE) { Original                                       */
-   /*if (pT->species != POLSARPROSIM_HEDGE)  { Remove Global species dependance --RAedit      */
    if(pT->Secondary.head != NULL_PTR2BRANCH_LIST) { /* Image secondaries only if they exist        */
       pB			= pT->Secondary.head;
       weight_sum	= 0.0;
@@ -1158,7 +1137,6 @@ int		Image_Tree_Direct		(Tree *pT, SarGeometry *pSG, PolSARproSim_Record *pPR)
          for (i_section = 0; i_section < Nsections; i_section++) {
             rtn_value	= Cylinder_from_Branch (&cyl1, pB, i_section, Nsections);
             weight_sum	+= Image_Cylinder_Direct (&cyl1, pSG, pPR, 1.0, Cscatt_Flag);
-//            weight_sum2	+= Image_Cylinder_Bounce (&cyl1, pSG, pPR, 1.0, Cscatt_Flag);
             weight_count	+= 1.0;
          }
          pB			= pB->next;
@@ -1226,7 +1204,6 @@ int		Image_Tree_Direct		(Tree *pT, SarGeometry *pSG, PolSARproSim_Record *pPR)
          for (i_section = 0; i_section < Nsections; i_section++) {
             rtn_value     = Cylinder_from_Branch (&cyl1, pB, i_section, Nsections);
             weight_sum		+= Image_Cylinder_Direct (&cyl1, pSG, pPR, tb_scaling, Cscatt_Flag);
-//            weight_sum2		+= Image_Cylinder_Bounce (&cyl1, pSG, pPR, tb_scaling, Cscatt_Flag);
             weight_count	+= 1.0;
          }
          pB              = pB->next;
@@ -1284,7 +1261,6 @@ int		Image_Tree_Direct		(Tree *pT, SarGeometry *pSG, PolSARproSim_Record *pPR)
          pPR->Tertiary_leafL2	= leafL2;
          pPR->Tertiary_leafL3	= leafL3;
          weight_sum           += Image_Foliage_Direct (pL, pSG, pPR, flg_scaling);
-//         weight_sum2          += Image_Foliage_Bounce (pL, pSG, pPR, flg_scaling);
          weight_count         += 1.0;
          pL = pL->next;
       }
@@ -1331,7 +1307,6 @@ int		PolSARproSim_Forest_Direct		(PolSARproSim_Record *pPR)
    for (itree=0; itree<pPR->Trees; itree++) {
       Realise_Tree		(&tree1, itree, pPR);
       Image_Tree_Direct	(&tree1, &SG1, pPR);  
-      //Image_Tree_Bounce	(&tree1, &SG1, pPR); 
    }
    Destroy_Tree (&tree1);
    /***********************/
@@ -1418,32 +1393,6 @@ void		*Image_Tree_SMP		(void *threadarg)
    double            leafL1, leafL2, leafL3; //to calculate leaf depolarization factors
    
    double            weight_sum2;
-   /************************************
-    ** This part edited out along with **
-    ** the Tertiary imaging section    **
-    ** code                  --RAedit  **
-    #ifndef POLSARPROSIM_NO_SAR_TERTIARIES
-    Branch				tertiary_branch;
-    double				tertiary_branch_length, tertiary_branch_radius;
-    long         n_Tertiary;
-    double				tertiary_moisture;
-    Complex			tertiary_permittivity;
-    #endif
-    ************************************/
-   
-   /************************************
-    ** This part edited out along with **
-    ** the Foliage imaging section     **
-    ** code                  --RAedit  **
-    #ifndef POLSARPROSIM_NO_SAR_FOLIAGE
-    long           n_Leaves;
-    int            L_species;
-    double         leaf_d1, leaf_d2, leaf_d3;
-    double         L_moisture;
-    Complex        L_permittivity;
-    Leaf           tree_leaf;
-    #endif
-    ************************************/
    
    /************************/
    /* Initialise variables */
@@ -1458,8 +1407,6 @@ void		*Image_Tree_SMP		(void *threadarg)
    /* Image the stems */
    /*******************/
 #ifndef POLSARPROSIM_NO_SAR_STEMS
-   /*if (pPR->species != POLSARPROSIM_HEDGE) { Original                                       */
-   /*if (pT->species != POLSARPROSIM_HEDGE) { Remove Global species dependance --RAedit       */
    if(pT->Stem.head != NULL_PTR2BRANCH_LIST){ /* Image Stem only if it exists                 */
       pB			= pT->Stem.head;
       weight_sum	= 0.0;
@@ -1484,8 +1431,6 @@ void		*Image_Tree_SMP		(void *threadarg)
    /* Image primary branches */
    /**************************/
 #ifndef POLSARPROSIM_NO_SAR_PRIMARIES
-   /*if ((pPR->species == POLSARPROSIM_PINE001) || (pPR->species == POLSARPROSIM_PINE002) || (pPR->species == POLSARPROSIM_PINE003)){ Original    */
-   /*if ((pT->species == POLSARPROSIM_PINE001) || (pT->species == POLSARPROSIM_PINE002) || (pT->species == POLSARPROSIM_PINE003)){ First --RAedit */
    if(pT->Dry.head != NULL_PTR2BRANCH_LIST) {       /* Image Dry Primary branches onl if they exist                                      --RAedit */
       pB			= pT->Dry.head;
       weight_sum	= 0.0;
@@ -1504,8 +1449,6 @@ void		*Image_Tree_SMP		(void *threadarg)
       }
       weight_avg	= weight_sum/weight_count;
    }
-   /*if (pPR->species != POLSARPROSIM_HEDGE) { Original                                       */
-   /*if (pT->species != POLSARPROSIM_HEDGE)  {  Remove Global species dependance -- RAedit    */
    if(pT->Primary.head != NULL_PTR2BRANCH_LIST) { /* Image live primaries only if they exist  */
       pB			= pT->Primary.head;
       weight_sum	= 0.0;
@@ -1529,8 +1472,6 @@ void		*Image_Tree_SMP		(void *threadarg)
    /* Image secondary branches */
    /****************************/
 #ifndef POLSARPROSIM_NO_SAR_SECONDARIES
-   /*if (pPR->species != POLSARPROSIM_HEDGE) { Original                                       */
-   /*if (pT->species != POLSARPROSIM_HEDGE)  { Remove Global species dependance --RAedit      */
    if(pT->Secondary.head != NULL_PTR2BRANCH_LIST) { /* Image secondaries only if they exist        */
       pB			= pT->Secondary.head;
       weight_sum	= 0.0;
@@ -1561,42 +1502,6 @@ void		*Image_Tree_SMP		(void *threadarg)
       Cscatt_Flag	=    POLSARPROSIM_SAR_INF_TERTIARY_BRANCHES;
    }
 #endif
-   /***************************************************
-    ** This part is commented out so tertiaries from  **
-    ** the link-list created by Realise_Tertiaries()  **
-    ** are imaged instead of being regenerated here.  **
-    ** This removes the dependence of imaging code    **
-    ** on tree species.                               **
-    **                                       --RAedit **
-    ****************************************************
-    
-    tb_scaling				= Estimate_SAR_Tertiaries (pT, pPR, &n_Tertiary, &tertiary_branch_length, &tertiary_branch_radius);
-    weight_sum				= 0.0;
-    weight_count			= 0.0;
-    pB						= &tertiary_branch;
-    Create_Branch (pB);
-    tertiary_moisture		= Tertiary_Branch_Moisture (pT->species);
-    tertiary_permittivity	= vegetation_permittivity (tertiary_moisture, pPR->frequency);
-    for (iBranch=0L; iBranch < n_Tertiary; iBranch++) {
-    if (pT->species != POLSARPROSIM_HEDGE) {
-    tertiary_moisture		= Tertiary_Branch_Moisture (pT->species);
-    tertiary_permittivity	= vegetation_permittivity (tertiary_moisture, pPR->frequency);
-    }
-    rtn_value				= Realise_Tertiary_Branch (pT, pPR, pB, tertiary_branch_length, tertiary_branch_radius, tertiary_moisture, tertiary_permittivity);
-    if (rtn_value == NO_RAYCROWN_ERRORS) {
-    Nsections			= (int) (pB->l/bsecl) + 1;
-    deltat				= 1.0 / (double) Nsections;
-    deltar				= (pB->start_radius - pB->end_radius) / (double) Nsections;
-    for (i_section = 0; i_section < Nsections; i_section++) {
-    rtn_value			 = Cylinder_from_Branch (&cyl1, pB, i_section, Nsections);
-    weight_sum			+= Image_Cylinder_Direct (&cyl1, pSG, pPR, tb_scaling, Cscatt_Flag);
-    weight_count		+= 1.0;
-    }
-    }
-    }
-    weight_avg		= weight_sum/weight_count;
-    Destroy_Branch (pB);
-    ***************************************************/
    if(pT->Tertiary.head != NULL_PTR2BRANCH_LIST){
       weight_sum				= 0.0;
       weight_count			= 0.0;
@@ -1623,39 +1528,6 @@ void		*Image_Tree_SMP		(void *threadarg)
    /* Image foliage */
    /*****************/
 #ifndef POLSARPROSIM_NO_SAR_FOLIAGE
-   /***************************************************
-    ** This part is commented out so leaves from      **
-    ** the link-list created by Realise_Foliage()     **
-    ** are imaged instead of being regenerated here.  **
-    ** This removes the dependence of imaging code    **
-    ** on tree species.                               **
-    **                                       --RAedit **
-    ****************************************************
-    L_species		= Leaf_Species		(pT->species);
-    leaf_d1		= Leaf_Dimension_1	(pT->species);
-    leaf_d2		= Leaf_Dimension_2	(pT->species);
-    leaf_d3		= Leaf_Dimension_3	(pT->species);
-    L_moisture		= Leaf_Moisture		(pT->species);
-    L_permittivity	= vegetation_permittivity (L_moisture, pPR->frequency);
-    pL				= &tree_leaf;
-    Create_Leaf (pL);
-    flg_scaling	= Estimate_SAR_Foliage (pT, pPR, &n_Leaves);
-    weight_sum		= 0.0;
-    weight_count	= 0.0;
-    printf("No of Imaging Leaves: %ld\n", n_Leaves);
-    for (iLeaf=0L; iLeaf < n_Leaves; iLeaf++) {
-    if (pT->species != POLSARPROSIM_HEDGE) {
-    L_moisture		= Leaf_Moisture	(pT->species);
-    L_permittivity	= vegetation_permittivity (L_moisture, pPR->frequency);
-    }
-    rtn_value		= Realise_Foliage_Element (pT, pPR, pL, L_species, leaf_d1, leaf_d2, leaf_d3, L_moisture, L_permittivity);
-    if (rtn_value == NO_RAYCROWN_ERRORS) {
-    weight_sum	+= Image_Foliage_Direct (pL, pSG, pPR, flg_scaling);
-    weight_count	+= 1.0;
-    }
-    }
-    Destroy_Leaf (pL);
-    *****************************************--RAedit*/
    if(pT->Foliage.head != NULL_PTR2LEAF_LIST){
       weight_sum		= 0.0;
       weight_count	= 0.0;
@@ -1681,16 +1553,14 @@ void		*Image_Tree_SMP		(void *threadarg)
    /********************/
    /* ... and go home. */
    /********************/
-   //return (NO_POLSARPROSIM_FOREST_ERRORS);
    /* exit */
    pthread_exit(NULL);
 }
 
 
-/* for multithreading */
+/* Multithreaded version of Forest Scattering */
 int		PolSARproSim_Forest_SMP		(PolSARproSim_Record *pPR)
 {
-   //Tree			tree1;
    int			itree;
    SarGeometry	SG1;
    SarGeometry	SG2;
@@ -1708,7 +1578,6 @@ int		PolSARproSim_Forest_SMP		(PolSARproSim_Record *pPR)
    pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 
    threadarg = (ImageTree_Thread_Arg *)calloc(pPR->Trees,sizeof(ImageTree_Thread_Arg));
-   /* CAUTION. CREATING THESE MANY THREADS MAY NOT ALWAYS BE POSSIBLE */
    threads   = (pthread_t *)calloc(pPR->Trees,sizeof(pthread_t));
 
    /**********************/
@@ -1757,8 +1626,6 @@ int		PolSARproSim_Forest_SMP		(PolSARproSim_Record *pPR)
          exit(-1);
       }
    }
-
-//  Destroy_Tree (&tree1);
 
    /******************************/
    /* Monitor Direct performance */

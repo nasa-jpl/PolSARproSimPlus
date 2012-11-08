@@ -128,12 +128,9 @@ void		*Image_Short_Veg_Direct_Stems		(void *threadarg)
       nr	= nc_stem;
    }
    Sa_scaling			= sqrt ((double)nc_stem/(double)nr); 
-   /*********************************/
-   /* Reset random number generator */
-   /*********************************/
-   /* I am attempting this to avoid having to write threadsafe */
-   /* versions of the drand() function. --Razi                 */
-   //srand (pPR->seed+pTA->thread_id);
+   /************************************/
+   /* seed for random number generator */
+   /************************************/
    seed = pPR->seed + pTA->thread_id;
    for (j = 0; j < ny; j++) {
       yp	= (Ly - deltay)/2.0 - j*deltay;
@@ -142,16 +139,10 @@ void		*Image_Short_Veg_Direct_Stems		(void *threadarg)
          /******************/
          /* Realise a stem */
          /******************/
-//         stem_x				= xp + (drand() - 0.5)*deltax;
-//         stem_y				= yp + (drand() - 0.5)*deltay;
-//         stem_height			= zp + drand() * dsv;
          stem_x            = xp + (drand_r(&seed) - 0.5) * deltax;
          stem_y				= yp + (drand_r(&seed) - 0.5) * deltay;
          stem_height			= zp + drand_r(&seed) * dsv;
          stem_centre			= Cartesian_Assign_d3Vector (stem_x, stem_y, stem_height);
-//         theta             = vegi_polar_angle ();
-//         phi					= 2.0*Pi*drand ();
-//         stem_moisture		= Leaf_Moisture	(pPR->species, pPR);
          theta             = vegi_polar_angle_r (&seed);
          phi					= 2.0*Pi*drand_r (&seed);
          stem_moisture		= Leaf_Moisture_r	(pPR->species, pPR, &seed);
@@ -290,12 +281,9 @@ void     *Image_Short_Veg_Direct_Leaves      (void *threadarg)
    Complex           AvgShhvv, zhhvv;
    double				Sigma0_count	= 0.0;
 
-   /*********************************/
-   /* Reset random number generator */
-   /*********************************/
-   /* I am attempting this to avoid having to write threadsafe */
-   /* versions of the drand() function. --Razi                 */
-//   srand (pPR->seed+pTA->thread_id);
+   /************************************/
+   /* seed for random number generator */
+   /************************************/
    seed     = pPR->seed + pTA->thread_id;
    /********************/
    /* FSA wave vectors */
@@ -343,16 +331,10 @@ void     *Image_Short_Veg_Direct_Leaves      (void *threadarg)
          /******************/
          /* Realise a leaf */
          /******************/
-//         leaf_x				= xp + (drand() - 0.5)*deltax;
-//         leaf_y				= yp + (drand() - 0.5)*deltay;
-//         leaf_height			= zp + drand() * dsv;
          leaf_x				= xp + (drand_r(&seed) - 0.5)*deltax;
          leaf_y				= yp + (drand_r(&seed) - 0.5)*deltay;
          leaf_height			= zp + drand_r(&seed) * dsv;
          leaf_centre			= Cartesian_Assign_d3Vector (leaf_x, leaf_y, leaf_height);
-//         theta             = vegi_polar_angle ();
-//         phi					= 2.0*Pi*drand ();
-//         leaf_moisture		= Leaf_Moisture	(pPR->species, pPR);
          theta             = vegi_polar_angle_r (&seed);
          phi					= 2.0*Pi*drand_r (&seed);
          leaf_moisture		= Leaf_Moisture_r	(pPR->species, pPR, &seed);
@@ -434,7 +416,6 @@ void     *Image_Short_Veg_Direct_Leaves      (void *threadarg)
    pthread_exit(NULL);
    
 }
-
 
 
 /**************************************************************************/
@@ -1161,7 +1142,6 @@ void		*Image_Short_Veg_Bounce_Stems		(void *threadarg)
    /*********************************/
    /* Reset random number generator */
    /*********************************/
-   //srand (pPR->seed+pTA->thread_id);
    seed        = pPR->seed+pTA->thread_id;
    /********************/
    /* FSA wave vectors */
@@ -1221,19 +1201,10 @@ void		*Image_Short_Veg_Bounce_Stems		(void *threadarg)
    Rhh         = complex_div (complex_sub (koz, k2z), complex_add (koz, k2z));
    delta       = complex_add (complex_mul (kez, k22), complex_mul (k2z, k12));
    Rvv         = complex_div (complex_sub (complex_mul (kez, k22), complex_mul(k2z, k12)), delta);
-   //fprintf (pPR->pLogFile, "|Rhh|^2\t= %lf  \n", Rhh.r*Rhh.r);
-   //fprintf (pPR->pLogFile, "|Rvv|^2\t= %lf  \n", Rvv.r*Rvv.r);
-   //fflush  (pPR->pLogFile);
    gf          = 4.0*std_h*std_h*k0z2;
    Rg          = exp(-gf/2.0);
-   //fprintf (pPR->pLogFile, "gf\t\t= %lf  \n", gf);
-   //fprintf (pPR->pLogFile, "Rg\t\t= %lf  \n", Rg);
-   //fflush  (pPR->pLogFile);
    Rhh         = complex_rmul (Rhh, Rg);
    Rvv         = complex_rmul (Rvv, Rg);
-   //fprintf (pPR->pLogFile, "|Rhh|^2\t= %lf  \n", Rhh.r*Rhh.r);
-   //fprintf (pPR->pLogFile, "|Rvv|^2\t= %lf  \n", Rvv.r*Rvv.r);
-   //fflush  (pPR->pLogFile);
    R1          = c33Matrix_Complex_product (c3Vector_dyadic_product (chrl, chil), Rhh);
    R1          = c33Matrix_sum (R1, c33Matrix_Complex_product (c3Vector_dyadic_product (cvrl, cvil), Rvv));
    R2          = c33Matrix_Complex_product (c3Vector_dyadic_product (chsl, chrlm), Rhh);
@@ -1277,16 +1248,10 @@ void		*Image_Short_Veg_Bounce_Stems		(void *threadarg)
          /******************/
          /* Realise a stem */
          /******************/
-//         stem_x				= xp + (drand() - 0.5)*deltax;
-//         stem_y				= yp + (drand() - 0.5)*deltay;
-//         stem_height			= zp + drand() * dsv;
          stem_x				= xp + (drand_r(&seed) - 0.5)*deltax;
          stem_y				= yp + (drand_r(&seed) - 0.5)*deltay;
          stem_height			= zp + drand_r(&seed) * dsv;
          stem_centre			= Cartesian_Assign_d3Vector (stem_x, stem_y, stem_height);
-//         theta             = vegi_polar_angle ();
-//         phi					= 2.0*Pi*drand ();
-//         stem_moisture		= Leaf_Moisture	(pPR->species, pPR);
          theta             = vegi_polar_angle_r (&seed);
          phi					= 2.0*Pi*drand_r (&seed);
          stem_moisture		= Leaf_Moisture_r	(pPR->species, pPR, &seed);
@@ -1496,10 +1461,9 @@ void		*Image_Short_Veg_Bounce_Leaves		(void *threadarg)
    c3Vector          Eh, Ev;
    Complex           Shh, Shv, Svh, Svv;
    Complex           zhhvv;
-   /*********************************/
-   /* Reset random number generator */
-   /*********************************/
-//   srand (pPR->seed+pTA->thread_id);   
+   /************************************/
+   /* seed for random number generator */
+   /************************************/
    seed        = pPR->seed+pTA->thread_id;   
    /********************/
    /* FSA wave vectors */
@@ -1559,19 +1523,10 @@ void		*Image_Short_Veg_Bounce_Leaves		(void *threadarg)
    Rhh         = complex_div (complex_sub (koz, k2z), complex_add (koz, k2z));
    delta       = complex_add (complex_mul (kez, k22), complex_mul (k2z, k12));
    Rvv         = complex_div (complex_sub (complex_mul (kez, k22), complex_mul(k2z, k12)), delta);
-   //fprintf (pPR->pLogFile, "|Rhh|^2\t= %lf  \n", Rhh.r*Rhh.r);
-   //fprintf (pPR->pLogFile, "|Rvv|^2\t= %lf  \n", Rvv.r*Rvv.r);
-   //fflush  (pPR->pLogFile);
    gf          = 4.0*std_h*std_h*k0z2;
    Rg          = exp(-gf/2.0);
-   //fprintf (pPR->pLogFile, "gf\t\t= %lf  \n", gf);
-   //fprintf (pPR->pLogFile, "Rg\t\t= %lf  \n", Rg);
-   //fflush  (pPR->pLogFile);
    Rhh         = complex_rmul (Rhh, Rg);
    Rvv         = complex_rmul (Rvv, Rg);
-   //fprintf (pPR->pLogFile, "|Rhh|^2\t= %lf  \n", Rhh.r*Rhh.r);
-   //fprintf (pPR->pLogFile, "|Rvv|^2\t= %lf  \n", Rvv.r*Rvv.r);
-   //fflush  (pPR->pLogFile);
    R1          = c33Matrix_Complex_product (c3Vector_dyadic_product (chrl, chil), Rhh);
    R1          = c33Matrix_sum (R1, c33Matrix_Complex_product (c3Vector_dyadic_product (cvrl, cvil), Rvv));
    R2          = c33Matrix_Complex_product (c3Vector_dyadic_product (chsl, chrlm), Rhh);
@@ -1612,16 +1567,10 @@ void		*Image_Short_Veg_Bounce_Leaves		(void *threadarg)
          /******************/
          /* Realise a leaf */
          /******************/
-//         leaf_x				= xp + (drand() - 0.5)*deltax;
-//         leaf_y				= yp + (drand() - 0.5)*deltay;
-//         leaf_height			= zp + drand() * dsv;
          leaf_x				= xp + (drand_r(&seed) - 0.5)*deltax;
          leaf_y				= yp + (drand_r(&seed) - 0.5)*deltay;
          leaf_height			= zp + drand_r(&seed) * dsv;
          leaf_centre			= Cartesian_Assign_d3Vector (leaf_x, leaf_y, leaf_height);
-//         theta             = vegi_polar_angle ();
-//         phi					= 2.0*Pi*drand ();
-//         leaf_moisture		= Leaf_Moisture	(pPR->species, pPR);
          theta             = vegi_polar_angle_r (&seed);
          phi					= 2.0*Pi*drand_r (&seed);
          leaf_moisture		= Leaf_Moisture_r	(pPR->species, pPR, &seed);
@@ -1899,10 +1848,6 @@ int		PolSARproSim_Short_Vegetation_Bounce_SMP		(PolSARproSim_Record *pPR)
    R1          = c33Matrix_sum (R1, c33Matrix_Complex_product (c3Vector_dyadic_product (cvrl, cvil), Rvv));
    R2          = c33Matrix_Complex_product (c3Vector_dyadic_product (chsl, chrlm), Rhh);
    R2          = c33Matrix_sum (R2, c33Matrix_Complex_product (c3Vector_dyadic_product (cvsl, cvrlm), Rvv));
-   /*********************************/
-   /* Reset random number generator */
-   /*********************************/
-   //srand (pPR->seed);
    /*********************/
    /* Zero accumulators */
    /*********************/

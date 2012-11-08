@@ -239,7 +239,6 @@ int		PolSARproSim_Direct_Ground		(PolSARproSim_Record *pPR)
       /* For each facet in the azimuth line facet list */
       /*************************************************/
       n_facets	= Facet_List_length (&AzimuthList);
-      //printf("X: %d,Y: %d,Nf: %ld\n", ix, iy,n_facets); 
       for (i_facet = 0L; i_facet < n_facets; i_facet++) {
          /****************************************************/
          /* Sample random factors for scattering calculation */
@@ -287,7 +286,6 @@ int		PolSARproSim_Direct_Ground		(PolSARproSim_Record *pPR)
             /****************************************************/
             cosb          = cos(beta_xbragg + beta_facet);
             sinb          = sin(beta_xbragg + beta_facet);
-            //printf("%d, %ld) vv/hh %f\t", ix, i_facet, SigVV/SigHH);
             cosb2         = cosb*cosb;
             sinb2         = sinb*sinb;
             Shh           = complex_add   (complex_rmul (Shhl, cosb2), complex_rmul (Svvl, sinb2));
@@ -314,7 +312,6 @@ int		PolSARproSim_Direct_Ground		(PolSARproSim_Record *pPR)
             Polar_Assign_Complex (&zhhvv, Shh.r*Svv.r/fArea, Shh.phi-Svv.phi);
             AvgShhvv      = complex_add (AvgShhvv, zhhvv);
             Sigma0_count	+= 1.0;
-            //printf("\t 0VV/0HH %f\n",Sigma0VV/Sigma0HH);
             /***************************************/
             /* Calculate the facet centre of focus */
             /***************************************/
@@ -694,19 +691,15 @@ int		PolSARproSim_Direct_Ground_SMP		(PolSARproSim_Record        *pPR)
    pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 
    const double		Pi                = 4.0*atan(1.0);
- //  const double		TwoPi             = 8.0*atan(1.0);
    const double		beta1             = POLSARPROSIM_DIRECTGROUND_DELTAB_FACTOR*Pi/100.0;
    const double		thetai				= pPR->incidence_angle[pPR->current_track];
    const double		cos_thetai			= cos(thetai);
    const double		sin_thetai			= sin(thetai);
    const double		Lx                = pPR->Lx;
- //  const double		Ly                = pPR->Ly;
    const int			nx                = POLSARPROSIM_DIRECTGROUND_SPECKLE_FACTOR*pPR->nx;
-//   const int			ny                = POLSARPROSIM_DIRECTGROUND_SPECKLE_FACTOR*pPR->ny;
    const double		sx                = pPR->slope_x;
    const double		sy                = pPR->slope_y;
    const double		deltax				= Lx/(double)nx;
- //  const double		deltay				= Ly/(double)ny;
    const double		Sincb1				= Sinc (beta1);
    const double		Sinc2b1				= Sinc (2.0*beta1);
    const double		avg_cos2b_0			= 0.5*(1.0+Sinc2b1);
@@ -715,39 +708,25 @@ int		PolSARproSim_Direct_Ground_SMP		(PolSARproSim_Record        *pPR)
    const double		avg_cos4b_0			= avg_cos2b_0 - avg_cos2bsin2b_0;
    const double		avg_sin4b_0			= avg_sin2b_0 - avg_cos2bsin2b_0;
    
-   double				x;//,y;
- //  d3Vector          vertex[5];
-//   Facet             ground_facet[4];
-   int               ix;//, iy;
- //  Facet_List			AzimuthList;
- //  long              n_facets, i_facet;
-  // double				modf, argf, beta_xbragg;
- //  Facet             f1;
+   double				x;
+   int               ix;
    d3Vector          antenna;
    double				ndotp;
-   double				SigHH, SigVV;//, fArea;
+   double				SigHH, SigVV;
    double				RootSigHH, RootSigVV;
    Complex           Shhl, Svvl;
-//   double				cosb, sinb, cosb2, sinb2;
    d3Vector          k, h, v;
- //  Complex           Shh, Svv, Shv, Svh;
-//   double				p_srange          = pPR->slant_range[pPR->current_track];
-//   double				p_thetai          = pPR->incidence_angle[pPR->current_track];
-//   double				p_height          = p_srange*cos(p_thetai);
-//double				p_grange          = p_srange*sin(p_thetai);
-//   double				facet_x, facet_y, facet_grange, facet_srange, facet_height;
-//   double				focus_x, focus_y, focus_grange, focus_srange, focus_height;
    double				weight_average    = 0.0;
    double				weight_count      = 0.0;
    double				Sigma0HH          = 0.0;
    double				Sigma0HV          = 0.0;
    double				Sigma0VH          = 0.0;
    double				Sigma0VV          = 0.0;
-   Complex           AvgShhvv;//, zhhvv;
+   Complex           AvgShhvv;
    double				Sigma0_count      = 0.0;
    int               dgsf              = POLSARPROSIM_DIRECTGROUND_SPECKLE_FACTOR;
    double				dgdbf             = POLSARPROSIM_DIRECTGROUND_DELTAB_FACTOR;
-   double				thetail, cos_thetail, sin_thetail;//, beta_facet, argbf;
+   double				thetail, cos_thetail, sin_thetail;
    d3Vector          surface_normal;
    double				argbs, beta0;
    double				Thavg_cos2b			= 0.0;
@@ -760,10 +739,6 @@ int		PolSARproSim_Direct_Ground_SMP		(PolSARproSim_Record        *pPR)
    double				mnsqrpxlHH, mnsqrpxlHV, mnsqrpxlVV;
    int               ipix, jpix;
    sim_pixel			spix;
-#ifdef SWITCH_ATTENUATION_ON
-//   int               rtn_lookup;
-//   double				gH, gV;
-#endif
    
    /******************************************/
    /* Report call if running in VERBOSE mode */
@@ -792,7 +767,6 @@ int		PolSARproSim_Direct_Ground_SMP		(PolSARproSim_Record        *pPR)
    /******************/
    /* Initialisation */
    /******************/
- //  Facet_init_list (&AzimuthList);
    /**************************************************/
    /* Use the far-field model for the look direction */
    /**************************************************/
