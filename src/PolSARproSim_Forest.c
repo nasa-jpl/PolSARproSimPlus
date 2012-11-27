@@ -1550,6 +1550,9 @@ void		*Image_Tree_SMP		(void *threadarg)
    /* Tidy up ... */
    /***************/
    Destroy_Cylinder (&cyl1);
+        /* clean up a bit */
+   Destroy_Tree(pT);
+
    /********************/
    /* ... and go home. */
    /********************/
@@ -1608,7 +1611,7 @@ int		PolSARproSim_Forest_SMP		(PolSARproSim_Record *pPR)
       Create_Tree       (&(threadarg[itree].tree1));
       Realise_Tree		(&(threadarg[itree].tree1), itree, pPR);
       threadarg[itree].pPR    = pPR;
-      threadarg[itree].itree  = itree;
+      threadarg[itree].itree  = itree;      
       threadarg[itree].pSG    = &SG1;
       threadarg[itree].pSG2   = &SG2;
       /* create threads */
@@ -1624,7 +1627,7 @@ int		PolSARproSim_Forest_SMP		(PolSARproSim_Record *pPR)
          printf("ERR: unable to join thread for tree no. %d in in PolSARproSim_Forest_SMP, code: %d\n", itree,rc);
          exit(-1);
       }
-   }
+    }
 
    /******************************/
    /* Monitor Direct performance */
@@ -1664,7 +1667,7 @@ int		PolSARproSim_Forest_SMP		(PolSARproSim_Record *pPR)
    /***********/
    Delete_SAR_Geometry (&SG1);
    Delete_SAR_Geometry (&SG2);
-
+   free(threadarg);
    /**********************************************/
    /* Report progress if running in VERBOSE mode */
    /**********************************************/

@@ -359,19 +359,19 @@ int		PolSARproSim_Direct_Ground		(PolSARproSim_Record *pPR)
    mnsqrpxlHH	= 0.0;
    mnsqrpxlHV	= 0.0;
    mnsqrpxlVV	= 0.0;
-   for (ipix = 0; ipix < pPR->HHimage.nx; ipix++) {
-      for (jpix = 0; jpix < pPR->HHimage.ny; jpix++) {
-         spix	= getSIMpixel (&(pPR->HHimage), ipix, jpix);
+   for (ipix = 0; ipix < pPR->HHstack[pPR->current_track].Image.nx; ipix++) {
+      for (jpix = 0; jpix < pPR->HHstack[pPR->current_track].Image.ny; jpix++) {
+         spix	= getSIMpixel (&(pPR->HHstack[pPR->current_track].Image), ipix, jpix);
          mnsqrpxlHH	+= spix.data.cf.x*spix.data.cf.x + spix.data.cf.y*spix.data.cf.y;
-         spix	= getSIMpixel (&(pPR->HVimage), ipix, jpix);
+         spix	= getSIMpixel (&(pPR->HVstack[pPR->current_track].Image), ipix, jpix);
          mnsqrpxlHV	+= spix.data.cf.x*spix.data.cf.x + spix.data.cf.y*spix.data.cf.y;
-         spix	= getSIMpixel (&(pPR->VVimage), ipix, jpix);
+         spix	= getSIMpixel (&(pPR->VVstack[pPR->current_track].Image), ipix, jpix);
          mnsqrpxlVV	+= spix.data.cf.x*spix.data.cf.x + spix.data.cf.y*spix.data.cf.y;
       }
    }
-   mnsqrpxlHH	/= (double) pPR->HHimage.np;
-   mnsqrpxlHV	/= (double) pPR->HHimage.np;
-   mnsqrpxlVV	/= (double) pPR->HHimage.np;
+   mnsqrpxlHH	/= (double) pPR->HHstack[pPR->current_track].Image.np;
+   mnsqrpxlHV	/= (double) pPR->HHstack[pPR->current_track].Image.np;
+   mnsqrpxlVV	/= (double) pPR->HHstack[pPR->current_track].Image.np;
    pPR->HHsf	= sqrt(Sigma0HH/mnsqrpxlHH);
    pPR->HVsf	= sqrt(Sigma0HV/mnsqrpxlHV);
    pPR->VVsf	= sqrt(Sigma0VV/mnsqrpxlVV);
@@ -387,27 +387,27 @@ int		PolSARproSim_Direct_Ground		(PolSARproSim_Record *pPR)
       pPR->PSFamp	= sqrt (0.5*(pPR->HHsf*pPR->HHsf + pPR->VVsf*pPR->VVsf));
       fprintf (pPR->pLogFile, "\nPSF scaling reset to %lf\n\n", pPR->PSFamp);
       fprintf (pPR->pLogFile, "Rescaling direct surface imagery ... \n");
-      Rescale_SIM_Record (&(pPR->HHimage), pPR->PSFamp);
-      Rescale_SIM_Record (&(pPR->HVimage), pPR->PSFamp);
-      Rescale_SIM_Record (&(pPR->VVimage), pPR->PSFamp);
+      Rescale_SIM_Record (&(pPR->HHstack[pPR->current_track].Image), pPR->PSFamp);
+      Rescale_SIM_Record (&(pPR->HVstack[pPR->current_track].Image), pPR->PSFamp);
+      Rescale_SIM_Record (&(pPR->VVstack[pPR->current_track].Image), pPR->PSFamp);
       fprintf (pPR->pLogFile, "Finished rescaling direct surface imagery ... \n");
       fprintf (pPR->pLogFile, "Checking rescaling of direct surface imagery ... \n");
       mnsqrpxlHH	= 0.0;
       mnsqrpxlHV	= 0.0;
       mnsqrpxlVV	= 0.0;
-      for (ipix = 0; ipix < pPR->HHimage.nx; ipix++) {
-         for (jpix = 0; jpix < pPR->HHimage.ny; jpix++) {
-            spix	= getSIMpixel (&(pPR->HHimage), ipix, jpix);
+      for (ipix = 0; ipix < pPR->HHstack[pPR->current_track].Image.nx; ipix++) {
+         for (jpix = 0; jpix < pPR->HHstack[pPR->current_track].Image.ny; jpix++) {
+            spix	= getSIMpixel (&(pPR->HHstack[pPR->current_track].Image), ipix, jpix);
             mnsqrpxlHH	+= spix.data.cf.x*spix.data.cf.x + spix.data.cf.y*spix.data.cf.y;
-            spix	= getSIMpixel (&(pPR->HVimage), ipix, jpix);
+            spix	= getSIMpixel (&(pPR->HVstack[pPR->current_track].Image), ipix, jpix);
             mnsqrpxlHV	+= spix.data.cf.x*spix.data.cf.x + spix.data.cf.y*spix.data.cf.y;
-            spix	= getSIMpixel (&(pPR->VVimage), ipix, jpix);
+            spix	= getSIMpixel (&(pPR->VVstack[pPR->current_track].Image), ipix, jpix);
             mnsqrpxlVV	+= spix.data.cf.x*spix.data.cf.x + spix.data.cf.y*spix.data.cf.y;
          }
       }
-      mnsqrpxlHH	/= (double) pPR->HHimage.np;
-      mnsqrpxlHV	/= (double) pPR->HHimage.np;
-      mnsqrpxlVV	/= (double) pPR->HHimage.np;
+      mnsqrpxlHH	/= (double) pPR->HHstack[pPR->current_track].Image.np;
+      mnsqrpxlHV	/= (double) pPR->HHstack[pPR->current_track].Image.np;
+      mnsqrpxlVV	/= (double) pPR->HHstack[pPR->current_track].Image.np;
       pPR->HHsf	= sqrt(Sigma0HH/mnsqrpxlHH);
       pPR->HVsf	= sqrt(Sigma0HV/mnsqrpxlHV);
       pPR->VVsf	= sqrt(Sigma0VV/mnsqrpxlVV);
@@ -896,19 +896,19 @@ int		PolSARproSim_Direct_Ground_SMP		(PolSARproSim_Record        *pPR)
    mnsqrpxlHH	= 0.0;
    mnsqrpxlHV	= 0.0;
    mnsqrpxlVV	= 0.0;
-   for (ipix = 0; ipix < pPR->HHimage.nx; ipix++) {
-      for (jpix = 0; jpix < pPR->HHimage.ny; jpix++) {
-         spix	= getSIMpixel (&(pPR->HHimage), ipix, jpix);
+   for (ipix = 0; ipix < pPR->HHstack[pPR->current_track].Image.nx; ipix++) {
+      for (jpix = 0; jpix < pPR->HHstack[pPR->current_track].Image.ny; jpix++) {
+         spix	= getSIMpixel (&(pPR->HHstack[pPR->current_track].Image), ipix, jpix);
          mnsqrpxlHH	+= spix.data.cf.x*spix.data.cf.x + spix.data.cf.y*spix.data.cf.y;
-         spix	= getSIMpixel (&(pPR->HVimage), ipix, jpix);
+         spix	= getSIMpixel (&(pPR->HVstack[pPR->current_track].Image), ipix, jpix);
          mnsqrpxlHV	+= spix.data.cf.x*spix.data.cf.x + spix.data.cf.y*spix.data.cf.y;
-         spix	= getSIMpixel (&(pPR->VVimage), ipix, jpix);
+         spix	= getSIMpixel (&(pPR->VVstack[pPR->current_track].Image), ipix, jpix);
          mnsqrpxlVV	+= spix.data.cf.x*spix.data.cf.x + spix.data.cf.y*spix.data.cf.y;
       }
    }
-   mnsqrpxlHH	/= (double) pPR->HHimage.np;
-   mnsqrpxlHV	/= (double) pPR->HHimage.np;
-   mnsqrpxlVV	/= (double) pPR->HHimage.np;
+   mnsqrpxlHH	/= (double) pPR->HHstack[pPR->current_track].Image.np;
+   mnsqrpxlHV	/= (double) pPR->HHstack[pPR->current_track].Image.np;
+   mnsqrpxlVV	/= (double) pPR->HHstack[pPR->current_track].Image.np;
    pPR->HHsf	= sqrt(Sigma0HH/mnsqrpxlHH);
    pPR->HVsf	= sqrt(Sigma0HV/mnsqrpxlHV);
    pPR->VVsf	= sqrt(Sigma0VV/mnsqrpxlVV);
@@ -924,27 +924,27 @@ int		PolSARproSim_Direct_Ground_SMP		(PolSARproSim_Record        *pPR)
       pPR->PSFamp	= sqrt (0.5*(pPR->HHsf*pPR->HHsf + pPR->VVsf*pPR->VVsf));
       fprintf (pPR->pLogFile, "\nPSF scaling reset to %lf\n\n", pPR->PSFamp);
       fprintf (pPR->pLogFile, "Rescaling direct surface imagery ... \n");
-      Rescale_SIM_Record (&(pPR->HHimage), pPR->PSFamp);
-      Rescale_SIM_Record (&(pPR->HVimage), pPR->PSFamp);
-      Rescale_SIM_Record (&(pPR->VVimage), pPR->PSFamp);
+      Rescale_SIM_Record (&(pPR->HHstack[pPR->current_track].Image), pPR->PSFamp);
+      Rescale_SIM_Record (&(pPR->HVstack[pPR->current_track].Image), pPR->PSFamp);
+      Rescale_SIM_Record (&(pPR->VVstack[pPR->current_track].Image), pPR->PSFamp);
       fprintf (pPR->pLogFile, "Finished rescaling direct surface imagery ... \n");
       fprintf (pPR->pLogFile, "Checking rescaling of direct surface imagery ... \n");
       mnsqrpxlHH	= 0.0;
       mnsqrpxlHV	= 0.0;
       mnsqrpxlVV	= 0.0;
-      for (ipix = 0; ipix < pPR->HHimage.nx; ipix++) {
-         for (jpix = 0; jpix < pPR->HHimage.ny; jpix++) {
-            spix	= getSIMpixel (&(pPR->HHimage), ipix, jpix);
+      for (ipix = 0; ipix < pPR->HHstack[pPR->current_track].Image.nx; ipix++) {
+         for (jpix = 0; jpix < pPR->HHstack[pPR->current_track].Image.ny; jpix++) {
+            spix	= getSIMpixel (&(pPR->HHstack[pPR->current_track].Image), ipix, jpix);
             mnsqrpxlHH	+= spix.data.cf.x*spix.data.cf.x + spix.data.cf.y*spix.data.cf.y;
-            spix	= getSIMpixel (&(pPR->HVimage), ipix, jpix);
+            spix	= getSIMpixel (&(pPR->HVstack[pPR->current_track].Image), ipix, jpix);
             mnsqrpxlHV	+= spix.data.cf.x*spix.data.cf.x + spix.data.cf.y*spix.data.cf.y;
-            spix	= getSIMpixel (&(pPR->VVimage), ipix, jpix);
+            spix	= getSIMpixel (&(pPR->VVstack[pPR->current_track].Image), ipix, jpix);
             mnsqrpxlVV	+= spix.data.cf.x*spix.data.cf.x + spix.data.cf.y*spix.data.cf.y;
          }
       }
-      mnsqrpxlHH	/= (double) pPR->HHimage.np;
-      mnsqrpxlHV	/= (double) pPR->HHimage.np;
-      mnsqrpxlVV	/= (double) pPR->HHimage.np;
+      mnsqrpxlHH	/= (double) pPR->HHstack[pPR->current_track].Image.np;
+      mnsqrpxlHV	/= (double) pPR->HHstack[pPR->current_track].Image.np;
+      mnsqrpxlVV	/= (double) pPR->HHstack[pPR->current_track].Image.np;
       pPR->HHsf	= sqrt(Sigma0HH/mnsqrpxlHH);
       pPR->HVsf	= sqrt(Sigma0HV/mnsqrpxlHV);
       pPR->VVsf	= sqrt(Sigma0VV/mnsqrpxlVV);
@@ -954,6 +954,7 @@ int		PolSARproSim_Direct_Ground_SMP		(PolSARproSim_Record        *pPR)
       fprintf (pPR->pLogFile, "VV power scale factor\t= %lf\n", pPR->VVsf*pPR->VVsf);
       fflush  (pPR->pLogFile);
    }
+
    /******************************************/
    /* Report call if running in VERBOSE mode */
    /******************************************/

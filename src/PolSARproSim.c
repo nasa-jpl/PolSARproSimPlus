@@ -1,23 +1,23 @@
 /************************************************************************/
-/*																		*/
+/*                                                                      */
 /* PolSARproSim Version C1b  Forest Synthetic Aperture Radar Simulation	*/
-/* Copyright (C) 2007 Mark L. Williams									*/
-/*																		*/
-/* This program is free software; you may redistribute it and/or		*/
-/* modify it under the terms of the GNU General Public License			*/
-/* as published by the Free Software Foundation; either version 2		*/
-/* of the License, or (at your option) any later version.				*/
-/*																		*/
+/* Copyright (C) 2007 Mark L. Williams                                  */
+/*                                                                      */
+/* This program is free software; you may redistribute it and/or        */
+/* modify it under the terms of the GNU General Public License          */
+/* as published by the Free Software Foundation; either version 2       */
+/* of the License, or (at your option) any later version.               */
+/*                                                                      */
 /* This program is distributed in the hope that it will be useful,		*/
-/* but WITHOUT ANY WARRANTY; without even the implied warranty of		*/
-/* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.					*/
-/* See the GNU General Public License for more details.					*/
-/*																		*/
-/* You should have received a copy of the GNU General Public License	*/
-/* along with this program; if not, write to the Free Software			*/
-/* Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,			*/
-/* MA  02110-1301, USA. (http://www.gnu.org/copyleft/gpl.html)			*/
-/*																		*/
+/* but WITHOUT ANY WARRANTY; without even the implied warranty of       */
+/* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.                 */
+/* See the GNU General Public License for more details.                 */
+/*                                                                      */
+/* You should have received a copy of the GNU General Public License    */
+/* along with this program; if not, write to the Free Software          */
+/* Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,           */
+/* MA  02110-1301, USA. (http://www.gnu.org/copyleft/gpl.html)          */
+/*                                                                      */
 /************************************************************************/
 /*
  * Author      : Mark L. Williams
@@ -33,44 +33,44 @@ int main(int argv, char *argc[])
    /**************************************/
    /* Miscellaneous variable definitions */
    /**************************************/
-   char					*passed_input_directory_plus_prefix;
-   char					*passed_master_directory;
-   char					*passed_slave_directory;
-   char					*input_directory;
-   char					*master_directory;
-   char					*slave_directory;
+   char                 *passed_input_directory_plus_prefix;
+   char                 *passed_master_directory;
+   char                 *input_directory;
+   char                 *master_directory;
 #ifdef _WIN32
    const char				ddlim	= '\\';
 #else 
    const char				ddlim	= '/';
 #endif
-   char					*prefix;
-   int					n,nmax,i,ilen;
-   char					*input_string;
-   char					*output_string;
-   char					*logfile_string;
-   char					*call_string;
-   FILE					*pCF;
+   char                 *prefix;
+   int                  n,nmax,i,ilen;
+   char                 *input_string;
+   char                 *output_string;
+   char                 *logfile_string;
+   char                 *call_string;
+   FILE                 *pCF;
    /*********************/
    /* The master record */
    /*********************/
    PolSARproSim_Record		Master_Record;
-   
+   /* Some variables for testing cpu-time */
+   time_t                  start, stop; /* -- RAedit take out */
+
    /*******************************************/
    /* Check command line argument list length */
    /*******************************************/
    
-   if (argv < 4) {
-      printf ("\nUse: pspsim_dev <input_directory_plus_prefix> <master_directory> <slave_directory>\n");
-      printf ("\te.g. pspsim_dev ./run1 master slave\n");
+   if (argv < 3) {
+      printf ("\nUse: pspsim_dev <input_directory_plus_prefix> <data_directory> \n");
+      printf ("\te.g. pspsim_dev ./run1 slcs/ \n");
       printf ("\nCAUTION: This version of PolSARproSim has been heavily edited\n");
       printf ("\t if it doesn't work, its not Mark Williams' fault. Good luck!\n");
       printf ("\t\t\t\t\t--Razi Ahmed\n\n");
       exit (1);
    } else {
       passed_input_directory_plus_prefix			= argc[1];
-      passed_master_directory						= argc[2];
-      passed_slave_directory						= argc[3];
+      passed_master_directory                   = argc[2];
+    //  passed_slave_directory						= argc[3];
    }
    
    /***********************/
@@ -83,7 +83,6 @@ int main(int argv, char *argc[])
    
    tcltk_parser	(passed_input_directory_plus_prefix);
    tcltk_parser	(passed_master_directory);
-   tcltk_parser	(passed_slave_directory);
    
    /***************************/
    /* Extract filename prefix */
@@ -123,20 +122,6 @@ int main(int argv, char *argc[])
       master_directory[nmax]	= ddlim;
    }
    
-   /*************************************************/
-   /* Extract delimiter terminated Slave  directory */
-   /*************************************************/
-   
-   nmax	= strlen (passed_slave_directory);
-   if (passed_slave_directory[nmax-1] == ddlim) {
-      slave_directory	= (char*) calloc (nmax+1, sizeof(char));
-      strcpy  (slave_directory, passed_slave_directory);
-   } else {
-      slave_directory	= (char*) calloc (nmax+2, sizeof(char));
-      strcpy  (slave_directory, passed_slave_directory);
-      slave_directory[nmax]	= ddlim;
-   }
-   
    /************************/
    /* Calculate file names */
    /************************/
@@ -156,20 +141,11 @@ int main(int argv, char *argc[])
    Master_Record.pFilenamePrefix	= prefix;
    Master_Record.pInputDirectory	= input_directory;
    Master_Record.pMasterDirectory	= master_directory;
-   Master_Record.pSlaveDirectory	= slave_directory;
    call_string	= (char*) calloc (strlen(master_directory)+strlen(prefix)+11, sizeof(char));
    strcpy  (call_string, master_directory);
    strncat (call_string, prefix, strlen(prefix));
    strncat (call_string, "_call.txt", 9);
-   /* This part to compute the name of file that contains input forest parameters ($prefix_canopy.txt)--RAedit */
-   /* -- I commented this out so I can specify filename in input file --RA
-    forest_input_string	= (char*) calloc (strlen(input_directory)+strlen(prefix)+13, sizeof(char));
-    strcpy  (forest_input_string, input_directory);
-    strncat (forest_input_string, prefix, strlen(prefix));
-    strncat (forest_input_string, "_forest.xml", 12);
-    Master_Record.ForestData = forest_input_string;
-    */
-   
+      
    /********************/
    /* Report filenames */
    /********************/
@@ -181,11 +157,9 @@ int main(int argv, char *argc[])
       fprintf (pCF, "\nArguments:\n%s\n%s\n%s\n", argc[1], argc[2], argc[3]);
       fprintf (pCF, "\nInput_directory     %s\n", input_directory);
       fprintf (pCF, "\nMaster_directory    %s\n", master_directory);
-      fprintf (pCF, "\nSlave_directory     %s\n", slave_directory);
       fprintf (pCF, "\nReading input from  %s\n", input_string);
       fprintf (pCF, "\nWriting output to   %s\n", output_string);
       fprintf (pCF, "\nWriting log to      %s\n\n", logfile_string);
-      /* fprintf (pCF, "\nReading forest parameters from %s\n\n", Master_Record.ForestData); --RAedit*/
       fclose (pCF);
    }
    
@@ -193,11 +167,9 @@ int main(int argv, char *argc[])
    printf ("\nArguments:\n%s\n%s\n%s\n", argc[1], argc[2], argc[3]);
    printf ("\nInput_directory     %s\n", input_directory);
    printf ("\nMaster_directory    %s\n", master_directory);
-   printf ("\nSlave_directory     %s\n", slave_directory);
    printf ("\nReading input from  %s\n", input_string);
    printf ("\nWriting output to   %s\n", output_string);
    printf ("\nWriting log to      %s\n", logfile_string);
-   /*printf ("\nReading forest parameters from %s\n\n", Master_Record.ForestData); --RAedit */
    
 #endif
    
@@ -229,22 +201,22 @@ int main(int argv, char *argc[])
    /* Report compilation options */
    /******************************/
    
-   PolSARproSim_compile_options  (Master_Record.pLogFile);
+   PolSARproSim_compile_options     (Master_Record.pLogFile);
    
    /**********************************************/
    /* Report type sizes for consistency checking */
    /**********************************************/
    
-   Report_SIM_Type_Sizes         (Master_Record.pLogFile);
+   Report_SIM_Type_Sizes            (Master_Record.pLogFile);
    
    /************************************************/
    /* Read the input file to setup the simulations */
    /************************************************/
    
-   Input_PolSARproSim_Record     (input_string, &Master_Record);
+   Input_PolSARproSim_Record        (input_string, &Master_Record);
    
 #ifdef POLSARPROSIM_MAX_PROGRESS
-   PolSARproSim_indicate_progress (&Master_Record);
+   PolSARproSim_indicate_progress   (&Master_Record);
 #endif
    
    /****************************************************/
@@ -254,11 +226,11 @@ int main(int argv, char *argc[])
    /* Generate ground height map on ground range - azimuth grid */
    /*************************************************************/
    
-   Create_SIM_Record             (&(Master_Record.Ground_Height));
-   Ground_Surface_Generation		(&Master_Record);
+   Create_SIM_Record                (&(Master_Record.Ground_Height));
+   Ground_Surface_Generation        (&Master_Record);
    
 #ifndef POLSARPROSIM_NOSIMOUTPUT
-   Write_SIM_Record              (&(Master_Record.Ground_Height));
+   Write_SIM_Record                 (&(Master_Record.Ground_Height));
 #endif
    
    /****************************************************/
@@ -267,8 +239,8 @@ int main(int argv, char *argc[])
    
    if(Master_Record.ForestInput_Flag != EXTERNAL_FOREST_DEFINITION){
       printf("Forest locations being generated\n");
-      Tree_Location_Generation	(&Master_Record);
-      Write_Forest_XML           (&Master_Record);
+      Tree_Location_Generation      (&Master_Record);
+      Write_Forest_XML              (&Master_Record);
    }
    
    /********************************/
@@ -282,31 +254,28 @@ int main(int argv, char *argc[])
    /********************************/
    
 #ifdef POLSARPROSIM_MAX_PROGRESS
-   PolSARproSim_indicate_progress (&Master_Record);
+   PolSARproSim_indicate_progress   (&Master_Record);
 #endif
    
    /**************************************************************************/
    /* Create a graphic image of the forest from the perspective of the radar */
    /**************************************************************************/
-   
-   Forest_Graphic                (&Master_Record);
-   
+   if(Master_Record.ForestDraw_Flag == DRAW_FOREST_IMAGE){
+      Forest_Graphic                (&Master_Record);
+   }
    /*************************************************************/
    /* Stage 2: Calculate the electrical proprties of the forest */
    /*************************************************************/
 
-   /* time it */
-   time_t start, stop; /* -- RAedit take out */
-   time(&start); //RAedit
-   
+      
    /*****************************************************/
    /* Calculate the vegetation effective permittivities */
    /*****************************************************/
 #ifdef ENABLE_THREADS
-   Effective_Permittivities_SMP	(&Master_Record);
+   Effective_Permittivities_SMP     (&Master_Record);
    printf("With Hyper-Threading\n");
 #else
-   Effective_Permittivities		(&Master_Record);
+   Effective_Permittivities         (&Master_Record);
    printf("Without Hyper-Threading\n");   
 #endif
 
@@ -315,34 +284,44 @@ int main(int argv, char *argc[])
    /***************************************************/
 
 #ifdef ENABLE_THREADS
-   Attenuation_Map_SMP           (&Master_Record);
+   Attenuation_Map_SMP              (&Master_Record);
    printf("With Hyper-Threading\n");
 #else
-   Attenuation_Map               (&Master_Record);
+   Attenuation_Map                  (&Master_Record);
    printf("Without Hyper-Threading\n");   
 #endif
+
+   /***********************************************/
+   /* Initialise the stack of SAR image variables */
+   /***********************************************/
+
+   Initialise_SAR_Stack             (&Master_Record);
 
    /*****************************************************/
    /* Stage 3: Calculate the interferometric SAR images */
    /*****************************************************/
    
    for (Master_Record.current_track = 0; Master_Record.current_track < Master_Record.Tracks; Master_Record.current_track++) {
-      /*************************************************************/
-      /* Initialise the current SAR image variables for this track */
-      /*************************************************************/
-      Destroy_SAR_Images                        (&Master_Record);
-      /***********************************************************************************/
-      /* Calculate filenames based on track number and directory architecture convention */
-      /***********************************************************************************/
-#ifndef POLSARPRO_CONVENTION
-      Create_SAR_Filenames                      (&Master_Record, master_directory, slave_directory, prefix);
-#else
-      Create_SAR_Filenames                      (&Master_Record, master_directory, slave_directory);
-#endif
-      /**********************************/
-      /* Initialise SAR image variables */
-      /**********************************/
-      Clean_SAR_Images                          (&Master_Record);
+      time(&start); //RAedit
+
+/*------ The following part is not needed with the Stack architecture-----------*/
+//      /*************************************************************/
+//      /* Initialise the current SAR image variables for this track */
+//      /*************************************************************/
+//      Destroy_SAR_Images                        (&Master_Record);
+//      /***********************************************************************************/
+//      /* Calculate filenames based on track number and directory architecture convention */
+//      /***********************************************************************************/
+//#ifndef POLSARPRO_CONVENTION
+//      Create_SAR_Filenames                      (&Master_Record, Master_Record.current_track);
+//#else
+//      Create_SAR_Filenames                      (&Master_Record, master_directory, slave_directory);
+//#endif
+//      /**********************************/
+//      /* Initialise SAR image variables */
+//      /**********************************/
+//      Clean_SAR_Images                          (&Master_Record);
+/*-----------------------------------------------------------------------------*/
 
       /********************************************/
       /* Calculate the direct ground contribution */
@@ -351,17 +330,7 @@ int main(int argv, char *argc[])
       PolSARproSim_Direct_Ground_SMP            (&Master_Record);
 #else
       PolSARproSim_Direct_Ground                (&Master_Record);
-#endif
-      /*---- no idea who put this here or what it does ----------*/
-      //      /***************************************/
-      //      /* Stage 3 testing of individual terms */
-      //      /***************************************/
-      //#ifdef POLSARPROSIM_STAGE3
-      //      Clean_SAR_Images						(&Master_Record);
-      //#endif
-      /*---------------------------------------------------------*/
-
-      
+#endif      
       /***********************************************/
       /* Calculate the short vegetation contribution */
       /***********************************************/
@@ -390,24 +359,41 @@ int main(int argv, char *argc[])
 #ifdef	POLSARPROSIM_FLATEARTH
       Flat_Earth_Phase_Removal                  (&Master_Record);
 #endif
-      /****************************************/
-      /* Output the SAR images for this track */
-      /****************************************/
-      Write_SAR_Images                          (&Master_Record);
+
+/*------ The following part is not needed with the Stack architecture-----------*/
+//      /****************************************/
+//      /* Output the SAR images for this track */
+//      /****************************************/
+//      Write_SAR_Images                          (&Master_Record);
+/*-----------------------------------------------------------------------------*/
+
+      /***********/
+      /* Time it */
+      /***********/
+      time(&stop);
+      printf("Finished track %d in about %f seconds. \n",Master_Record.current_track, difftime(stop, start));
+
    }
-   time(&stop); //RAedit
-   printf("Finished Simulation in about %f seconds. \n",difftime(stop, start)); //RAedit
- 
+   /**********************************************/
+   /* Output the SAR images for the entire stack */
+   /**********************************************/
+   Write_SAR_Stack                  (&Master_Record);
+
+   /******************************/
+   /* Tidy up before leaving     */
+   /******************************/
+
+   Destroy_SAR_Stack                (&Master_Record);
+   free                             (input_string);
+   free                             (output_string);
+   free                             (logfile_string);
+   free                             (call_string);
+   fclose                           (Master_Record.pOutputFile);
+   fclose                           (Master_Record.pLogFile);
+
    /***************/
    /* End of Main */
    /***************/
-   
-   free	(input_string);
-   free	(output_string);
-   free	(logfile_string);
-   free   (call_string);
-   fclose (Master_Record.pOutputFile);
-   fclose (Master_Record.pLogFile);
    
    return (NO_POLSARPROSIM_ERRORS);
 }

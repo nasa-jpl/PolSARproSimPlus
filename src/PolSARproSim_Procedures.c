@@ -612,13 +612,17 @@ void		Surface_Parameters (PolSARproSim_Record *pPR, int DEM_model)
 int		Input_PolSARproSim_Record		(const char *filename, PolSARproSim_Record *pPR)
 {
    const double	max_packing_fraction	= DPI_RAD/(2.0*sqrt(3.0));
-   int			i;
+   int            i;
    double			image_width, image_height;
-   FILE			*pInputFile;
+   FILE           *pInputFile;
    
    /* required by module read_parfile */
-   static char buff[MAX_STR];   
-   
+   static char    buff[MAX_STR];   
+   double         baseline[2];
+   double         master_track_height;
+   double         master_track_ground_range;
+   double         slave_height;
+   double         slave_ground_range;
    /*********************/
    /* Ground properties */
    /*********************/
@@ -653,32 +657,43 @@ int		Input_PolSARproSim_Record		(const char *filename, PolSARproSim_Record *pPR)
    
    fprintf (pPR->pLogFile, "\nInputs using keyword driven searches in parameter file ...\n\n");
    read_integer   (pInputFile,    "tracks",                   &(pPR->Tracks));
+   /* read in the geometry */
    pPR->slant_range			= (double*) calloc (pPR->Tracks, sizeof (double));
    pPR->incidence_angle		= (double*) calloc (pPR->Tracks, sizeof (double));
-   for (i = 0; i < pPR->Tracks; i++) {
-      sprintf(buff,                 "center_slant_range_%d", i+1);
-      read_double   (pInputFile,    buff,                       &(pPR->slant_range[i]));
-      sprintf(buff,                 "incidence_angle_%d", i+1);
-      read_double   (pInputFile,    buff,                       &(pPR->incidence_angle[i]));
-      pPR->incidence_angle[i]	*= atan(1.0)/45.0;
+   read_double   (pInputFile,    "center_slant_range_master",  &(pPR->slant_range[0]));
+   read_double   (pInputFile,    "incidence_angle_master",     &(pPR->incidence_angle[0]));
+   pPR->incidence_angle[0] *=DEG_TO_RAD; /* convert to radians */
+   master_track_height        = pPR->slant_range[0]*cos(pPR->incidence_angle[0]);
+   master_track_ground_range  = pPR->slant_range[0]*sin(pPR->incidence_angle[0]);
+   for (i = 1; i < pPR->Tracks; i++) {
+      sprintf(buff,                 "baseline_track_%d", i);
+      read_dvector   (pInputFile,   buff,                      (double *)&baseline,2);
+      slave_ground_range      = master_track_ground_range + baseline[0];
+      slave_height            = master_track_height + baseline[1];
+      pPR->slant_range[i]     = sqrt(slave_height*slave_height + slave_ground_range*slave_ground_range);
+      pPR->incidence_angle[i] = atan2(slave_ground_range, slave_height);
    }
-   read_double    (pInputFile,    "radar_frequency",          &(pPR->frequency));
-   read_double    (pInputFile,    "azimuth_resolution",       &(pPR->azimuth_resolution));
-   read_double    (pInputFile,    "slant_range_resolution",   &(pPR->slant_range_resolution));
-   read_integer   (pInputFile,    "DEM_model",                &(DEM_model));
-   read_double    (pInputFile,    "ground_slope_azimuth",     &(pPR->slope_x));   
-   read_double    (pInputFile,    "ground_slope_range",       &(pPR->slope_y));
-   read_integer   (pInputFile,    "randn_seed",               &(pPR->seed));             
-   read_integer   (pInputFile,    "global_tree_species",      &(pPR->species));              
-   read_double    (pInputFile,    "global_tree_height",       &(pPR->mean_tree_height));
-   read_double    (pInputFile,    "forest_stand_area",        &(pPR->Stand_Area)); 
-   read_integer   (pInputFile,    "stem_density",             &(pPR->req_trees_per_hectare));   
+   for (i = 0; i < pPR->Tracks; i++) {
+      printf("%d)\tSlant Range %f\tIncidence Angle: %f\n", i, pPR->slant_range[i], pPR->incidence_angle[i]*RAD_TO_DEG);
+      }
+   read_double    (pInputFile,   "radar_frequency",            &(pPR->frequency));
+   read_double    (pInputFile,   "azimuth_resolution",         &(pPR->azimuth_resolution));
+   read_double    (pInputFile,   "slant_range_resolution",     &(pPR->slant_range_resolution));
+   read_integer   (pInputFile,   "DEM_model",                  &(DEM_model));
+   read_double    (pInputFile,   "ground_slope_azimuth",       &(pPR->slope_x));   
+   read_double    (pInputFile,   "ground_slope_range",         &(pPR->slope_y));
+   read_integer   (pInputFile,   "randn_seed",                 &(pPR->seed));             
+   read_integer   (pInputFile,   "global_tree_species",        &(pPR->species));              
+   read_double    (pInputFile,   "global_tree_height",         &(pPR->mean_tree_height));
+   read_double    (pInputFile,   "forest_stand_area",          &(pPR->Stand_Area)); 
+   read_integer   (pInputFile,   "stem_density",               &(pPR->req_trees_per_hectare));   
 #ifdef INPUT_GROUND_MV
-   read_integer   (pInputFile,    "ground_moisture",          &GMV_model);
+   read_integer   (pInputFile,    "ground_moisture",           &GMV_model);
 #endif
-   read_integer   (pInputFile,    "input_forest",             &(pPR->ForestInput_Flag));  /* whether to input forest primitives --RAedit */
+   read_integer   (pInputFile,    "input_forest",              &(pPR->ForestInput_Flag)); /* whether to input forest primitives --RAedit */
    if(pPR->ForestInput_Flag!=EXTERNAL_FOREST_DEFINITION){pPR->ForestInput_Flag=0;}        /* set flag to 0 by default           --RAedit */
-   
+   read_integer   (pInputFile,    "draw_forest",              &(pPR->ForestDraw_Flag));   /* whether to draw forest             --RAedit */
+   if(pPR->ForestDraw_Flag!=DRAW_FOREST_IMAGE){pPR->ForestDraw_Flag=0;}                   /* set flag to 0 by default           --RAedit */
    pPR->ForestData = (char *)calloc(MAX_STR, sizeof(char));                               /* Initialize the string containing the path & filename of forest input */
    read_string    (pInputFile,    "forest_file",               pPR->ForestData);          /* Read the filename from parameter file */
    pPR->SpeciesData = (char *)calloc(MAX_STR, sizeof(char));                              /* Initialize the string containing the path & filename of species database */
@@ -956,20 +971,20 @@ int		Input_PolSARproSim_Record		(const char *filename, PolSARproSim_Record *pPR)
    fprintf (pPR->pOutputFile, "\n*******************************************************************\n\n");
    fflush  (pPR->pOutputFile);
    
-   /************************************/
-   /* Initialise SAR imagery variables */
-   /************************************/
-   
-   Create_SIM_Record (&(pPR->HHimage));
-   Create_SIM_Record (&(pPR->HVimage));
-   Create_SIM_Record (&(pPR->VVimage));
-   
-   Initialise_SIM_Record	(&(pPR->HHimage), "", pPR->nx, pPR->ny, SIM_COMPLEX_FLOAT_TYPE, pPR->Lx, pPR->Ly, 
-                            "PolSARproSim HH image file");
-   Initialise_SIM_Record	(&(pPR->HVimage), "", pPR->nx, pPR->ny, SIM_COMPLEX_FLOAT_TYPE, pPR->Lx, pPR->Ly, 
-                            "PolSARproSim HV image file");
-   Initialise_SIM_Record	(&(pPR->VVimage), "", pPR->nx, pPR->ny, SIM_COMPLEX_FLOAT_TYPE, pPR->Lx, pPR->Ly, 
-                            "PolSARproSim VV image file");
+//   /************************************/
+//   /* Initialise SAR imagery variables */
+//   /************************************/
+//   
+//   Create_SIM_Record (&(pPR->HHimage));
+//   Create_SIM_Record (&(pPR->HVimage));
+//   Create_SIM_Record (&(pPR->VVimage));
+//   
+//   Initialise_SIM_Record	(&(pPR->HHimage), "", pPR->nx, pPR->ny, SIM_COMPLEX_FLOAT_TYPE, pPR->Lx, pPR->Ly, 
+//                            "PolSARproSim HH image file");
+//   Initialise_SIM_Record	(&(pPR->HVimage), "", pPR->nx, pPR->ny, SIM_COMPLEX_FLOAT_TYPE, pPR->Lx, pPR->Ly, 
+//                            "PolSARproSim HV image file");
+//   Initialise_SIM_Record	(&(pPR->VVimage), "", pPR->nx, pPR->ny, SIM_COMPLEX_FLOAT_TYPE, pPR->Lx, pPR->Ly, 
+//                            "PolSARproSim VV image file");
    
    /******************************************************/
    /* Store xmid and ymid in the master record structure */
@@ -5271,8 +5286,8 @@ double		Accumulate_SAR_Contribution		(double focus_x, double focus_y, double foc
    Complex     cvalue;
    double		weight_sum	= 0.0;
    
-   spix.simpixeltype	= pPR->HHimage.pixel_type;
-   gpix.simpixeltype	= pPR->HHimage.pixel_type;
+   spix.simpixeltype	= pPR->HHstack[pPR->current_track].Image.pixel_type;
+   gpix.simpixeltype	= pPR->HHstack[pPR->current_track].Image.pixel_type;
    /**************************************************/
    /* Add contribution if it overlaps the image area */
    /**************************************************/
@@ -5305,16 +5320,16 @@ double		Accumulate_SAR_Contribution		(double focus_x, double focus_y, double foc
                      spix.data.cf.y	= (float) cvalue.y;
 #ifdef ENABLE_THREADS
                      pthread_mutex_lock   (&PolSARproSim_HHmutex);
-                     gpix				= getSIMpixel (&(pPR->HHimage), ipx, jpy);
+                     gpix				= getSIMpixel (&(pPR->HHstack[pPR->current_track].Image), ipx, jpy);
                      spix.data.cf.x	+= gpix.data.cf.x;
                      spix.data.cf.y	+= gpix.data.cf.y;
-                     putSIMpixel (&(pPR->HHimage), spix, ipx, jpy);
+                     putSIMpixel (&(pPR->HHstack[pPR->current_track].Image), spix, ipx, jpy);
                      pthread_mutex_unlock (&PolSARproSim_HHmutex);
 #else
-                     gpix				= getSIMpixel (&(pPR->HHimage), ipx, jpy);
+                     gpix				= getSIMpixel (&(pPR->HHstack[pPR->current_track].Image), ipx, jpy);
                      spix.data.cf.x	+= gpix.data.cf.x;
                      spix.data.cf.y	+= gpix.data.cf.y;
-                     putSIMpixel (&(pPR->HHimage), spix, ipx, jpy);
+                     putSIMpixel (&(pPR->HHstack[pPR->current_track].Image), spix, ipx, jpy);
 #endif
                      /* HV channel write */
                      cvalue			= complex_mul (cweight, Shv);
@@ -5322,16 +5337,16 @@ double		Accumulate_SAR_Contribution		(double focus_x, double focus_y, double foc
                      spix.data.cf.y	= (float) cvalue.y;
 #ifdef ENABLE_THREADS
                      pthread_mutex_lock   (&PolSARproSim_HVmutex);
-                     gpix				= getSIMpixel (&(pPR->HVimage), ipx, jpy);
+                     gpix				= getSIMpixel (&(pPR->HVstack[pPR->current_track].Image), ipx, jpy);
                      spix.data.cf.x	+= gpix.data.cf.x;
                      spix.data.cf.y	+= gpix.data.cf.y;
-                     putSIMpixel (&(pPR->HVimage), spix, ipx, jpy);
+                     putSIMpixel (&(pPR->HVstack[pPR->current_track].Image), spix, ipx, jpy);
                      pthread_mutex_unlock (&PolSARproSim_HVmutex);
 #else
-                     gpix				= getSIMpixel (&(pPR->HVimage), ipx, jpy);
+                     gpix				= getSIMpixel (&(pPR->HVstack[pPR->current_track].Image), ipx, jpy);
                      spix.data.cf.x	+= gpix.data.cf.x;
                      spix.data.cf.y	+= gpix.data.cf.y;
-                     putSIMpixel (&(pPR->HVimage), spix, ipx, jpy);
+                     putSIMpixel (&(pPR->HVstack[pPR->current_track].Image), spix, ipx, jpy);
 #endif
                      /* VV channel write */
                      cvalue			= complex_mul (cweight, Svv);
@@ -5339,16 +5354,16 @@ double		Accumulate_SAR_Contribution		(double focus_x, double focus_y, double foc
                      spix.data.cf.y	= (float) cvalue.y;
 #ifdef ENABLE_THREADS
                      pthread_mutex_lock   (&PolSARproSim_VVmutex);
-                     gpix				= getSIMpixel (&(pPR->VVimage), ipx, jpy);
+                     gpix				= getSIMpixel (&(pPR->VVstack[pPR->current_track].Image), ipx, jpy);
                      spix.data.cf.x	+= gpix.data.cf.x;
                      spix.data.cf.y	+= gpix.data.cf.y;
-                     putSIMpixel (&(pPR->VVimage), spix, ipx, jpy);
+                     putSIMpixel (&(pPR->VVstack[pPR->current_track].Image), spix, ipx, jpy);
                      pthread_mutex_unlock (&PolSARproSim_VVmutex);
 #else
-                     gpix				= getSIMpixel (&(pPR->VVimage), ipx, jpy);
+                     gpix				= getSIMpixel (&(pPR->VVstack[pPR->current_track].Image), ipx, jpy);
                      spix.data.cf.x	+= gpix.data.cf.x;
                      spix.data.cf.y	+= gpix.data.cf.y;
-                     putSIMpixel (&(pPR->VVimage), spix, ipx, jpy);
+                     putSIMpixel (&(pPR->VVstack[pPR->current_track].Image), spix, ipx, jpy);
 #endif
                   }
                }
@@ -5394,107 +5409,190 @@ c3Vector	d3V2c3V	(d3Vector v)
    return (c);
 }
 
-#ifndef POLSARPRO_CONVENTION
-void		Create_SAR_Filenames			(PolSARproSim_Record *pPR, const char *master_directory, const char *slave_directory, const char *prefix)
-#else
-void		Create_SAR_Filenames			(PolSARproSim_Record *pPR, const char *master_directory, const char *slave_directory)
-#endif
-{
-#ifndef POLSARPRO_CONVENTION
-   if (pPR->current_track == 0) {
-      pPR->HH_string	= (char*) calloc (strlen(master_directory)+strlen(prefix)+8, sizeof(char));
-      strcpy  (pPR->HH_string, master_directory);
-   } else {
-      free (pPR->HH_string);
-      pPR->HH_string	= (char*) calloc (strlen(slave_directory)+strlen(prefix)+8, sizeof(char));
-      strcpy  (pPR->HH_string, slave_directory);
-   }
-   strncat (pPR->HH_string, prefix, strlen(prefix));
-   strncat (pPR->HH_string, "HH.sim", 6);
-   if (pPR->current_track == 0) {
-      pPR->HV_string	= (char*) calloc (strlen(master_directory)+strlen(prefix)+8, sizeof(char));
-      strcpy  (pPR->HV_string, master_directory);
-   } else {
-      free (pPR->HV_string);
-      pPR->HV_string	= (char*) calloc (strlen(slave_directory)+strlen(prefix)+8, sizeof(char));
-      strcpy  (pPR->HV_string, slave_directory);
-   }
-   strncat (pPR->HV_string, prefix, strlen(prefix));
-   strncat (pPR->HV_string, "HV.sim", 6);
-   if (pPR->current_track == 0) {
-      pPR->VV_string	= (char*) calloc (strlen(master_directory)+strlen(prefix)+8, sizeof(char));
-      strcpy  (pPR->VV_string, master_directory);
-   } else {
-      free (pPR->VV_string);
-      pPR->VV_string	= (char*) calloc (strlen(slave_directory)+strlen(prefix)+8, sizeof(char));
-      strcpy  (pPR->VV_string, slave_directory);
-   }
-   strncat (pPR->VV_string, prefix, strlen(prefix));
-   strncat (pPR->VV_string, "VV.sim", 6);
-   if (pPR->current_track == 0) {
-      pPR->VH_string	= (char*) calloc (strlen(master_directory)+strlen(prefix)+8, sizeof(char));
-      strcpy  (pPR->VH_string, master_directory);
-   } else {
-      free (pPR->VH_string);
-      pPR->VH_string	= (char*) calloc (strlen(slave_directory)+strlen(prefix)+8, sizeof(char));
-      strcpy  (pPR->VH_string, slave_directory);
-   }
-   strncat (pPR->VH_string, prefix, strlen(prefix));
-   strncat (pPR->VH_string, "VH.sim", 6);
-#else
-   if (pPR->current_track == 0) {
-      pPR->HH_string	= (char*) calloc (strlen(master_directory)+9, sizeof(char));
-      strcpy  (pPR->HH_string, master_directory);
-   } else {
-      free (pPR->HH_string);
-      pPR->HH_string	= (char*) calloc (strlen(slave_directory)+9, sizeof(char));
-      strcpy  (pPR->HH_string, slave_directory);
-   }
-   strncat (pPR->HH_string, "s11.bin", 7);
-   if (pPR->current_track == 0) {
-      pPR->HV_string	= (char*) calloc (strlen(master_directory)+9, sizeof(char));
-      strcpy  (pPR->HV_string, master_directory);
-   } else {
-      free (pPR->HV_string);
-      pPR->HV_string	= (char*) calloc (strlen(slave_directory)+9, sizeof(char));
-      strcpy  (pPR->HV_string, slave_directory);
-   }
-   strncat (pPR->HV_string, "s12.bin", 7);
-   if (pPR->current_track == 0) {
-      pPR->VV_string	= (char*) calloc (strlen(master_directory)+9, sizeof(char));
-      strcpy  (pPR->VV_string, master_directory);
-   } else {
-      free (pPR->VV_string);
-      pPR->VV_string	= (char*) calloc (strlen(slave_directory)+9, sizeof(char));
-      strcpy  (pPR->VV_string, slave_directory);
-   }
-   strncat (pPR->VV_string, "s22.bin", 7);
-   if (pPR->current_track == 0) {
-      pPR->VH_string	= (char*) calloc (strlen(master_directory)+9, sizeof(char));
-      strcpy  (pPR->VH_string, master_directory);
-   } else {
-      free (pPR->VH_string);
-      pPR->VH_string	= (char*) calloc (strlen(slave_directory)+9, sizeof(char));
-      strcpy  (pPR->VH_string, slave_directory);
-   }
-   strncat (pPR->VH_string, "s21.bin", 7);
-#endif
+//#ifndef POLSARPRO_CONVENTION
+//void		Create_SAR_Filenames			(PolSARproSim_Record *pPR, const char *master_directory, const char *slave_directory, const char *prefix)
+//#else
+//void		Create_SAR_Filenames			(PolSARproSim_Record *pPR, const char *master_directory, const char *slave_directory)
+//#endif
+//{
+//#ifndef POLSARPRO_CONVENTION
+//   if (pPR->current_track == 0) {
+//      pPR->HH_string	= (char*) calloc (strlen(master_directory)+strlen(prefix)+8, sizeof(char));
+//      strcpy  (pPR->HH_string, master_directory);
+//   } else {
+//      free (pPR->HH_string);
+//      pPR->HH_string	= (char*) calloc (strlen(slave_directory)+strlen(prefix)+8, sizeof(char));
+//      strcpy  (pPR->HH_string, slave_directory);
+//   }
+//   strncat (pPR->HH_string, prefix, strlen(prefix));
+//   strncat (pPR->HH_string, "HH.sim", 6);
+//   if (pPR->current_track == 0) {
+//      pPR->HV_string	= (char*) calloc (strlen(master_directory)+strlen(prefix)+8, sizeof(char));
+//      strcpy  (pPR->HV_string, master_directory);
+//   } else {
+//      free (pPR->HV_string);
+//      pPR->HV_string	= (char*) calloc (strlen(slave_directory)+strlen(prefix)+8, sizeof(char));
+//      strcpy  (pPR->HV_string, slave_directory);
+//   }
+//   strncat (pPR->HV_string, prefix, strlen(prefix));
+//   strncat (pPR->HV_string, "HV.sim", 6);
+//   if (pPR->current_track == 0) {
+//      pPR->VV_string	= (char*) calloc (strlen(master_directory)+strlen(prefix)+8, sizeof(char));
+//      strcpy  (pPR->VV_string, master_directory);
+//   } else {
+//      free (pPR->VV_string);
+//      pPR->VV_string	= (char*) calloc (strlen(slave_directory)+strlen(prefix)+8, sizeof(char));
+//      strcpy  (pPR->VV_string, slave_directory);
+//   }
+//   strncat (pPR->VV_string, prefix, strlen(prefix));
+//   strncat (pPR->VV_string, "VV.sim", 6);
+//   if (pPR->current_track == 0) {
+//      pPR->VH_string	= (char*) calloc (strlen(master_directory)+strlen(prefix)+8, sizeof(char));
+//      strcpy  (pPR->VH_string, master_directory);
+//   } else {
+//      free (pPR->VH_string);
+//      pPR->VH_string	= (char*) calloc (strlen(slave_directory)+strlen(prefix)+8, sizeof(char));
+//      strcpy  (pPR->VH_string, slave_directory);
+//   }
+//   strncat (pPR->VH_string, prefix, strlen(prefix));
+//   strncat (pPR->VH_string, "VH.sim", 6);
+//#else
+//   if (pPR->current_track == 0) {
+//      pPR->HH_string	= (char*) calloc (strlen(master_directory)+9, sizeof(char));
+//      strcpy  (pPR->HH_string, master_directory);
+//   } else {
+//      free (pPR->HH_string);
+//      pPR->HH_string	= (char*) calloc (strlen(slave_directory)+9, sizeof(char));
+//      strcpy  (pPR->HH_string, slave_directory);
+//   }
+//   strncat (pPR->HH_string, "s11.bin", 7);
+//   if (pPR->current_track == 0) {
+//      pPR->HV_string	= (char*) calloc (strlen(master_directory)+9, sizeof(char));
+//      strcpy  (pPR->HV_string, master_directory);
+//   } else {
+//      free (pPR->HV_string);
+//      pPR->HV_string	= (char*) calloc (strlen(slave_directory)+9, sizeof(char));
+//      strcpy  (pPR->HV_string, slave_directory);
+//   }
+//   strncat (pPR->HV_string, "s12.bin", 7);
+//   if (pPR->current_track == 0) {
+//      pPR->VV_string	= (char*) calloc (strlen(master_directory)+9, sizeof(char));
+//      strcpy  (pPR->VV_string, master_directory);
+//   } else {
+//      free (pPR->VV_string);
+//      pPR->VV_string	= (char*) calloc (strlen(slave_directory)+9, sizeof(char));
+//      strcpy  (pPR->VV_string, slave_directory);
+//   }
+//   strncat (pPR->VV_string, "s22.bin", 7);
+//   if (pPR->current_track == 0) {
+//      pPR->VH_string	= (char*) calloc (strlen(master_directory)+9, sizeof(char));
+//      strcpy  (pPR->VH_string, master_directory);
+//   } else {
+//      free (pPR->VH_string);
+//      pPR->VH_string	= (char*) calloc (strlen(slave_directory)+9, sizeof(char));
+//      strcpy  (pPR->VH_string, slave_directory);
+//   }
+//   strncat (pPR->VH_string, "s21.bin", 7);
+//#endif
+//   return;
+//}
+
+void		Create_SAR_Filenames			(PolSARproSim_Record *pPR, int track)
+{      
+      char trackid[10];
+      char polname[10];
+      
+      sprintf(trackid, "track%03d",track); 
+      
+      sprintf(polname, "HH.bin");
+      pPR->HH_string	= (char*) calloc (strlen(pPR->pMasterDirectory)+strlen(pPR->pFilenamePrefix)+1+strlen(trackid)+1+strlen(polname), sizeof(char));
+      strcpy (pPR->HH_string, pPR->pMasterDirectory);
+      strncat(pPR->HH_string, pPR->pFilenamePrefix, strlen(pPR->pFilenamePrefix));
+      strncat(pPR->HH_string, "_",1);
+      strncat(pPR->HH_string, trackid, strlen(trackid));
+      strncat(pPR->HH_string, "_",1);
+      strncat(pPR->HH_string, polname, strlen(polname));
+      
+      sprintf(polname, "HV.bin");
+      pPR->HV_string	= (char*) calloc (strlen(pPR->pMasterDirectory)+strlen(pPR->pFilenamePrefix)+1+strlen(trackid)+1+strlen(polname), sizeof(char));
+      strcpy (pPR->HV_string, pPR->pMasterDirectory);
+      strncat(pPR->HV_string, pPR->pFilenamePrefix, strlen(pPR->pFilenamePrefix));
+      strncat(pPR->HV_string, "_",1);
+      strncat(pPR->HV_string, trackid, strlen(trackid));
+      strncat(pPR->HV_string, "_",1);
+      strncat(pPR->HV_string, polname, strlen(polname));
+
+      sprintf(polname, "VH.bin");
+      pPR->VH_string	= (char*) calloc (strlen(pPR->pMasterDirectory)+strlen(pPR->pFilenamePrefix)+1+strlen(trackid)+1+strlen(polname), sizeof(char));
+      strcpy (pPR->VH_string, pPR->pMasterDirectory);
+      strncat(pPR->VH_string, pPR->pFilenamePrefix, strlen(pPR->pFilenamePrefix));
+      strncat(pPR->VH_string, "_",1);
+      strncat(pPR->VH_string, trackid, strlen(trackid));
+      strncat(pPR->VH_string, "_",1);
+      strncat(pPR->VH_string, polname, strlen(polname));
+
+      sprintf(polname, "VV.bin");
+      pPR->VV_string	= (char*) calloc (strlen(pPR->pMasterDirectory)+strlen(pPR->pFilenamePrefix)+1+strlen(trackid)+1+strlen(polname), sizeof(char));
+      strcpy (pPR->VV_string, pPR->pMasterDirectory);
+      strncat(pPR->VV_string, pPR->pFilenamePrefix, strlen(pPR->pFilenamePrefix));
+      strncat(pPR->VV_string, "_",1);
+      strncat(pPR->VV_string, trackid, strlen(trackid));
+      strncat(pPR->VV_string, "_",1);
+      strncat(pPR->VV_string, polname, strlen(polname));
+
    return;
 }
 
-void		Clean_SAR_Images				(PolSARproSim_Record *pPR)
+//void		Clean_SAR_Images				(PolSARproSim_Record *pPR)
+//{
+//   Destroy_SIM_Record (&(pPR->HHimage));
+//   Destroy_SIM_Record (&(pPR->HVimage));
+//   Destroy_SIM_Record (&(pPR->VVimage));
+//   Initialise_SIM_Record	(&(pPR->HHimage), pPR->HH_string, pPR->nx, pPR->ny, SIM_COMPLEX_FLOAT_TYPE,
+//                            pPR->Lx, pPR->Ly, "PolSARproSim HH image file");
+//   Initialise_SIM_Record	(&(pPR->HVimage), pPR->HV_string, pPR->nx, pPR->ny, SIM_COMPLEX_FLOAT_TYPE,
+//                            pPR->Lx, pPR->Ly, "PolSARproSim HV image file");
+//   Initialise_SIM_Record	(&(pPR->VVimage), pPR->VV_string, pPR->nx, pPR->ny, SIM_COMPLEX_FLOAT_TYPE,
+//                            pPR->Lx, pPR->Ly, "PolSARproSim VV image file");
+//   return;
+//}
+
+
+void		Initialise_SAR_Stack				(PolSARproSim_Record *pPR)
 {
-   Destroy_SIM_Record (&(pPR->HHimage));
-   Destroy_SIM_Record (&(pPR->HVimage));
-   Destroy_SIM_Record (&(pPR->VVimage));
-   Initialise_SIM_Record	(&(pPR->HHimage), pPR->HH_string, pPR->nx, pPR->ny, SIM_COMPLEX_FLOAT_TYPE,
-                            pPR->Lx, pPR->Ly, "PolSARproSim HH image file");
-   Initialise_SIM_Record	(&(pPR->HVimage), pPR->HV_string, pPR->nx, pPR->ny, SIM_COMPLEX_FLOAT_TYPE,
-                            pPR->Lx, pPR->Ly, "PolSARproSim HV image file");
-   Initialise_SIM_Record	(&(pPR->VVimage), pPR->VV_string, pPR->nx, pPR->ny, SIM_COMPLEX_FLOAT_TYPE,
-                            pPR->Lx, pPR->Ly, "PolSARproSim VV image file");
+   int         itrack;
+   
+   pPR->HHstack	= (SIM_Stack*) calloc (pPR->Tracks, sizeof (SIM_Stack));
+   pPR->HVstack	= (SIM_Stack*) calloc (pPR->Tracks, sizeof (SIM_Stack));
+   pPR->VVstack	= (SIM_Stack*) calloc (pPR->Tracks, sizeof (SIM_Stack));
+      
+   for (itrack = 0; itrack<pPR->Tracks;itrack++){
+      Destroy_SIM_Record      (&(pPR->HHstack[itrack].Image));
+      Destroy_SIM_Record      (&(pPR->HVstack[itrack].Image));
+      Destroy_SIM_Record      (&(pPR->VVstack[itrack].Image));
+      Create_SAR_Filenames		(pPR, itrack);
+      Initialise_SIM_Record	(&(pPR->HHstack[itrack].Image), pPR->HH_string, pPR->nx, pPR->ny, SIM_COMPLEX_FLOAT_TYPE,
+                               pPR->Lx, pPR->Ly, "PolSARproSim HH image file");
+      Initialise_SIM_Record	(&(pPR->HVstack[itrack].Image), pPR->HV_string, pPR->nx, pPR->ny, SIM_COMPLEX_FLOAT_TYPE,
+                               pPR->Lx, pPR->Ly, "PolSARproSim HV image file");
+      Initialise_SIM_Record	(&(pPR->VVstack[itrack].Image), pPR->VV_string, pPR->nx, pPR->ny, SIM_COMPLEX_FLOAT_TYPE,
+                               pPR->Lx, pPR->Ly, "PolSARproSim VV image file");
+   }
    return;
 }
+
+void		Destroy_SAR_Stack				(PolSARproSim_Record *pPR)
+{
+   int         itrack;
+   
+   for (itrack = 0; itrack<pPR->Tracks;itrack++){
+      Destroy_SIM_Record      (&(pPR->HHstack[itrack].Image));
+      Destroy_SIM_Record      (&(pPR->HVstack[itrack].Image));
+      Destroy_SIM_Record      (&(pPR->VVstack[itrack].Image));
+   }
+   return;
+}
+
 
 /***********************************************************/
 /* SAR imaging algorithm crown tertiary branch realisation */
@@ -6124,47 +6222,88 @@ int		Write_SIM_Record_As_POLSARPRO_BINARY	(SIM_Record *pSIMR)
 /* SAR image output with optional choice of SIM format imagery */
 /***************************************************************/
 
-void		Write_SAR_Images				(PolSARproSim_Record *pPR)
+//void		Write_SAR_Images				(PolSARproSim_Record *pPR)
+//{
+//#ifndef POLSARPRO_CONVENTION
+//#ifdef POLSARPROSIM_ROTATED_IMAGES
+//   SIM_Record			RotImage;
+//   Create_SIM_Record	(&RotImage);
+//   Rotate_SIM_Record	(&(pPR->HHimage), &RotImage);
+//   Write_SIM_Record	(&RotImage);
+//   Rotate_SIM_Record	(&(pPR->HVimage), &RotImage);
+//   Write_SIM_Record	(&RotImage);
+//   Rename_SIM_Record	(&RotImage, pPR->VH_string);
+//   Write_SIM_Record	(&RotImage);
+//   Rotate_SIM_Record	(&(pPR->VVimage), &RotImage);
+//   Write_SIM_Record	(&RotImage);
+//   Destroy_SIM_Record	(&RotImage);
+//#else
+//   Write_SIM_Record	(&(pPR->HHimage));
+//   Write_SIM_Record	(&(pPR->HVimage));
+//   Write_SIM_Record	(&(pPR->VVimage));
+//   Rename_SIM_Record	(&(pPR->HVimage), pPR->VH_string);
+//   Write_SIM_Record	(&(pPR->HVimage));
+//   Rename_SIM_Record	(&(pPR->HVimage), pPR->HV_string);
+//#endif
+//#else
+//   Write_SIM_Record_As_POLSARPRO_BINARY (&(pPR->HHimage));
+//   Write_SIM_Record_As_POLSARPRO_BINARY (&(pPR->HVimage));
+//   Write_SIM_Record_As_POLSARPRO_BINARY (&(pPR->VVimage));
+//   Rename_SIM_Record (&(pPR->HVimage), pPR->VH_string);
+//   Write_SIM_Record_As_POLSARPRO_BINARY (&(pPR->HVimage));
+//   Rename_SIM_Record (&(pPR->HVimage), pPR->HV_string);
+//#endif
+//   return;
+//}
+
+void		Write_SAR_Stack				(PolSARproSim_Record *pPR)
 {
+   int itrack;
+   
+   for (itrack = 0; itrack<pPR->Tracks; itrack++){      
+   
+      Create_SAR_Filenames		(pPR, itrack);
 #ifndef POLSARPRO_CONVENTION
 #ifdef POLSARPROSIM_ROTATED_IMAGES
-   SIM_Record			RotImage;
-   Create_SIM_Record	(&RotImage);
-   Rotate_SIM_Record	(&(pPR->HHimage), &RotImage);
-   Write_SIM_Record	(&RotImage);
-   Rotate_SIM_Record	(&(pPR->HVimage), &RotImage);
-   Write_SIM_Record	(&RotImage);
-   Rename_SIM_Record	(&RotImage, pPR->VH_string);
-   Write_SIM_Record	(&RotImage);
-   Rotate_SIM_Record	(&(pPR->VVimage), &RotImage);
-   Write_SIM_Record	(&RotImage);
-   Destroy_SIM_Record	(&RotImage);
+      SIM_Record			RotImage;
+      Create_SIM_Record	(&RotImage);
+      Rotate_SIM_Record	(&(pPR->HHstack[itrack].Image), &RotImage);
+      Write_SIM_Record	(&RotImage);
+      Rotate_SIM_Record	(&(pPR->HVstack[itrack].Image), &RotImage);
+      Write_SIM_Record	(&RotImage);
+      Rename_SIM_Record	(&RotImage, pPR->VH_string);
+      Write_SIM_Record	(&RotImage);
+      Rotate_SIM_Record	(&(pPR->VVstack[itrack].Image), &RotImage);
+      Write_SIM_Record	(&RotImage);
+      Destroy_SIM_Record	(&RotImage);
 #else
-   Write_SIM_Record	(&(pPR->HHimage));
-   Write_SIM_Record	(&(pPR->HVimage));
-   Write_SIM_Record	(&(pPR->VVimage));
-   Rename_SIM_Record	(&(pPR->HVimage), pPR->VH_string);
-   Write_SIM_Record	(&(pPR->HVimage));
-   Rename_SIM_Record	(&(pPR->HVimage), pPR->HV_string);
+      Write_SIM_Record	(&(pPR->HHstack[itrack].Image));
+      Write_SIM_Record	(&(pPR->HVstack[itrack].Image));
+      Write_SIM_Record	(&(pPR->VVstack[itrack].Image));
+      Rename_SIM_Record	(&(pPR->HVstack[itrack].Image), pPR->VH_string);
+      Write_SIM_Record	(&(pPR->HVstack[itrack].Image));
+      Rename_SIM_Record	(&(pPR->HVstack[itrack].Image), pPR->HV_string);
 #endif
 #else
-   Write_SIM_Record_As_POLSARPRO_BINARY (&(pPR->HHimage));
-   Write_SIM_Record_As_POLSARPRO_BINARY (&(pPR->HVimage));
-   Write_SIM_Record_As_POLSARPRO_BINARY (&(pPR->VVimage));
-   Rename_SIM_Record (&(pPR->HVimage), pPR->VH_string);
-   Write_SIM_Record_As_POLSARPRO_BINARY (&(pPR->HVimage));
-   Rename_SIM_Record (&(pPR->HVimage), pPR->HV_string);
+      Write_SIM_Record_As_POLSARPRO_BINARY (&(pPR->HHstack[itrack].Image));
+      Write_SIM_Record_As_POLSARPRO_BINARY (&(pPR->HVstack[itrack].Image));
+      Write_SIM_Record_As_POLSARPRO_BINARY (&(pPR->VVstack[itrack].Image));
+      Rename_SIM_Record (&(pPR->HVstack[itrack].Image), pPR->VH_string);
+      Write_SIM_Record_As_POLSARPRO_BINARY (&(pPR->HVstack[itrack].Image));
+      Rename_SIM_Record (&(pPR->HVstack[itrack].Image), pPR->HV_string);
 #endif
+   }
    return;
 }
 
-void		Destroy_SAR_Images				(PolSARproSim_Record *pPR)
-{
-   Destroy_SIM_Record (&(pPR->HHimage));
-   Destroy_SIM_Record (&(pPR->HVimage));
-   Destroy_SIM_Record (&(pPR->VVimage));
-   return;
-}
+
+//void		Destroy_SAR_Images				(PolSARproSim_Record *pPR)
+//{
+//   Destroy_SIM_Record (&(pPR->HHimage));
+//   Destroy_SIM_Record (&(pPR->HVimage));
+//   Destroy_SIM_Record (&(pPR->VVimage));
+//   return;
+//}
 
 /************************/
 /* TCLTK string parsing */
@@ -6227,26 +6366,26 @@ void		Flat_Earth_Phase_Removal		(PolSARproSim_Record *pPR)
          
          x			= i * dx - xmid;
          
-         s			= getSIMpixel (&(pPR->HHimage), i, j);
+         s			= getSIMpixel (&(pPR->HHstack[pPR->current_track].Image), i, j);
          cs			= xy_complex (s.data.cf.x, s.data.cf.y);
          cs			= complex_mul (cs, c_phase);
          s.data.cf.x	= (float) cs.x;
          s.data.cf.y	= (float) cs.y;
-         putSIMpixel (&(pPR->HHimage), s, i, j);
+         putSIMpixel (&(pPR->HHstack[pPR->current_track].Image), s, i, j);
          
-         s			= getSIMpixel (&(pPR->HVimage), i, j);
+         s			= getSIMpixel (&(pPR->HVstack[pPR->current_track].Image), i, j);
          cs			= xy_complex (s.data.cf.x, s.data.cf.y);
          cs			= complex_mul (cs, c_phase);
          s.data.cf.x	= (float) cs.x;
          s.data.cf.y	= (float) cs.y;
-         putSIMpixel (&(pPR->HVimage), s, i, j);
+         putSIMpixel (&(pPR->HVstack[pPR->current_track].Image), s, i, j);
          
-         s			= getSIMpixel (&(pPR->VVimage), i, j);
+         s			= getSIMpixel (&(pPR->VVstack[pPR->current_track].Image), i, j);
          cs			= xy_complex (s.data.cf.x, s.data.cf.y);
          cs			= complex_mul (cs, c_phase);
          s.data.cf.x	= (float) cs.x;
          s.data.cf.y	= (float) cs.y;
-         putSIMpixel (&(pPR->VVimage), s, i, j);
+         putSIMpixel (&(pPR->VVstack[pPR->current_track].Image), s, i, j);
          
       }
       

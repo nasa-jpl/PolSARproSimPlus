@@ -16,4 +16,5 @@ xcuserdata/
 project.xcworkspace/
 project.pbxproj
 
-
+#cscope output
+cscope.out

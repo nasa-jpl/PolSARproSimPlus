@@ -87,7 +87,7 @@ void		Polar_Assign_Complex				(Complex *p_c, double r, double phi)
 
 void		Print_Complex						(Complex *p_c)
 {
- printf ("%10.3e\t%10.3e\t%10.3e\t%10.3e\t", p_c->x, p_c->y, p_c->r, p_c->phi);
+ printf ("%10.3e\t%10.3e\t%10.3e\t%10.3e\n", p_c->x, p_c->y, p_c->r, p_c->phi);
  //printf ("%10.3e+j%10.3e\t", p_c->x, p_c->y);
  return;
 }

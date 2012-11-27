@@ -289,7 +289,7 @@
 /****************************************************/
 /* Graphic image rendering (ground is always drawn) */
 /****************************************************/
-
+#define  DRAW_FOREST_IMAGE                            1
 #define	FOREST_GRAPHIC_DRAW_STEM
 /* Draw tree stems in graphic image if defined			*/
 #define	FOREST_GRAPHIC_DRAW_CROWN
@@ -364,7 +364,7 @@
 /* Optional flat earth phase correction */
 /****************************************/
 
-/*#define		POLSARPROSIM_FLATEARTH								*/
+#define		POLSARPROSIM_FLATEARTH							
 /* Will scale images by exp (-j 2kr) if defined						*/
 
 /***********************************************/

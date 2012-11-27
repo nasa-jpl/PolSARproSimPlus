@@ -317,9 +317,12 @@ typedef struct polsarprosim_record_tag {
    /***************/
    /* SAR imagery */
    /***************/
-   SIM_Record		HHimage;				/* HH SAR images are stored here                                  */
-   SIM_Record		HVimage;				/* HV SAR images are stored here                                  */
-   SIM_Record		VVimage;				/* VV SAR images are stored here                                  */
+//   SIM_Record		HHimage;				/* HH SAR images are stored here                                  */
+//   SIM_Record		HVimage;				/* HV SAR images are stored here                                  */
+//   SIM_Record		VVimage;				/* VV SAR images are stored here                                  */
+   SIM_Stack      *HHstack;         /* Stack of HH images are stored here                             */
+   SIM_Stack      *HVstack;         /* Stack of HV images are stored here                             */
+   SIM_Stack      *VVstack;         /* Stack of VV images are stored here                             */   
    double			xmid;					/* Used to calculate image array indices                          */
    double			ymid;					/* Used to calculate image array indices                          */
    double			psfaaz;           /* Point spread function azimuth parameter                        */
@@ -335,8 +338,7 @@ typedef struct polsarprosim_record_tag {
    /* File name variables */
    /***********************/
    char           *pInputDirectory;		/* Name of directory in which input parameter file is located		*/
-   char           *pMasterDirectory;	/* Name of directory in which track0 output is written				*/
-   char           *pSlaveDirectory;		/* Name of directory in which track1 output is written				*/
+   char           *pMasterDirectory;	/* Name of directory in which data output is written              */
    char           *pFilenamePrefix;		/* Filename prefix for input, output and log files                */
    char           *HH_string;				/* Full filename for current track                                */
    char           *HV_string;				/* Full filename for current track                                */
@@ -353,7 +355,10 @@ typedef struct polsarprosim_record_tag {
    /* Forest input flag: 0 = generate forest, 1 = input forest from Forest Data File --RAedit */
    /*******************************************************************************************/
    int            ForestInput_Flag;     /* If set to 1 forest parameters will be read from input file     */
-   
+   /*******************************************************************************************/
+   /* Forest input flag: 0 = skip forest drawing, 1 = draw forest image              --RAedit */
+   /*******************************************************************************************/
+   int            ForestDraw_Flag;      
 } PolSARproSim_Record;
 
 /*********************************/

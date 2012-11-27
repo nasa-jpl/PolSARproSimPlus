@@ -113,27 +113,27 @@ void		Copy_Branch		(Branch *p_bCopy, Branch *p_bOriginal)
 void		Print_Branch	(Branch *p_b)
 {
  printf ("\n");
- printf ("%12.5e\n", p_b->l);
- printf ("%12.5e\n", p_b->start_radius);
- printf ("%12.5e\n", p_b->end_radius);
- printf ("%12.5e\n", p_b->dp);
- printf ("%12.5e\n", p_b->dp_coeff);
- printf ("%12.5e\n", p_b->gamma);
- printf ("%12.5e\n", p_b->lamdacx);
- printf ("%12.5e\n", p_b->lamdacy);
- printf ("%12.5e\n", p_b->moisture);
- Print_Complex (&(p_b->permittivity));
- printf ("%12.5e\n", p_b->phicx);
- printf ("%12.5e\n", p_b->phicy);
- printf ("%12.5e\n", p_b->phix);
- printf ("%12.5e\n", p_b->phiy);
- Print_d3Vector (&(p_b->b0));
- Print_d3Vector (&(p_b->z0));
- Print_d3Vector (&(p_b->p));
- printf ("%12d\n", p_b->id);
- printf ("%12d\n", p_b->idorg);
- printf ("%ld\n", (long) p_b->next);
- printf ("%ld\n", (long) p_b->prev);
+ printf ("Length\t\t%12.5e\n", p_b->l);
+ printf ("Start Radius\t%12.5e\n", p_b->start_radius);
+ printf ("End Radius\t%12.5e\n", p_b->end_radius);
+ printf ("Trop. factor\t%12.5e\n", p_b->dp);
+ printf ("Trop. coeff\t%12.5e\n", p_b->dp_coeff);
+ printf ("Gamma\t\t%12.5e\n", p_b->gamma);
+ printf ("Lamdacx\t\t%12.5e\n", p_b->lamdacx);
+ printf ("Lamdacy\t\t%12.5e\n", p_b->lamdacy);
+ printf ("Moisture\t%12.5e\n", p_b->moisture);
+ printf ("Permittivity\t");Print_Complex (&(p_b->permittivity));
+ printf ("Phicx\t\t%12.5e\n", p_b->phicx);
+ printf ("Phict\t\t%12.5e\n", p_b->phicy);
+ printf ("Phix\t\t%12.5e\n", p_b->phix);
+ printf ("Phiy\t\t%12.5e\n", p_b->phiy);
+ printf ("Start Location\t");Print_d3Vector (&(p_b->b0));
+ printf ("Start Direciton\t");Print_d3Vector (&(p_b->z0));
+ printf ("Trop. Direction\t");Print_d3Vector (&(p_b->p));
+ printf ("ID\t\t%d\n", p_b->id);
+ printf ("Parent id\t%d\n", p_b->idorg);
+ printf ("Next\t\t%ld\n", (long) p_b->next);
+ printf ("Prev\t\t%ld\n", (long) p_b->prev);
  printf ("\n");
  return;
 }
