@@ -1,8 +1,8 @@
 HOME = /Users/rahmed/pspsim_dev
-SRCDIR = $(HOME)/src
-LIBDIR = $(HOME)/lib
-INCDIR = -I$(HOME)/include -I/usr/include/libxml2/
-BINDIR = $(HOME)/bin/
+SRCDIR 	= $(HOME)/src
+LIBDIR 	= $(HOME)/lib
+INCDIR 	= -I$(HOME)/include -I/usr/include/libxml2/
+BINDIR 	= $(HOME)/bin/
 
 CC = gcc
 CFLAGS = -g -Wall -DENABLE_THREADS $(INCDIR) 

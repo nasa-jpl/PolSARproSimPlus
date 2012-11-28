@@ -6444,4 +6444,64 @@ void     Write_Forest_XML      (PolSARproSim_Record *pPR)
 
 }
 
+/************************************/
+/* Write out the radar look vectors */
+/************************************/
+
+void		Write_Stack_LookVectors				(PolSARproSim_Record *pPR)
+{
+   int      itrack, ix, jy;
+   double   x, y;
+   char     trackid[10];
+   char     postfix[9];
+   char     *filename;
+   FILE     *pLOSfile;
+   double   Lx       = pPR->Lx;
+   double   Ly       = pPR->Ly;
+   double   p_slant_range;
+   double   p_incidence_angle;
+   double   p_ground_range;
+   double   p_height;
+   double   S,C,H; /* along-track (S), cross track (C), height (C) components of look vector */
+   
+   sprintf(postfix, "los.dat");
+   for (itrack = 0; itrack<pPR->Tracks; itrack++){      
+      
+      /* compute file name */ 
+      sprintf(trackid, "track%03d",itrack); 
+      filename = (char*) calloc (strlen(pPR->pMasterDirectory)+strlen(pPR->pFilenamePrefix)+1+strlen(trackid)+1+strlen(postfix), sizeof(char));
+      strcpy (filename, pPR->pMasterDirectory);
+      strncat(filename, pPR->pFilenamePrefix, strlen(pPR->pFilenamePrefix));
+      strncat(filename, "_",1);
+      strncat(filename, trackid, strlen(trackid));
+      strncat(filename, "_",1);
+      strncat(filename, postfix, strlen(postfix));
+      /* try to open the file */
+      if ((pLOSfile = fopen(filename, "wb")) == NULL) {
+         printf ("ERROR: Unable to open LOS output file %s.\n", filename);
+         exit (0);
+      }
+      /* compute geometry for center pixel */
+      p_slant_range        = pPR->slant_range[itrack];
+      p_incidence_angle    = pPR->incidence_angle[itrack];
+      p_ground_range       = p_slant_range * sin(p_incidence_angle);
+      p_height             = p_slant_range * cos(p_incidence_angle);
+      
+      for (ix = 0; ix<pPR->nx; ix++){
+         x = ix * pPR->deltax - Lx/2;
+         for(jy = 0; jy<pPR->ny; jy++){
+            y = jy * pPR->deltay - Ly/2;
+            /* compute the look vector components for this particular pixel */
+            S = 0;                                          /* there is no along track component   */
+            C = y + p_ground_range;                         /* cross track component               */
+            H = -1 * (p_height - ground_height(pPR, x, y)); /* so the look vector points downward  */
+            fwrite (&S, sizeof(double), 1, pLOSfile);
+            fwrite (&C, sizeof(double), 1, pLOSfile);
+            fwrite (&H, sizeof(double), 1, pLOSfile);
+         } 
+      }
+      fclose(pLOSfile);
+   }   
+   return;
+}
 

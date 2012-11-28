@@ -378,6 +378,7 @@ int main(int argv, char *argc[])
    /* Output the SAR images for the entire stack */
    /**********************************************/
    Write_SAR_Stack                  (&Master_Record);
+   Write_Stack_LookVectors          (&Master_Record);
 
    /******************************/
    /* Tidy up before leaving     */

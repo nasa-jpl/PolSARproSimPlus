@@ -1569,7 +1569,6 @@ int		PolSARproSim_Forest_SMP		(PolSARproSim_Record *pPR)
    SarGeometry	SG2;
    int			rtn_value;
    
-   
    /* some variables for hyperthreading */
    ImageTree_Thread_Arg    *threadarg; /* pointer to array of thread arguments   */
    pthread_t               *threads;   /* pointer to arry of thread ids          */

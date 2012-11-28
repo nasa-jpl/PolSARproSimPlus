@@ -147,7 +147,7 @@ int			Realise_Foliage_Element			(Tree *pT, PolSARproSim_Record *pPR, Leaf *pL,
 void        Initialise_SAR_Stack				(PolSARproSim_Record *pPR);
 void        Write_SAR_Stack               (PolSARproSim_Record *pPR);
 void        Destroy_SAR_Stack             (PolSARproSim_Record *pPR);
-
+void        Write_Stack_LookVectors			(PolSARproSim_Record *pPR);
 /************************/
 /* TCLTK string parsing */
 /************************/
