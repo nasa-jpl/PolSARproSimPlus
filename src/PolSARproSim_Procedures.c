@@ -672,10 +672,8 @@ int		Input_PolSARproSim_Record		(const char *filename, PolSARproSim_Record *pPR)
       slave_height            = master_track_height + baseline[1];
       pPR->slant_range[i]     = sqrt(slave_height*slave_height + slave_ground_range*slave_ground_range);
       pPR->incidence_angle[i] = atan2(slave_ground_range, slave_height);
+      printf("%d)\tSlant Range %f\tIncidence Angle: %f, Bperp with 0: %f\n", i, pPR->slant_range[i], pPR->incidence_angle[i]*RAD_TO_DEG, sqrt(baseline[0]*baseline[0]+baseline[1]*baseline[1])*cos(pPR->incidence_angle[0]));
    }
-   for (i = 0; i < pPR->Tracks; i++) {
-      printf("%d)\tSlant Range %f\tIncidence Angle: %f\n", i, pPR->slant_range[i], pPR->incidence_angle[i]*RAD_TO_DEG);
-      }
    read_double    (pInputFile,   "radar_frequency",            &(pPR->frequency));
    read_double    (pInputFile,   "azimuth_resolution",         &(pPR->azimuth_resolution));
    read_double    (pInputFile,   "slant_range_resolution",     &(pPR->slant_range_resolution));

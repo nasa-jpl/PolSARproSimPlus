@@ -34,7 +34,7 @@ void		*Image_Short_Veg_Direct_Stems		(void *threadarg)
    /* thread variables */
    Short_Veg_Thread_Arg       *pTA;
    PolSARproSim_Record        *pPR;
-   unsigned int               seed;
+   unsigned short             seed[3];
    /* thread argument assignments */
    pTA         = (Short_Veg_Thread_Arg *)threadarg;
    pPR         = pTA->pPR;  /* pointer to Master_Record */
@@ -44,16 +44,13 @@ void		*Image_Short_Veg_Direct_Stems		(void *threadarg)
    const double		thetai			= pPR->incidence_angle[pPR->current_track];
    const double		cos_thetai		= cos(thetai);
    const double		sin_thetai		= sin(thetai);
-   // const double		Lx					= pPR->Lx;
    const double		Ly					= pPR->Ly;
    const double		deltax			= pPR->deltax;
    const double		deltay			= pPR->deltay;
-   //  const int			nx					= pPR->nx;
    const int			ny					= pPR->ny;
    const double		dsv				= pPR->shrt_vegi_depth;
    const double		vc					= dsv*deltax*deltay;
    int               nr					= (int) (POLSARPROSIM_SHORT_VEGI_REALISATIONS*DEFAULT_RESOLUTION_SAMPLING_FACTOR*DEFAULT_RESOLUTION_SAMPLING_FACTOR);
-   
    /* variables */
    int               stem_species;
    double				stem_d1, stem_d2, stem_d3;
@@ -90,6 +87,13 @@ void		*Image_Short_Veg_Direct_Stems		(void *threadarg)
    double				gH, gV;
    int               rtn_lookup;
 #endif
+   double            randn;
+   /************************************/
+   /* seed for random number generator */
+   /************************************/
+   seed[0]  = pPR->seed + pTA->thread_id;
+   randn    = erand48(seed); //waste the first random number generated 
+
    /********************/
    /* FSA wave vectors */
    /********************/
@@ -128,10 +132,7 @@ void		*Image_Short_Veg_Direct_Stems		(void *threadarg)
       nr	= nc_stem;
    }
    Sa_scaling			= sqrt ((double)nc_stem/(double)nr); 
-   /************************************/
-   /* seed for random number generator */
-   /************************************/
-   seed = pPR->seed + pTA->thread_id;
+   
    for (j = 0; j < ny; j++) {
       yp	= (Ly - deltay)/2.0 - j*deltay;
       zp	= ground_height (pPR, xp, yp);
@@ -139,13 +140,13 @@ void		*Image_Short_Veg_Direct_Stems		(void *threadarg)
          /******************/
          /* Realise a stem */
          /******************/
-         stem_x            = xp + (drand_r(&seed) - 0.5) * deltax;
-         stem_y				= yp + (drand_r(&seed) - 0.5) * deltay;
-         stem_height			= zp + drand_r(&seed) * dsv;
+         stem_x            = xp + (erand48(seed) - 0.5) * deltax;
+         stem_y				= yp + (erand48(seed) - 0.5) * deltay;
+         stem_height			= zp + erand48(seed) * dsv;
          stem_centre			= Cartesian_Assign_d3Vector (stem_x, stem_y, stem_height);
-         theta             = vegi_polar_angle_r (&seed);
-         phi					= 2.0*Pi*drand_r (&seed);
-         stem_moisture		= Leaf_Moisture_r	(pPR->species, pPR, &seed);
+         theta             = vegi_polar_angle_r (erand48(seed));
+         phi					= 2.0*Pi*erand48 (seed);
+         stem_moisture		= Leaf_Moisture_r	(pPR->species, pPR, erand48(seed));
          stem_permittivity	= vegetation_permittivity (stem_moisture, pPR->frequency);
          Assign_Leaf		(&leaf_stem, stem_species, stem_d1, stem_d2, stem_d3, theta, phi, 
                          stem_moisture, stem_permittivity, stem_centre);
@@ -227,7 +228,7 @@ void     *Image_Short_Veg_Direct_Leaves      (void *threadarg)
    /* thread variables */
    Short_Veg_Thread_Arg       *pTA;
    PolSARproSim_Record        *pPR;
-   unsigned int               seed;
+   unsigned short             seed[3];
    /* thread argument assignments */
    pTA         = (Short_Veg_Thread_Arg *)threadarg;
    pPR         = pTA->pPR;  /* pointer to Master_Record */
@@ -280,11 +281,12 @@ void     *Image_Short_Veg_Direct_Leaves      (void *threadarg)
    double				Sigma0VV		= 0.0;
    Complex           AvgShhvv, zhhvv;
    double				Sigma0_count	= 0.0;
-
+   double            randn;
    /************************************/
    /* seed for random number generator */
    /************************************/
-   seed     = pPR->seed + pTA->thread_id;
+   seed[0]     = pPR->seed + pTA->thread_id;
+   randn       = erand48(seed); //waste the first random number
    /********************/
    /* FSA wave vectors */
    /********************/
@@ -302,7 +304,7 @@ void     *Image_Short_Veg_Direct_Leaves      (void *threadarg)
    leaf_d1           = POLSARPROSIM_SHORTV_LEAF_LENGTH;
    leaf_d2           = POLSARPROSIM_SHORTV_LEAF_WIDTH;
    leaf_d3           = POLSARPROSIM_SHORTV_LEAF_THICKNESS;
-   leaf_moisture		= Leaf_Moisture	(pPR->species, pPR);
+   leaf_moisture		= Leaf_Moisture	(pPR->species, pPR);  // no need for a thread safe random number generator here
    leaf_permittivity	= vegetation_permittivity (leaf_moisture, pPR->frequency);
    leafL1				= pPR->ShortVegi_leafL1;
    leafL2				= pPR->ShortVegi_leafL2;
@@ -331,13 +333,13 @@ void     *Image_Short_Veg_Direct_Leaves      (void *threadarg)
          /******************/
          /* Realise a leaf */
          /******************/
-         leaf_x				= xp + (drand_r(&seed) - 0.5)*deltax;
-         leaf_y				= yp + (drand_r(&seed) - 0.5)*deltay;
-         leaf_height			= zp + drand_r(&seed) * dsv;
+         leaf_x				= xp + (erand48(seed) - 0.5)*deltax;
+         leaf_y				= yp + (erand48(seed) - 0.5)*deltay;
+         leaf_height			= zp + erand48(seed) * dsv;
          leaf_centre			= Cartesian_Assign_d3Vector (leaf_x, leaf_y, leaf_height);
-         theta             = vegi_polar_angle_r (&seed);
-         phi					= 2.0*Pi*drand_r (&seed);
-         leaf_moisture		= Leaf_Moisture_r	(pPR->species, pPR, &seed);
+         theta             = vegi_polar_angle_r (erand48(seed));
+         phi					= 2.0*Pi*erand48 (seed);
+         leaf_moisture		= Leaf_Moisture_r	(pPR->species, pPR, erand48(seed));
          leaf_permittivity	= vegetation_permittivity (leaf_moisture, pPR->frequency);
          Assign_Leaf       (&leaf_leaf, leaf_species, leaf_d1, leaf_d2, leaf_d3, theta, phi, 
                             leaf_moisture, leaf_permittivity, leaf_centre);
@@ -471,10 +473,6 @@ int		PolSARproSim_Short_Vegetation_Direct_SMP		(PolSARproSim_Record *pPR)
 #endif
    fprintf (pPR->pLogFile, "Call to PolSARproSim_Short_Vegetation_Direct ... \n");
    fflush  (pPR->pLogFile);
-   /*********************************/
-   /* Reset random number generator */
-   /*********************************/
-   //srand (pPR->seed);
    /*************************/
    /* Assign stem variables */
    /*************************/
@@ -588,8 +586,9 @@ int		PolSARproSim_Short_Vegetation_Direct_SMP		(PolSARproSim_Record *pPR)
    for (i = 0; i < nx; i++) {
       xp	= i*deltax + (deltax - Lx)/2.0;
       /* set the thread argument */
-      threadarg[i].xp     = xp;
-      threadarg[i].pPR    = pPR;
+      threadarg[i].xp         = xp;
+      threadarg[i].pPR        = pPR;
+      threadarg[i].thread_id  = i;
       /* create threads */
       rc=pthread_create(&threads[i], &attr, Image_Short_Veg_Direct_Leaves, (void *)&threadarg[i]);
       if(rc){
@@ -1059,7 +1058,7 @@ void		*Image_Short_Veg_Bounce_Stems		(void *threadarg)
    /* thread variables */
    Short_Veg_Thread_Arg             *pTA;
    PolSARproSim_Record              *pPR;
-   unsigned int                     seed;
+   unsigned short                   seed[3];
    /* thread argument assignments */
    pTA                              = (Short_Veg_Thread_Arg *)threadarg;
    pPR                              = pTA->pPR;  /* pointer to Master_Record */
@@ -1139,10 +1138,17 @@ void		*Image_Short_Veg_Bounce_Stems		(void *threadarg)
    c3Vector          Eh, Ev;
    Complex           Shh, Shv, Svh, Svv;
    Complex           zhhvv;
+   double            randn;
    /*********************************/
    /* Reset random number generator */
    /*********************************/
-   seed        = pPR->seed+pTA->thread_id;
+   seed[0]        = pPR->seed+pTA->thread_id;
+   randn          = erand48(seed);
+   /***********************************/
+   /* Normalise ground surface normal */
+   /***********************************/
+   d3Vector_insitu_normalise (&n);
+   nm          = d3Vector_double_multiply (n, -1.0);
    /********************/
    /* FSA wave vectors */
    /********************/
@@ -1238,9 +1244,7 @@ void		*Image_Short_Veg_Bounce_Stems		(void *threadarg)
       nr	= nc_stem;
    }
    Sa_scaling			= sqrt ((double)nc_stem/(double)nr);
-   
-   
-   
+      
    for (j = 0; j < ny; j++) {
       yp	= (Ly - deltay)/2.0 - j*deltay;
       zp	= ground_height (pPR, xp, yp);
@@ -1248,13 +1252,13 @@ void		*Image_Short_Veg_Bounce_Stems		(void *threadarg)
          /******************/
          /* Realise a stem */
          /******************/
-         stem_x				= xp + (drand_r(&seed) - 0.5)*deltax;
-         stem_y				= yp + (drand_r(&seed) - 0.5)*deltay;
-         stem_height			= zp + drand_r(&seed) * dsv;
+         stem_x				= xp + (erand48(seed) - 0.5)*deltax;
+         stem_y				= yp + (erand48(seed) - 0.5)*deltay;
+         stem_height			= zp + erand48(seed) * dsv;
          stem_centre			= Cartesian_Assign_d3Vector (stem_x, stem_y, stem_height);
-         theta             = vegi_polar_angle_r (&seed);
-         phi					= 2.0*Pi*drand_r (&seed);
-         stem_moisture		= Leaf_Moisture_r	(pPR->species, pPR, &seed);
+         theta             = vegi_polar_angle_r (erand48(seed));
+         phi					= 2.0*Pi*erand48 (seed);
+         stem_moisture		= Leaf_Moisture_r	(pPR->species, pPR, erand48(seed));
          stem_permittivity	= vegetation_permittivity (stem_moisture, pPR->frequency);
          Assign_Leaf       (&leaf_stem, stem_species, stem_d1, stem_d2, stem_d3, theta, phi, 
                             stem_moisture, stem_permittivity, stem_centre);
@@ -1381,7 +1385,7 @@ void		*Image_Short_Veg_Bounce_Leaves		(void *threadarg)
    /* thread variables */
    Short_Veg_Thread_Arg             *pTA;
    PolSARproSim_Record              *pPR;
-   unsigned int                     seed;
+   unsigned short                   seed[3];
    /* thread argument assignments */
    pTA                              = (Short_Veg_Thread_Arg *)threadarg;
    pPR                              = pTA->pPR;  /* pointer to Master_Record */
@@ -1461,10 +1465,17 @@ void		*Image_Short_Veg_Bounce_Leaves		(void *threadarg)
    c3Vector          Eh, Ev;
    Complex           Shh, Shv, Svh, Svv;
    Complex           zhhvv;
+   double            randn;
    /************************************/
    /* seed for random number generator */
    /************************************/
-   seed        = pPR->seed+pTA->thread_id;   
+   seed[0]     = pPR->seed+pTA->thread_id;   
+   randn       = erand48(seed); // waste the first random number generated
+   /***********************************/
+   /* Normalise ground surface normal */
+   /***********************************/
+   d3Vector_insitu_normalise (&n);
+   nm			= d3Vector_double_multiply (n, -1.0);
    /********************/
    /* FSA wave vectors */
    /********************/
@@ -1567,20 +1578,20 @@ void		*Image_Short_Veg_Bounce_Leaves		(void *threadarg)
          /******************/
          /* Realise a leaf */
          /******************/
-         leaf_x				= xp + (drand_r(&seed) - 0.5)*deltax;
-         leaf_y				= yp + (drand_r(&seed) - 0.5)*deltay;
-         leaf_height			= zp + drand_r(&seed) * dsv;
+         leaf_x				= xp + (erand48(seed) - 0.5)*deltax;
+         leaf_y				= yp + (erand48(seed) - 0.5)*deltay;
+         leaf_height			= zp + erand48(seed) * dsv;
          leaf_centre			= Cartesian_Assign_d3Vector (leaf_x, leaf_y, leaf_height);
-         theta             = vegi_polar_angle_r (&seed);
-         phi					= 2.0*Pi*drand_r (&seed);
-         leaf_moisture		= Leaf_Moisture_r	(pPR->species, pPR, &seed);
+         theta             = vegi_polar_angle_r (erand48(seed));
+         phi					= 2.0*Pi*erand48 (seed);
+         leaf_moisture		= Leaf_Moisture_r	(pPR->species, pPR, erand48(seed));
          leaf_permittivity	= vegetation_permittivity (leaf_moisture, pPR->frequency);
          Assign_Leaf       (&leaf_leaf, leaf_species, leaf_d1, leaf_d2, leaf_d3, theta, phi, 
                             leaf_moisture, leaf_permittivity, leaf_centre);
          /*****************************************/
          /* Calculate the reflection plane origin */
          /*****************************************/
-         g                 = Cartesian_Assign_d3Vector (leaf_x, leaf_y, ground_height(pPR, leaf_x, leaf_y));
+         g                 = Cartesian_Assign_d3Vector (leaf_x, leaf_y, ground_height(pPR, leaf_x, leaf_y)); 
          if (leaf_height > g.x[2]) {
             Assign_Plane (&Pg, &g, pPR->slope_x, pPR->slope_y);
             Assign_Ray_d3V (&Rb, &leaf_centre, &nm);
@@ -1669,6 +1680,7 @@ void		*Image_Short_Veg_Bounce_Leaves		(void *threadarg)
                   /***************************************************/
                   /* Combine contribution into SAR image accumulator */
                   /***************************************************/
+                 // printf("%d) Leaf Shh,Shv,Svv = %f, %f,%f\n", pTA->thread_id, Shh.x, Shv.x, Svv.x);
                   weight_average	+= Accumulate_SAR_Contribution (focus_x, focus_y, focus_srange, Shh, Shv, Svv, pPR);
                   weight_count	+= 1.0;
                }
@@ -1922,10 +1934,11 @@ int		PolSARproSim_Short_Vegetation_Bounce_SMP		(PolSARproSim_Record *pPR)
    /******************************************************/
    for (i = 0; i < nx; i++) {
       xp	= i*deltax + (deltax - Lx)/2.0;
-      xp	= i*deltax + (deltax - Lx)/2.0;
+      //xp	= i*deltax + (deltax - Lx)/2.0;
       /* set the thread argument */
-      threadarg[i].xp     = xp;
-      threadarg[i].pPR    = pPR;
+      threadarg[i].xp         = xp;
+      threadarg[i].pPR        = pPR;
+      threadarg[i].thread_id  = i;
       /* create threads */
       rc=pthread_create(&threads[i], &attr, Image_Short_Veg_Bounce_Leaves, (void *)&threadarg[i]);
       if(rc){
@@ -2423,6 +2436,7 @@ int		PolSARproSim_Short_Vegetation_Bounce		(PolSARproSim_Record *pPR)
                   Assign_Ray_d3V (&Rb, &leaf_centre, &a);
                   rtn_value	= RayPlaneIntersection (&Rb, &Pg, &specular_point, &specular_distance);
                   if ((rtn_value == 1) && (specular_distance >= 0.0)) {
+
                      /*********************************************/
                      /* Calculate the ground-leaf centre of focus */
                      /*********************************************/

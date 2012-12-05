@@ -40,7 +40,6 @@ double		drand_r			(unsigned int *pseed)
  return (r/ (double) RAND_MAX);
 }
 
-
 double		Gaussian_drand			(double a_bar, double a_std, double a_min, double a_max)
 {
  double	x		= Normal_Distribution ();
@@ -83,3 +82,4 @@ double erand_r (double x, unsigned int *pseed)
  y = -x*log(r);
  return (y);
 }
+

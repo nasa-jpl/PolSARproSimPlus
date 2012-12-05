@@ -137,7 +137,7 @@ double		Tertiary_Branch_Moisture         (Tree *pT, PolSARproSim_Record *pPR);
 int			Leaf_Species					(int species, PolSARproSim_Record *pPR);
 double		Leaf_Volume_Fraction			(int species, PolSARproSim_Record *pPR);
 double		Leaf_Moisture					(int species, PolSARproSim_Record *pPR);
-double		Leaf_Moisture_r				(int species, PolSARproSim_Record *pPR, unsigned int *pseed);
+double		Leaf_Moisture_r				(int species, PolSARproSim_Record *pPR, double randn);
 void        Leaf_Size                  (Tree *pT, PolSARproSim_Record *pPR, double *d1, double *d2, double *d3);
 
 /****************************************/

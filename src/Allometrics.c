@@ -471,11 +471,13 @@ double		Leaf_Moisture				(int species, PolSARproSim_Record *pPR)
    return (moisture);
 }
 
-double		Leaf_Moisture_r				(int species, PolSARproSim_Record *pPR, unsigned int *pseed)
+// re-entrant (thread-safe) version of Leaf_Moisture
+double		Leaf_Moisture_r				(int species, PolSARproSim_Record *pPR, double randn)
 {
    double		moisture;
    double      spec_moisture = pPR->SpeciesDataBase[species].leaf_moisture;
-   moisture	= spec_moisture + spec_moisture * 0.1* (drand_r (pseed)-0.5); 
+   moisture	= spec_moisture + spec_moisture * 0.1* (randn-0.5); 
    return (moisture);
 }
+
 

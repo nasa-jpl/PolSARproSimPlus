@@ -38,9 +38,10 @@ double		vegi_polar_angle				(void)
    return (theta);
 }
 
-double		vegi_polar_angle_r         (unsigned int *pseed)
+// re-entrant version of vegi_polar_angle
+double		vegi_polar_angle_r         (double randn)
 {
-   double		theta	= acos (2.0*drand_r (pseed) - 1.0);
+   double		theta	= acos (2.0*randn - 1.0);
    return (theta);
 }
 

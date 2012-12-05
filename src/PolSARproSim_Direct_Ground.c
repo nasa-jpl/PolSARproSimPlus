@@ -455,7 +455,7 @@ void  *Direct_Ground_RangeLine   (void *threadarg)
    Direct_Ground_Thread_Arg   *pTA;
    PolSARproSim_Record        *pPR;
    double                     x;
-   unsigned int               seed;
+   unsigned short             seed[3];
    /* do thread assignments */
    pTA                                 = (Direct_Ground_Thread_Arg *)threadarg;
    pPR                                 = pTA->pPR;  // address to Master_Record   
@@ -508,11 +508,13 @@ void  *Direct_Ground_RangeLine   (void *threadarg)
    int               rtn_lookup;
    double				gH, gV;
 #endif
+
+    double           randn;
    /***********************************/
    /* Seed for random number sequence */
    /***********************************/
-   seed     = pPR->seed + pTA->thread_id;
-
+   seed[0]     = pPR->seed + pTA->thread_id;
+   randn       = erand48(seed); // throw away the first one
    /******************/
    /* Initialisation */
    /******************/
@@ -558,9 +560,14 @@ void  *Direct_Ground_RangeLine   (void *threadarg)
       /****************************************************/
       /* Sample random factors for scattering calculation */
       /****************************************************/
-      modf			= sqrt (erand_r (1.0, &seed));
-      argf			= TwoPi*(drand_r (&seed)-0.5);
-      beta_xbragg	= 2.0*(drand_r(&seed)-0.5)*beta1;
+      randn       = erand48(seed); 
+      while (randn < FLT_EPSILON) {
+         randn    = erand48(seed);
+      }
+      modf			= sqrt(-1.0*log(randn));
+      argf			= TwoPi*(erand48(seed)-0.5);
+      beta_xbragg	= 2.0*(erand48(seed)-0.5)*beta1;
+
       /*****************************/
       /* Take facet from list head */
       /*****************************/
@@ -592,7 +599,7 @@ void  *Direct_Ground_RangeLine   (void *threadarg)
          SigVV         = monostatic_soil_sigma0VV (thetail, pPR->ground_eps, pPR->k0, pPR->small_scale_height_stdev, pPR->small_scale_length);
          fArea         = facet_area (&f1);
          RootSigHH     = sqrt (fArea*SigHH);
-         RootSigVV		= sqrt (fArea*SigVV);
+         RootSigVV     = sqrt (fArea*SigVV);
          Polar_Assign_Complex (&Shhl, modf*RootSigHH, argf);
          Polar_Assign_Complex (&Svvl, modf*RootSigVV, argf);
          /****************************************************/
@@ -745,10 +752,10 @@ int		PolSARproSim_Direct_Ground_SMP		(PolSARproSim_Record        *pPR)
    /******************************************/
 #ifdef VERBOSE_POLSARPROSIM
    printf ("\n");
-   printf ("Call to PolSARproSim_Direct_Ground ... \n");
+   printf ("Call to PolSARproSim_Direct_Ground_SMP ... \n");
    printf ("\n");
 #endif
-   fprintf (pPR->pLogFile, "Call to PolSARproSim_Direct_Ground ... \n");
+   fprintf (pPR->pLogFile, "Call to PolSARproSim_Direct_Ground_SMP ... \n");
    fprintf (pPR->pLogFile, "POLSARPROSIM_DIRECTGROUND_SPECKLE_FACTOR\t\t%d\n", dgsf);
    fprintf (pPR->pLogFile, "POLSARPROSIM_DIRECTGROUND_DELTAB_FACTOR\t\t%lf\n", dgdbf);
    fprintf (pPR->pLogFile, "Small scale height standard deviation\t\t%lf m.\n", pPR->small_scale_height_stdev);
@@ -820,11 +827,7 @@ int		PolSARproSim_Direct_Ground_SMP		(PolSARproSim_Record        *pPR)
    fprintf (pPR->pLogFile, "<SvvSvv*>\t= %lf dB\n", 10.0*log10(Thavg_sigVV));
    fprintf (pPR->pLogFile, "<ShhSvv*>\t= %lf dB\n\n", 10.0*log10(Thavg_Shhvv));
    fflush  (pPR->pLogFile);
-   /********************************/
-   /* Prime random number sequence */
-   /********************************/
-   srand	(pPR->seed);
-   
+
    /* Initialize some thread variables */
    threadarg = (Direct_Ground_Thread_Arg *)calloc(nx,sizeof(Direct_Ground_Thread_Arg));
    threads   = (pthread_t *)calloc(nx,sizeof(pthread_t));
