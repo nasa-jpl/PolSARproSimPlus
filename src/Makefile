@@ -1,11 +1,11 @@
-HOME = /Users/rahmed/pspsim_dev
+HOME  	= $(CURDIR)/..
 SRCDIR 	= $(HOME)/src
 LIBDIR 	= $(HOME)/lib
 INCDIR 	= -I$(HOME)/include -I/usr/include/libxml2/
 BINDIR 	= $(HOME)/bin/
 
 CC = gcc
-CFLAGS = -g -Wall -DENABLE_THREADS $(INCDIR) 
+CFLAGS = -g -Wall -DENABLE_THREADS $(INCDIR)
 LDFLAGS = -lm -lxml2
 RM = rm -rf
 
@@ -26,11 +26,11 @@ pspsim_dev: $(PSPSIMOBJS)
 pspsimfekz_dev: $(PSPFEKZOBJS)
 	$(CC) $(CFLAGS) $(PSPFEKZOBJS) -o pspsimfekz_dev
 
-pspsim_imgsize_dev: $(PSPIMGSZOBJS) 
+pspsim_imgsize_dev: $(PSPIMGSZOBJS)
 	$(CC) $(CFLAGS) $(PSPIMGSZOBJS) -o pspsim_imgsize_dev
 
 install: $(PROGS)
 	mv -f $(PROGS) $(BINDIR)
 
-clean: 
+clean:
 	rm -f $(PSPSIMOBJS) $(PSPIMGSZOBJS) $(PSPFEKZOBJS) $(PROGS)
