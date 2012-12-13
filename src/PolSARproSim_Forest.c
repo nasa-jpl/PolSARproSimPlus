@@ -43,13 +43,13 @@ void	Zero_SG_Accumulators			(SarGeometry *pSG)
    return;
 }
 
-int		Initialise_SAR_Geometry			(SarGeometry *pSG, PolSARproSim_Record *pPR)
+int		Initialise_SAR_Geometry			(SarGeometry *pSG, PolSARproSim_Record *pPR, int track)
 {
-   int				rtn_value;
+   int               rtn_value;
    double				std_h;
    double				k0z, k0z2, k02, kro2, kro;
-   Complex			k22, k2, k2z2, k2z, koz2, kez2, koz, kez, ke2, ke, kiz, k12, k1;
-   Complex			Rhh, Rvv, delta;
+   Complex           k22, k2, k2z2, k2z, koz2, kez2, koz, kez, ke2, ke, kiz, k12, k1;
+   Complex           Rhh, Rvv, delta;
    double				gf, Rg;
    /************************************/
    /* Determine mean surface roughness */
@@ -60,24 +60,28 @@ int		Initialise_SAR_Geometry			(SarGeometry *pSG, PolSARproSim_Record *pPR)
       case 2:	std_h	= pPR->small_scale_height_stdev + pPR->large_scale_height_stdev; break;
       default:	std_h	= pPR->small_scale_height_stdev + pPR->large_scale_height_stdev; break;
    }
-   fprintf (pPR->pLogFile, "std_h\t\t= %lf  \n", std_h);
+//   fprintf (pPR->pLogFile, "std_h\t\t= %lf  \n", std_h);
+   /****************************************************************************************/
+   /* general track variable, used to point Accumulate_SAR_Contribution to the right track */
+   /****************************************************************************************/
+   pSG->track        = track;
    /*********************************/
    /* Direct backscatter quantities */
    /*********************************/
-   pSG->Pi			= 4.0*atan(1.0);
-   pSG->thetai		= pPR->incidence_angle[pPR->current_track];
+   pSG->Pi           = 4.0*atan(1.0);
+   pSG->thetai       = pPR->incidence_angle[track];
    pSG->cos_thetai	= cos(pSG->thetai);
    pSG->sin_thetai	= sin(pSG->thetai);
-   pSG->p_srange		= pPR->slant_range[pPR->current_track];
-   pSG->p_thetai		= pPR->incidence_angle[pPR->current_track];
+   pSG->p_srange		= pPR->slant_range[track];
+   pSG->p_thetai		= pPR->incidence_angle[track];
    pSG->p_height		= pSG->p_srange*cos(pSG->p_thetai);
    pSG->p_grange		= pSG->p_srange*sin(pSG->p_thetai);
    rtn_value			= Initialise_Standard_Jnlookup (&(pSG->Jtable));
    rtn_value			= Initialise_Standard_Ynlookup (&(pSG->Ytable));
-   pSG->ki			= Cartesian_Assign_d3Vector (0.0,  pPR->k0*pSG->sin_thetai, -pPR->k0*pSG->cos_thetai);
-   pSG->ks			= Cartesian_Assign_d3Vector (0.0,  -pPR->k0*pSG->sin_thetai, pPR->k0*pSG->cos_thetai);
-   pSG->ch			= Assign_c3Vector (xy_complex(-1.0, 0.0), xy_complex(0.0, 0.0), xy_complex(0.0, 0.0));
-   pSG->cv			= Assign_c3Vector (xy_complex(0.0, 0.0), xy_complex(-pSG->cos_thetai, 0.0), xy_complex(-pSG->sin_thetai, 0.0));
+   pSG->ki           = Cartesian_Assign_d3Vector (0.0,  pPR->k0*pSG->sin_thetai, -pPR->k0*pSG->cos_thetai);
+   pSG->ks           = Cartesian_Assign_d3Vector (0.0,  -pPR->k0*pSG->sin_thetai, pPR->k0*pSG->cos_thetai);
+   pSG->ch           = Assign_c3Vector (xy_complex(-1.0, 0.0), xy_complex(0.0, 0.0), xy_complex(0.0, 0.0));
+   pSG->cv           = Assign_c3Vector (xy_complex(0.0, 0.0), xy_complex(-pSG->cos_thetai, 0.0), xy_complex(-pSG->sin_thetai, 0.0));
    /*********************************/
    /* Bounce backscatter quantities */
    /*********************************/
@@ -87,35 +91,35 @@ int		Initialise_SAR_Geometry			(SarGeometry *pSG, PolSARproSim_Record *pPR)
    /********************/
    /* FSA wave vectors */
    /********************/
-   pSG->kr			= d3Vector_reflect (pSG->ki, pSG->n);
-   pSG->krm			= d3Vector_double_multiply (pSG->kr, -1.0);
+   pSG->kr           = d3Vector_reflect (pSG->ki, pSG->n);
+   pSG->krm          = d3Vector_double_multiply (pSG->kr, -1.0);
    /****************************/
    /* FSA polarisation vectors */
    /****************************/
-   rtn_value	= Polarisation_Vectors (pSG->ki,  pSG->z, &(pSG->hi),  &(pSG->vi));
-   rtn_value	= Polarisation_Vectors (pSG->ks,  pSG->z, &(pSG->hs),  &(pSG->vs));
-   rtn_value	= Polarisation_Vectors (pSG->kr,  pSG->z, &(pSG->hr),  &(pSG->vr));
-   rtn_value	= Polarisation_Vectors (pSG->krm, pSG->z, &(pSG->hrm), &(pSG->vrm));
-   rtn_value	= Polarisation_Vectors (pSG->ki,  pSG->n, &(pSG->hil),  &(pSG->vil));
-   rtn_value	= Polarisation_Vectors (pSG->ks,  pSG->n, &(pSG->hsl),  &(pSG->vsl));
-   rtn_value	= Polarisation_Vectors (pSG->kr,  pSG->n, &(pSG->hrl),  &(pSG->vrl));
-   rtn_value	= Polarisation_Vectors (pSG->krm, pSG->n, &(pSG->hrlm), &(pSG->vrlm));
-   pSG->chi	= d3V2c3V (pSG->hi);
-   pSG->cvi	= d3V2c3V (pSG->vi);
-   pSG->chs	= d3V2c3V (pSG->hs);
-   pSG->cvs	= d3V2c3V (pSG->vs);
-   pSG->chr	= d3V2c3V (pSG->hr);
-   pSG->cvr	= d3V2c3V (pSG->vr);
-   pSG->chrm	= d3V2c3V (pSG->hrm);
-   pSG->cvrm	= d3V2c3V (pSG->vrm);
-   pSG->chil	= d3V2c3V (pSG->hil);
-   pSG->cvil	= d3V2c3V (pSG->vil);
-   pSG->chsl	= d3V2c3V (pSG->hsl);
-   pSG->cvsl	= d3V2c3V (pSG->vsl);
-   pSG->chrl	= d3V2c3V (pSG->hrl);
-   pSG->cvrl	= d3V2c3V (pSG->vrl);
-   pSG->chrlm	= d3V2c3V (pSG->hrlm);
-   pSG->cvrlm	= d3V2c3V (pSG->vrlm);
+   rtn_value         = Polarisation_Vectors (pSG->ki,  pSG->z, &(pSG->hi),  &(pSG->vi));
+   rtn_value         = Polarisation_Vectors (pSG->ks,  pSG->z, &(pSG->hs),  &(pSG->vs));
+   rtn_value         = Polarisation_Vectors (pSG->kr,  pSG->z, &(pSG->hr),  &(pSG->vr));
+   rtn_value         = Polarisation_Vectors (pSG->krm, pSG->z, &(pSG->hrm), &(pSG->vrm));
+   rtn_value         = Polarisation_Vectors (pSG->ki,  pSG->n, &(pSG->hil),  &(pSG->vil));
+   rtn_value         = Polarisation_Vectors (pSG->ks,  pSG->n, &(pSG->hsl),  &(pSG->vsl));
+   rtn_value         = Polarisation_Vectors (pSG->kr,  pSG->n, &(pSG->hrl),  &(pSG->vrl));
+   rtn_value         = Polarisation_Vectors (pSG->krm, pSG->n, &(pSG->hrlm), &(pSG->vrlm));
+   pSG->chi          = d3V2c3V (pSG->hi);
+   pSG->cvi          = d3V2c3V (pSG->vi);
+   pSG->chs          = d3V2c3V (pSG->hs);
+   pSG->cvs          = d3V2c3V (pSG->vs);
+   pSG->chr          = d3V2c3V (pSG->hr);
+   pSG->cvr          = d3V2c3V (pSG->vr);
+   pSG->chrm         = d3V2c3V (pSG->hrm);
+   pSG->cvrm         = d3V2c3V (pSG->vrm);
+   pSG->chil         = d3V2c3V (pSG->hil);
+   pSG->cvil         = d3V2c3V (pSG->vil);
+   pSG->chsl         = d3V2c3V (pSG->hsl);
+   pSG->cvsl         = d3V2c3V (pSG->vsl);
+   pSG->chrl         = d3V2c3V (pSG->hrl);
+   pSG->cvrl         = d3V2c3V (pSG->vrl);
+   pSG->chrlm        = d3V2c3V (pSG->hrlm);
+   pSG->cvrlm        = d3V2c3V (pSG->vrlm);
    /*********************************/
    /* Local reflection coefficients */
    /*********************************/
@@ -140,16 +144,16 @@ int		Initialise_SAR_Geometry			(SarGeometry *pSG, PolSARproSim_Record *pPR)
    Rhh		= complex_div (complex_sub (koz, k2z), complex_add (koz, k2z));
    delta		= complex_add (complex_mul (kez, k22), complex_mul (k2z, k12));
    Rvv		= complex_div (complex_sub (complex_mul (kez, k22), complex_mul(k2z, k12)), delta);
-   fprintf (pPR->pLogFile, "|Rhh|^2\t= %lf  \n", Rhh.r*Rhh.r);
-   fprintf (pPR->pLogFile, "|Rvv|^2\t= %lf  \n", Rvv.r*Rvv.r);
+//   fprintf (pPR->pLogFile, "|Rhh|^2\t= %lf  \n", Rhh.r*Rhh.r);
+//   fprintf (pPR->pLogFile, "|Rvv|^2\t= %lf  \n", Rvv.r*Rvv.r);
    gf			= 4.0*std_h*std_h*k0z2;
    Rg			= exp(-gf/2.0);
-   fprintf (pPR->pLogFile, "gf\t\t= %lf  \n", gf);
-   fprintf (pPR->pLogFile, "Rg\t\t= %lf  \n", Rg);
+//   fprintf (pPR->pLogFile, "gf\t\t= %lf  \n", gf);
+//   fprintf (pPR->pLogFile, "Rg\t\t= %lf  \n", Rg);
    Rhh		= complex_rmul (Rhh, Rg);
    Rvv		= complex_rmul (Rvv, Rg);
-   fprintf (pPR->pLogFile, "|Rhh|^2\t= %lf  \n", Rhh.r*Rhh.r);
-   fprintf (pPR->pLogFile, "|Rvv|^2\t= %lf  \n", Rvv.r*Rvv.r);
+//   fprintf (pPR->pLogFile, "|Rhh|^2\t= %lf  \n", Rhh.r*Rhh.r);
+//   fprintf (pPR->pLogFile, "|Rvv|^2\t= %lf  \n", Rvv.r*Rvv.r);
    pSG->R1	= c33Matrix_Complex_product (c3Vector_dyadic_product (pSG->chrl, pSG->chil), Rhh);
    pSG->R1	= c33Matrix_sum (pSG->R1, c33Matrix_Complex_product (c3Vector_dyadic_product (pSG->cvrl, pSG->cvil), Rvv));
    pSG->R2	= c33Matrix_Complex_product (c3Vector_dyadic_product (pSG->chsl, pSG->chrlm), Rhh);
@@ -161,6 +165,7 @@ int		Initialise_SAR_Geometry			(SarGeometry *pSG, PolSARproSim_Record *pPR)
    return (rtn_value);
 }
 
+
 int		Delete_SAR_Geometry			(SarGeometry *pSG)
 {
    int		rtn_value;
@@ -170,6 +175,51 @@ int		Delete_SAR_Geometry			(SarGeometry *pSG)
    return (rtn_value);
 }
 
+
+double      Change_Branch          (Branch *pB, PolSARproSim_Record *pPR)
+{
+//   double				cyl_x, cyl_y, cyl_height;  
+//   /************************/
+//   /* Mark cylinder centre */
+//   /************************/
+//   double            height = pC->base.x[2];
+//   
+//   cyl_x             = pC->base.x[0] + drand()*pPR->wavelength/100*height;
+//   cyl_y             = pC->base.x[1] + drand()*pPR->wavelength/100*height;
+//   cyl_height			= pC->base.x[2];// + drand()*pPR->wavelength/10*height;
+//
+//   pC->base = Cartesian_Assign_d3Vector (cyl_x, cyl_y, cyl_height);
+//   
+
+   double   moisture;
+   Complex  permittivity;
+   
+   moisture          = pB->moisture + pB->moisture*drand()/10;
+   permittivity      = vegetation_permittivity (moisture, pPR->frequency);
+   pB->permittivity	= Copy_Complex (&permittivity);
+   return(NO_POLSARPROSIM_FOREST_ERRORS);
+
+}
+
+double      Move_Leaf           (Leaf *pL, PolSARproSim_Record *pPR)
+{
+   double				leaf_x, leaf_y, leaf_height;  
+   /************************/
+   /* Mark cylinder centre */
+   /************************/
+   double            height = pL->cl.x[2];
+   
+   leaf_x            = pL->cl.x[0] + drand()*pPR->wavelength/100*height;
+   leaf_y            = pL->cl.x[1] + drand()*pPR->wavelength/100*height;
+   leaf_height       = pL->cl.x[2];// + drand()*pPR->wavelength/10*height;
+
+   pL->cl = Cartesian_Assign_d3Vector (leaf_x, leaf_y, leaf_height);
+   
+   return(NO_POLSARPROSIM_FOREST_ERRORS);
+
+}
+
+
 /***********************************************************/
 /* Forest interferometric SAR image calculation definition */
 /***********************************************************/
@@ -177,22 +227,22 @@ int		Delete_SAR_Geometry			(SarGeometry *pSG)
 double		Image_Cylinder_Direct	(Cylinder *pC, SarGeometry *pSG, PolSARproSim_Record *pPR, double Sa_scaling, int flag)
 {
    c33Matrix			Scyl;
-   c3Vector			Eh, Ev;
-   Complex			Shh, Shv, Svh, Svv;
-   d3Vector			cyl_centre			= d3Vector_sum (pC->base, d3Vector_double_multiply (pC->axis, 0.5*pC->length));
+   c3Vector          Eh, Ev;
+   Complex           Shh, Shv, Svh, Svv;
+   d3Vector          cyl_centre			= d3Vector_sum (pC->base, d3Vector_double_multiply (pC->axis, 0.5*pC->length));
 #ifdef SWITCH_ATTENUATION_ON
    double				gH, gV;
-   int				rtn_lookup;
+   int               rtn_lookup;
 #endif
    double				cyl_x, cyl_y, cyl_grange, cyl_srange, cyl_height;
    double				focus_x, focus_y, focus_grange, focus_srange, focus_height;
    double				weight_average;
-   d3Vector			tip;
+   d3Vector          tip;
    /************************/
    /* Mark cylinder centre */
    /************************/
-   cyl_x				= cyl_centre.x[0];
-   cyl_y				= cyl_centre.x[1];
+   cyl_x             = cyl_centre.x[0];
+   cyl_y             = cyl_centre.x[1];
    cyl_height			= cyl_centre.x[2];
    /***************************************/
    /* Equivalent upward pointing cylinder */
@@ -220,7 +270,7 @@ double		Image_Cylinder_Direct	(Cylinder *pC, SarGeometry *pSG, PolSARproSim_Reco
    /* Incorporate attenuation effects */
    /***********************************/
 #ifdef SWITCH_ATTENUATION_ON
-   rtn_lookup			= Lookup_Direct_Attenuation (cyl_centre, pPR, &gH, &gV);
+   rtn_lookup		= Lookup_Direct_Attenuation (cyl_centre, pPR, &gH, &gV);
    Shh				= complex_rmul (Shh, gH*gH);
    Shv				= complex_rmul (Shv, gH*gV);
    Svh				= complex_rmul (Svh, gV*gH);
@@ -248,14 +298,14 @@ double		Image_Cylinder_Direct	(Cylinder *pC, SarGeometry *pSG, PolSARproSim_Reco
    cyl_grange			= pSG->p_grange + cyl_y;
    cyl_srange			= sqrt ((pSG->p_height-cyl_height)*(pSG->p_height-cyl_height) + cyl_grange*cyl_grange);
    focus_grange		= sqrt (cyl_srange*cyl_srange - pSG->p_height*pSG->p_height);
-   focus_x			= cyl_x;
-   focus_y			= focus_grange - pSG->p_grange;
+   focus_x           = cyl_x;
+   focus_y           = focus_grange - pSG->p_grange;
    focus_height		= 0.0;
    focus_srange		= sqrt ((pSG->p_height-focus_height)*(pSG->p_height-focus_height) + (pSG->p_grange+focus_y)*(pSG->p_grange+focus_y));
    /***************************************************/
    /* Combine contribution into SAR image accumulator */
    /***************************************************/
-   weight_average	= Accumulate_SAR_Contribution (focus_x, focus_y, focus_srange, Shh, Shv, Svv, pPR);
+   weight_average	= Accumulate_SAR_Contribution (focus_x, focus_y, focus_srange, Shh, Shv, Svv, pPR, pSG->track);
    return (weight_average);
 }
 
@@ -285,8 +335,8 @@ double		Image_Foliage_Direct	(Leaf *pL, SarGeometry *pSG, PolSARproSim_Record *p
 #else
    Sflg				= Leaf_Scattering_Matrix (pL, pPR->Tertiary_leafL1, pPR->Tertiary_leafL2, pPR->Tertiary_leafL3, &(pSG->ki));
 #endif
-   Eh				= c33Matrix_c3Vector_product	(Sflg, pSG->ch);
-   Ev				= c33Matrix_c3Vector_product	(Sflg, pSG->cv);
+   Eh             = c33Matrix_c3Vector_product	(Sflg, pSG->ch);
+   Ev             = c33Matrix_c3Vector_product	(Sflg, pSG->cv);
    Shh				= c3Vector_scalar_product	(pSG->ch, Eh);
    Shv				= c3Vector_scalar_product	(pSG->ch, Ev);
    Svh				= c3Vector_scalar_product	(pSG->cv, Eh);
@@ -323,14 +373,14 @@ double		Image_Foliage_Direct	(Leaf *pL, SarGeometry *pSG, PolSARproSim_Record *p
    flg_grange			= pSG->p_grange + flg_y;
    flg_srange			= sqrt ((pSG->p_height-flg_height)*(pSG->p_height-flg_height) + flg_grange*flg_grange);
    focus_grange		= sqrt (flg_srange*flg_srange - pSG->p_height*pSG->p_height);
-   focus_x			= flg_x;
-   focus_y			= focus_grange - pSG->p_grange;
+   focus_x           = flg_x;
+   focus_y           = focus_grange - pSG->p_grange;
    focus_height		= 0.0;
    focus_srange		= sqrt ((pSG->p_height-focus_height)*(pSG->p_height-focus_height) + (pSG->p_grange+focus_y)*(pSG->p_grange+focus_y));
    /***************************************************/
    /* Combine contribution into SAR image accumulator */
    /***************************************************/
-   weight_average	= Accumulate_SAR_Contribution (focus_x, focus_y, focus_srange, Shh, Shv, Svv, pPR);
+   weight_average	= Accumulate_SAR_Contribution (focus_x, focus_y, focus_srange, Shh, Shv, Svv, pPR, pSG->track);
    return (weight_average);
 }
 
@@ -466,7 +516,7 @@ double		Image_Foliage_Bounce	(Leaf *pL, SarGeometry *pSG, PolSARproSim_Record *p
             /***************************************************/
             /* Combine contribution into SAR image accumulator */
             /***************************************************/
-            weight_average	= Accumulate_SAR_Contribution (focus_x, focus_y, focus_srange, Shh, Shv, Svv, pPR);
+            weight_average	= Accumulate_SAR_Contribution (focus_x, focus_y, focus_srange, Shh, Shv, Svv, pPR, pSG->track);
          }
       }
    }
@@ -639,7 +689,7 @@ double		Image_Cylinder_Bounce	(Cylinder *pC, SarGeometry *pSG, PolSARproSim_Reco
             /***************************************************/
             /* Combine contribution into SAR image accumulator */
             /***************************************************/
-            weight_average	= Accumulate_SAR_Contribution (focus_x, focus_y, focus_srange, Shh, Shv, Svv, pPR);
+            weight_average	= Accumulate_SAR_Contribution (focus_x, focus_y, focus_srange, Shh, Shv, Svv, pPR, pSG->track);
          }
       }
    }
@@ -944,7 +994,7 @@ int		PolSARproSim_Forest_Bounce		(PolSARproSim_Record *pPR)
    /**********************************/
    /* Set up the SAR geometry record */
    /**********************************/
-   rtn_value	= Initialise_SAR_Geometry (&SG1, pPR);
+   rtn_value	= Initialise_SAR_Geometry (&SG1, pPR, pPR->current_track);
    /********************************/
    /* Seed random number generator */
    /********************************/
@@ -1295,7 +1345,7 @@ int		PolSARproSim_Forest_Direct		(PolSARproSim_Record *pPR)
    /**********************************/
    /* Set up the SAR geometry record */
    /**********************************/
-   rtn_value	= Initialise_SAR_Geometry (&SG1, pPR);
+   rtn_value	= Initialise_SAR_Geometry (&SG1, pPR, pPR->current_track);
    /********************************/
    /* Seed random number generator */
    /********************************/
@@ -1363,15 +1413,15 @@ void		*Image_Tree_SMP		(void *threadarg)
    ImageTree_Thread_Arg       *pTA;
    PolSARproSim_Record        *pPR;
    Tree                       *pT;
-   SarGeometry                *pSG;
-   SarGeometry                *pSG2;
+   SarGeometry                *pSGdirect;
+   SarGeometry                *pSGbounce;
    int                        itree;
    /* do some assignments */
    pTA         = (ImageTree_Thread_Arg *)threadarg;
    pPR         = pTA->pPR;  /* pointer to Master_Record */
    pT          = &(pTA->tree1);
-   pSG         = pTA->pSG;
-   pSG2        = pTA->pSG2;
+   pSGdirect   = pTA->pSGdirect;
+   pSGbounce   = pTA->pSGbounce;
    itree       = pTA->itree;
    
    const double		bsecl	=	POLSARPROSIM_SAR_BRANCH_FACTOR*(pPR->azimuth_resolution + pPR->slant_range_resolution);
@@ -1383,7 +1433,7 @@ void		*Image_Tree_SMP		(void *threadarg)
    Cylinder          cyl1;
    double            weight_sum;
    double            weight_count;
-   double            weight_avg;
+   //double            weight_avg;
    int               rtn_value;
    double            tb_scaling;
    double            flg_scaling;
@@ -1391,8 +1441,8 @@ void		*Image_Tree_SMP		(void *threadarg)
    Leaf              *pL;
    int               Cscatt_Flag;
    double            leafL1, leafL2, leafL3; //to calculate leaf depolarization factors
-   
    double            weight_sum2;
+   int               track; // to loop over tracks
    
    /************************/
    /* Initialise variables */
@@ -1407,7 +1457,7 @@ void		*Image_Tree_SMP		(void *threadarg)
    /* Image the stems */
    /*******************/
 #ifndef POLSARPROSIM_NO_SAR_STEMS
-   if(pT->Stem.head != NULL_PTR2BRANCH_LIST){ /* Image Stem only if it exists                 */
+   if(pT->Stem.head != NULL_PTR2BRANCH_LIST){ 
       pB			= pT->Stem.head;
       weight_sum	= 0.0;
       weight_sum2	= 0.0;
@@ -1416,22 +1466,24 @@ void		*Image_Tree_SMP		(void *threadarg)
          Nsections	= (int) (pB->l/bsecl) + 1;
          deltat		= 1.0 / (double) Nsections;
          deltar		= (pB->start_radius - pB->end_radius) / (double) Nsections;
-         for (i_section = 0; i_section < Nsections; i_section++) {
-            rtn_value	= Cylinder_from_Branch (&cyl1, pB, i_section, Nsections);
-            weight_sum	+= Image_Cylinder_Direct (&cyl1, pSG, pPR, 1.0, Cscatt_Flag);
-            weight_sum2	+= Image_Cylinder_Bounce (&cyl1, pSG2, pPR, 1.0, Cscatt_Flag);
-            weight_count	+= 1.0;
+         for (track=0;track<pPR->Tracks;track++){
+            for (i_section = 0; i_section < Nsections; i_section++) {
+               rtn_value	= Cylinder_from_Branch (&cyl1, pB, i_section, Nsections);
+               weight_sum	+= Image_Cylinder_Direct (&cyl1, &(pSGdirect[track]), pPR, 1.0, Cscatt_Flag);
+               weight_sum2	+= Image_Cylinder_Bounce (&cyl1, &(pSGbounce[track]), pPR, 1.0, Cscatt_Flag);
+               weight_count	+= 1.0;
+            }
+            Change_Branch(pB, pPR);
          }
          pB			= pB->next;
       }
-      weight_avg	= weight_sum/weight_count;
    }
 #endif
    /**************************/
    /* Image primary branches */
    /**************************/
 #ifndef POLSARPROSIM_NO_SAR_PRIMARIES
-   if(pT->Dry.head != NULL_PTR2BRANCH_LIST) {       /* Image Dry Primary branches onl if they exist                                      --RAedit */
+   if(pT->Dry.head != NULL_PTR2BRANCH_LIST) {     
       pB			= pT->Dry.head;
       weight_sum	= 0.0;
       weight_count	= 0.0;
@@ -1439,15 +1491,17 @@ void		*Image_Tree_SMP		(void *threadarg)
          Nsections	= (int) (pB->l/bsecl) + 1;
          deltat		= 1.0 / (double) Nsections;
          deltar		= (pB->start_radius - pB->end_radius) / (double) Nsections;
-         for (i_section = 0; i_section < Nsections; i_section++) {
-            rtn_value	= Cylinder_from_Branch (&cyl1, pB, i_section, Nsections);
-            weight_sum	+= Image_Cylinder_Direct (&cyl1, pSG, pPR, 1.0, Cscatt_Flag);
-            weight_sum2	+= Image_Cylinder_Bounce (&cyl1, pSG2, pPR, 1.0, Cscatt_Flag);
-            weight_count	+= 1.0;
+         for (track=0;track<pPR->Tracks;track++){
+            for (i_section = 0; i_section < Nsections; i_section++) {
+               rtn_value	= Cylinder_from_Branch (&cyl1, pB, i_section, Nsections);
+               weight_sum	+= Image_Cylinder_Direct (&cyl1, &(pSGdirect[track]), pPR, 1.0, Cscatt_Flag);
+               weight_sum2	+= Image_Cylinder_Bounce (&cyl1, &(pSGbounce[track]), pPR, 1.0, Cscatt_Flag);
+               weight_count	+= 1.0;
+            }
+            Change_Branch(pB, pPR);
          }
          pB			= pB->next;
       }
-      weight_avg	= weight_sum/weight_count;
    }
    if(pT->Primary.head != NULL_PTR2BRANCH_LIST) { /* Image live primaries only if they exist  */
       pB			= pT->Primary.head;
@@ -1457,15 +1511,17 @@ void		*Image_Tree_SMP		(void *threadarg)
          Nsections	= (int) (pB->l/bsecl) + 1;
          deltat		= 1.0 / (double) Nsections;
          deltar		= (pB->start_radius - pB->end_radius) / (double) Nsections;
-         for (i_section = 0; i_section < Nsections; i_section++) {
-            rtn_value	= Cylinder_from_Branch (&cyl1, pB, i_section, Nsections);
-            weight_sum	+= Image_Cylinder_Direct (&cyl1, pSG, pPR, 1.0, Cscatt_Flag);
-            weight_sum2	+= Image_Cylinder_Bounce (&cyl1, pSG2, pPR, 1.0, Cscatt_Flag);
-            weight_count	+= 1.0;
+         for (track=0;track<pPR->Tracks;track++){
+            for (i_section = 0; i_section < Nsections; i_section++) {
+               rtn_value	= Cylinder_from_Branch (&cyl1, pB, i_section, Nsections);
+               weight_sum	+= Image_Cylinder_Direct (&cyl1, &(pSGdirect[track]), pPR, 1.0, Cscatt_Flag);
+               weight_sum2	+= Image_Cylinder_Bounce (&cyl1, &(pSGbounce[track]), pPR, 1.0, Cscatt_Flag);
+               weight_count	+= 1.0;
+            }
+            Change_Branch(pB, pPR);
          }
          pB			= pB->next;
       }
-      weight_avg	= weight_sum/weight_count;
    }
 #endif
    /****************************/
@@ -1480,15 +1536,17 @@ void		*Image_Tree_SMP		(void *threadarg)
          Nsections	= (int) (pB->l/bsecl) + 1;
          deltat		= 1.0 / (double) Nsections;
          deltar		= (pB->start_radius - pB->end_radius) / (double) Nsections;
-         for (i_section = 0; i_section < Nsections; i_section++) {
-            rtn_value	= Cylinder_from_Branch (&cyl1, pB, i_section, Nsections);
-            weight_sum	+= Image_Cylinder_Direct (&cyl1, pSG, pPR, 1.0, Cscatt_Flag);
-            weight_sum2	+= Image_Cylinder_Bounce (&cyl1, pSG2, pPR, 1.0, Cscatt_Flag);
-            weight_count	+= 1.0;
+         for (track=0;track<pPR->Tracks;track++){
+            for (i_section = 0; i_section < Nsections; i_section++) {
+               rtn_value	= Cylinder_from_Branch (&cyl1, pB, i_section, Nsections);
+               weight_sum	+= Image_Cylinder_Direct (&cyl1, &(pSGdirect[track]), pPR, 1.0, Cscatt_Flag);
+               weight_sum2	+= Image_Cylinder_Bounce (&cyl1, &(pSGbounce[track]), pPR, 1.0, Cscatt_Flag);
+               weight_count	+= 1.0;
+            }
+            Change_Branch(pB, pPR);
          }
          pB			= pB->next;
       }
-      weight_avg	= weight_sum/weight_count;
    }
 #endif
    /***************************/
@@ -1505,22 +1563,23 @@ void		*Image_Tree_SMP		(void *threadarg)
    if(pT->Tertiary.head != NULL_PTR2BRANCH_LIST){
       weight_sum				= 0.0;
       weight_count			= 0.0;
-      pB                = pT->Tertiary.head;
-      tb_scaling        = pT->Tertiary.scale_factor; /* New addition to the Branch_list structure --RAedit */
-      
+      pB                   = pT->Tertiary.head;
+      tb_scaling           = pT->Tertiary.scale_factor; /* New addition to the Branch_list structure --RAedit */
       for (iBranch=0L; iBranch < pT->Tertiary.n; iBranch++) {
          Nsections       = (int) (pB->l/bsecl) + 1;
          deltat          = 1.0 / (double) Nsections;
          deltar          = (pB->start_radius - pB->end_radius) / (double) Nsections;
-         for (i_section = 0; i_section < Nsections; i_section++) {
-            rtn_value     = Cylinder_from_Branch (&cyl1, pB, i_section, Nsections);
-            weight_sum		+= Image_Cylinder_Direct (&cyl1, pSG, pPR, tb_scaling, Cscatt_Flag);
-            weight_sum2		+= Image_Cylinder_Bounce (&cyl1, pSG2, pPR, tb_scaling, Cscatt_Flag);
-            weight_count	+= 1.0;
+         for (track=0;track<pPR->Tracks;track++){
+            for (i_section = 0; i_section < Nsections; i_section++) {
+               rtn_value     = Cylinder_from_Branch (&cyl1, pB, i_section, Nsections);
+               weight_sum		+= Image_Cylinder_Direct (&cyl1, &(pSGdirect[track]), pPR, tb_scaling, Cscatt_Flag);
+               weight_sum2		+= Image_Cylinder_Bounce (&cyl1, &(pSGbounce[track]), pPR, tb_scaling, Cscatt_Flag);
+               weight_count	+= 1.0;
+            }
+            Change_Branch(pB, pPR);  
          }
          pB              = pB->next;
       }
-      weight_avg        = weight_sum/weight_count;
    }
 #endif
    
@@ -1533,15 +1592,16 @@ void		*Image_Tree_SMP		(void *threadarg)
       weight_count	= 0.0;
       pL             = pT->Foliage.head;
       flg_scaling    = pT->Foliage.scale_factor;
-      
       for (iLeaf=0L; iLeaf < pT->Foliage.n; iLeaf++) {
          Leaf_Depolarization_Factors (pL, &leafL1, &leafL2, &leafL3);
          pPR->Tertiary_leafL1	= leafL1;
          pPR->Tertiary_leafL2	= leafL2;
          pPR->Tertiary_leafL3	= leafL3;
-         weight_sum           += Image_Foliage_Direct (pL, pSG, pPR, flg_scaling);
-         weight_sum2          += Image_Foliage_Bounce (pL, pSG2, pPR, flg_scaling);
-         weight_count         += 1.0;
+         for (track=0;track<pPR->Tracks;track++){
+            weight_sum           += Image_Foliage_Direct (pL, &(pSGdirect[track]), pPR, flg_scaling);
+            weight_sum2          += Image_Foliage_Bounce (pL, &(pSGbounce[track]), pPR, flg_scaling);
+            weight_count         += 1.0;
+         }
          pL = pL->next;
       }
    }
@@ -1550,13 +1610,10 @@ void		*Image_Tree_SMP		(void *threadarg)
    /* Tidy up ... */
    /***************/
    Destroy_Cylinder (&cyl1);
-        /* clean up a bit */
    Destroy_Tree(pT);
-
    /********************/
    /* ... and go home. */
    /********************/
-   /* exit */
    pthread_exit(NULL);
 }
 
@@ -1564,23 +1621,36 @@ void		*Image_Tree_SMP		(void *threadarg)
 /* Multithreaded version of Forest Scattering */
 int		PolSARproSim_Forest_SMP		(PolSARproSim_Record *pPR)
 {
-   int			itree;
-   SarGeometry	SG1;
-   SarGeometry	SG2;
-   int			rtn_value;
-   
+   int                     itree;
+   SarGeometry             *SGdirect;
+   SarGeometry             *SGbounce;
+   int                     rtn_value;
+   int                     track;
    /* some variables for hyperthreading */
    ImageTree_Thread_Arg    *threadarg; /* pointer to array of thread arguments   */
    pthread_t               *threads;   /* pointer to arry of thread ids          */
    pthread_attr_t          attr;       /* a global thread attribute              */
    int                     rc;         /* thread return code                     */
    void                    *status;    /* thread status                          */
+   
    /* initialize thread variables */
    pthread_attr_init(&attr);
    pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
-
+   /* allocate memory */
    threadarg = (ImageTree_Thread_Arg *)calloc(pPR->Trees,sizeof(ImageTree_Thread_Arg));
    threads   = (pthread_t *)calloc(pPR->Trees,sizeof(pthread_t));
+
+   /* initialize SAR geometry variables*/
+   SGdirect   = (SarGeometry*) calloc (pPR->Tracks, sizeof (SarGeometry));
+   SGbounce   = (SarGeometry*) calloc (pPR->Tracks, sizeof (SarGeometry));
+   /**********************************/
+   /* Set up the SAR geometry record */
+   /**********************************/
+   for (track = 0; track < pPR->Tracks; track++) {
+      rtn_value	= Initialise_SAR_Geometry (&SGdirect[track], pPR, track);
+      rtn_value	= Initialise_SAR_Geometry (&SGbounce[track], pPR, track);
+   }
+
 
    /**********************/
    /* Imaging the forest */
@@ -1592,11 +1662,7 @@ int		PolSARproSim_Forest_SMP		(PolSARproSim_Record *pPR)
 #endif
    fprintf (pPR->pLogFile, "Call to PolSARproSim_Forest_SMP ... \n");
    fflush  (pPR->pLogFile);
-   /**********************************/
-   /* Set up the SAR geometry record */
-   /**********************************/
-   rtn_value	= Initialise_SAR_Geometry (&SG1, pPR);
-   rtn_value	= Initialise_SAR_Geometry (&SG2, pPR);
+      
    /********************************/
    /* Seed random number generator */
    /********************************/
@@ -1604,69 +1670,78 @@ int		PolSARproSim_Forest_SMP		(PolSARproSim_Record *pPR)
    /**************************/
    /* Main tree imaging loop */
    /**************************/
-   //Create_Tree (&tree1);
    for (itree=0; itree<pPR->Trees; itree++) {
       /* assign thread arguments */
-      Create_Tree       (&(threadarg[itree].tree1));
-      Realise_Tree		(&(threadarg[itree].tree1), itree, pPR);
-      threadarg[itree].pPR    = pPR;
-      threadarg[itree].itree  = itree;      
-      threadarg[itree].pSG    = &SG1;
-      threadarg[itree].pSG2   = &SG2;
+      Create_Tree                (&(threadarg[itree].tree1));
+      Realise_Tree               (&(threadarg[itree].tree1), itree, pPR);
+      threadarg[itree].pPR       = pPR;
+      threadarg[itree].itree     = itree;      
+      threadarg[itree].pSGdirect = SGdirect;
+      threadarg[itree].pSGbounce = SGbounce;
       /* create threads */
       rc=pthread_create(&threads[itree], &attr, Image_Tree_SMP, (void *)&threadarg[itree]);
       if(rc){
-         printf("Oops! Thread for tree %d was not created by pthread_create() in PolSARproSim_Forest_SMP\n", itree);
+         printf("Oops! Thread for tree %d was not created in PolSARproSim_Forest_SMP\n", itree);
          exit(-1);
       }
    }
+   /* loop over the trees to join threads */
    for (itree=0; itree<pPR->Trees; itree++) {
       rc=pthread_join(threads[itree], &status);
       if(rc){
          printf("ERR: unable to join thread for tree no. %d in in PolSARproSim_Forest_SMP, code: %d\n", itree,rc);
          exit(-1);
       }
-    }
+   }
+      
+   /* write out some average backscattering coefficients */    
+   for (track = 0; track < pPR->Tracks; track++) {
+      fprintf(pPR->pLogFile, "Forest Statistics for track %d\n", track);
+      /******************************/
+      /* Monitor Direct performance */
+      /******************************/
+      SGdirect[track].Sigma0_count	 = pPR->Lx*pPR->Ly;
+      SGdirect[track].Sigma0HH		/= SGdirect[track].Sigma0_count;
+      SGdirect[track].Sigma0HV		/= SGdirect[track].Sigma0_count;
+      SGdirect[track].Sigma0VH		/= SGdirect[track].Sigma0_count;
+      SGdirect[track].Sigma0VV		/= SGdirect[track].Sigma0_count;
+      SGdirect[track].AvgShhvv		= complex_rmul (SGdirect[track].AvgShhvv, 1.0/SGdirect[track].Sigma0_count);
+      fprintf (pPR->pLogFile, "Direct Forest HH backscattering coefficient\t= %lf dB\n", 10.0*log10(SGdirect[track].Sigma0HH));
+      fprintf (pPR->pLogFile, "Direct Forest HV backscattering coefficient\t= %lf dB\n", 10.0*log10(SGdirect[track].Sigma0HV));
+      fprintf (pPR->pLogFile, "Direct Forest VH backscattering coefficient\t= %lf dB\n", 10.0*log10(SGdirect[track].Sigma0VH));
+      fprintf (pPR->pLogFile, "Direct Forest VV backscattering coefficient\t= %lf dB\n", 10.0*log10(SGdirect[track].Sigma0VV));
+      fprintf (pPR->pLogFile, "Direct Forest HHVV correlation magnitude   \t= %lf dB\n", 10.0*log10(SGdirect[track].AvgShhvv.r));
+      fprintf (pPR->pLogFile, "Direct Forest HHVV correlation phase       \t= %lf rads.\n", SGdirect[track].AvgShhvv.phi);
+      fflush  (pPR->pLogFile);
+      /******************************/
+      /* Monitor Bounce performance */
+      /******************************/
+      SGbounce[track].Sigma0_count	 = pPR->Lx*pPR->Ly;
+      SGbounce[track].Sigma0HH		/= SGbounce[track].Sigma0_count;
+      SGbounce[track].Sigma0HV		/= SGbounce[track].Sigma0_count;
+      SGbounce[track].Sigma0VH		/= SGbounce[track].Sigma0_count;
+      SGbounce[track].Sigma0VV		/= SGbounce[track].Sigma0_count;
+      SGbounce[track].AvgShhvv		= complex_rmul (SGbounce[track].AvgShhvv, 1.0/SGbounce[track].Sigma0_count);
+      fprintf (pPR->pLogFile, "Bounce Forest HH backscattering coefficient\t= %lf dB\n", 10.0*log10(SGbounce[track].Sigma0HH));
+      fprintf (pPR->pLogFile, "Bounce Forest HV backscattering coefficient\t= %lf dB\n", 10.0*log10(SGbounce[track].Sigma0HV));
+      fprintf (pPR->pLogFile, "Bounce Forest VH backscattering coefficient\t= %lf dB\n", 10.0*log10(SGbounce[track].Sigma0VH));
+      fprintf (pPR->pLogFile, "Bounce Forest VV backscattering coefficient\t= %lf dB\n", 10.0*log10(SGbounce[track].Sigma0VV));
+      fprintf (pPR->pLogFile, "Bounce Forest HHVV correlation magnitude   \t= %lf dB\n", 10.0*log10(SGbounce[track].AvgShhvv.r));
+      fprintf (pPR->pLogFile, "Bounce Forest HHVV correlation phase       \t= %lf rads.\n", SGbounce[track].AvgShhvv.phi);
+      fflush  (pPR->pLogFile);
 
-   /******************************/
-   /* Monitor Direct performance */
-   /******************************/
-   SG1.Sigma0_count	 = pPR->Lx*pPR->Ly;
-   SG1.Sigma0HH		/= SG1.Sigma0_count;
-   SG1.Sigma0HV		/= SG1.Sigma0_count;
-   SG1.Sigma0VH		/= SG1.Sigma0_count;
-   SG1.Sigma0VV		/= SG1.Sigma0_count;
-   SG1.AvgShhvv		= complex_rmul (SG1.AvgShhvv, 1.0/SG1.Sigma0_count);
-   fprintf (pPR->pLogFile, "Direct Forest HH backscattering coefficient\t= %lf dB\n", 10.0*log10(SG1.Sigma0HH));
-   fprintf (pPR->pLogFile, "Direct Forest HV backscattering coefficient\t= %lf dB\n", 10.0*log10(SG1.Sigma0HV));
-   fprintf (pPR->pLogFile, "Direct Forest VH backscattering coefficient\t= %lf dB\n", 10.0*log10(SG1.Sigma0VH));
-   fprintf (pPR->pLogFile, "Direct Forest VV backscattering coefficient\t= %lf dB\n", 10.0*log10(SG1.Sigma0VV));
-   fprintf (pPR->pLogFile, "Direct Forest HHVV correlation magnitude   \t= %lf dB\n", 10.0*log10(SG1.AvgShhvv.r));
-   fprintf (pPR->pLogFile, "Direct Forest HHVV correlation phase       \t= %lf rads.\n", SG1.AvgShhvv.phi);
-   fflush  (pPR->pLogFile);
-   /******************************/
-   /* Monitor Bounce performance */
-   /******************************/
-   SG2.Sigma0_count	 = pPR->Lx*pPR->Ly;
-   SG2.Sigma0HH		/= SG1.Sigma0_count;
-   SG2.Sigma0HV		/= SG1.Sigma0_count;
-   SG2.Sigma0VH		/= SG1.Sigma0_count;
-   SG2.Sigma0VV		/= SG1.Sigma0_count;
-   SG2.AvgShhvv		= complex_rmul (SG2.AvgShhvv, 1.0/SG2.Sigma0_count);
-   fprintf (pPR->pLogFile, "Bounce Forest HH backscattering coefficient\t= %lf dB\n", 10.0*log10(SG2.Sigma0HH));
-   fprintf (pPR->pLogFile, "Bounce Forest HV backscattering coefficient\t= %lf dB\n", 10.0*log10(SG2.Sigma0HV));
-   fprintf (pPR->pLogFile, "Bounce Forest VH backscattering coefficient\t= %lf dB\n", 10.0*log10(SG2.Sigma0VH));
-   fprintf (pPR->pLogFile, "Bounce Forest VV backscattering coefficient\t= %lf dB\n", 10.0*log10(SG2.Sigma0VV));
-   fprintf (pPR->pLogFile, "Bounce Forest HHVV correlation magnitude   \t= %lf dB\n", 10.0*log10(SG2.AvgShhvv.r));
-   fprintf (pPR->pLogFile, "Bounce Forest HHVV correlation phase       \t= %lf rads.\n", SG2.AvgShhvv.phi);
-   fflush  (pPR->pLogFile);
+   }
 
    /***********/
    /* Tidy up */
    /***********/
-   Delete_SAR_Geometry (&SG1);
-   Delete_SAR_Geometry (&SG2);
+   for (track=0;track<pPR->Tracks;track++){
+      Delete_SAR_Geometry (&SGdirect[track]);
+      Delete_SAR_Geometry (&SGbounce[track]);
+   }
    free(threadarg);
+
+
    /**********************************************/
    /* Report progress if running in VERBOSE mode */
    /**********************************************/

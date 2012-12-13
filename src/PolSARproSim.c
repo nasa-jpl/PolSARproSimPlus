@@ -54,12 +54,14 @@ int main(int argv, char *argc[])
    /*********************/
    PolSARproSim_Record		Master_Record;
    /* Some variables for testing cpu-time */
-   time_t                  start, stop; /* -- RAedit take out */
-
+   time_t                  startgndsv, stopgndsv; 
+   time_t                  startmuamap, stopmuamap;
+   time_t                  startforest, stopforest;
+   time_t                  starttotal, stoptotal;
    /*******************************************/
    /* Check command line argument list length */
    /*******************************************/
-   
+      
    if (argv < 3) {
       printf ("\nUse: pspsim_dev <input_directory_plus_prefix> <data_directory> \n");
       printf ("\te.g. pspsim_dev ./run1 slcs/ \n");
@@ -70,8 +72,10 @@ int main(int argv, char *argc[])
    } else {
       passed_input_directory_plus_prefix			= argc[1];
       passed_master_directory                   = argc[2];
-    //  passed_slave_directory						= argc[3];
    }
+   
+   /* start total time counter */
+   time(&starttotal);
    
    /***********************/
    /* Generate file names */
@@ -215,6 +219,7 @@ int main(int argv, char *argc[])
    
    Input_PolSARproSim_Record        (input_string, &Master_Record);
    
+         
 #ifdef POLSARPROSIM_MAX_PROGRESS
    PolSARproSim_indicate_progress   (&Master_Record);
 #endif
@@ -267,16 +272,14 @@ int main(int argv, char *argc[])
    /* Stage 2: Calculate the electrical proprties of the forest */
    /*************************************************************/
 
-      
+   time(&startmuamap);
    /*****************************************************/
    /* Calculate the vegetation effective permittivities */
    /*****************************************************/
 #ifdef ENABLE_THREADS
    Effective_Permittivities_SMP     (&Master_Record);
-   printf("With Hyper-Threading\n");
 #else
    Effective_Permittivities         (&Master_Record);
-   printf("Without Hyper-Threading\n");   
 #endif
 
    /***************************************************/
@@ -285,11 +288,12 @@ int main(int argv, char *argc[])
 
 #ifdef ENABLE_THREADS
    Attenuation_Map_SMP              (&Master_Record);
-   printf("With Hyper-Threading\n");
 #else
    Attenuation_Map                  (&Master_Record);
-   printf("Without Hyper-Threading\n");   
 #endif
+
+   time(&stopmuamap);
+   printf("Finished Effective Permittivities and Attenuation Map in about %f seconds. \n", difftime(stopmuamap, startmuamap));
 
    /***********************************************/
    /* Initialise the stack of SAR image variables */
@@ -302,26 +306,7 @@ int main(int argv, char *argc[])
    /*****************************************************/
    
    for (Master_Record.current_track = 0; Master_Record.current_track < Master_Record.Tracks; Master_Record.current_track++) {
-      time(&start); //RAedit
-
-/*------ The following part is not needed with the Stack architecture-----------*/
-//      /*************************************************************/
-//      /* Initialise the current SAR image variables for this track */
-//      /*************************************************************/
-//      Destroy_SAR_Images                        (&Master_Record);
-//      /***********************************************************************************/
-//      /* Calculate filenames based on track number and directory architecture convention */
-//      /***********************************************************************************/
-//#ifndef POLSARPRO_CONVENTION
-//      Create_SAR_Filenames                      (&Master_Record, Master_Record.current_track);
-//#else
-//      Create_SAR_Filenames                      (&Master_Record, master_directory, slave_directory);
-//#endif
-//      /**********************************/
-//      /* Initialise SAR image variables */
-//      /**********************************/
-//      Clean_SAR_Images                          (&Master_Record);
-/*-----------------------------------------------------------------------------*/
+      time(&startgndsv); 
 
       /********************************************/
       /* Calculate the direct ground contribution */
@@ -346,34 +331,36 @@ int main(int argv, char *argc[])
       /*************************************/
       /* Calculate the volume contribution */
       /*************************************/
-#ifdef ENABLE_THREADS
-      PolSARproSim_Forest_SMP                   (&Master_Record);
-#else
+#ifndef ENABLE_THREADS
       PolSARproSim_Forest_Direct                (&Master_Record);
       PolSARproSim_Forest_Bounce                (&Master_Record);
 #endif
       
-      /****************************************/
-      /* Optional flat earth phase correction */
-      /****************************************/
-#ifdef	POLSARPROSIM_FLATEARTH
-      Flat_Earth_Phase_Removal                  (&Master_Record);
-#endif
-
-/*------ The following part is not needed with the Stack architecture-----------*/
-//      /****************************************/
-//      /* Output the SAR images for this track */
-//      /****************************************/
-//      Write_SAR_Images                          (&Master_Record);
-/*-----------------------------------------------------------------------------*/
-
       /***********/
       /* Time it */
       /***********/
-      time(&stop);
-      printf("Finished track %d in about %f seconds. \n",Master_Record.current_track, difftime(stop, start));
+      time(&stopgndsv);
+      printf("Finished track %d in about %f seconds. \n",Master_Record.current_track, difftime(stopgndsv, startgndsv));
 
    }
+   
+   /*************************************/
+   /* Calculate the volume contribution */
+   /*************************************/
+#ifdef ENABLE_THREADS
+   time(&startforest);
+   PolSARproSim_Forest_SMP                   (&Master_Record);
+   time(&stopforest);
+   printf("Finished Imaging forest about %f seconds. \n",difftime(stopforest, startforest));
+#endif
+ 
+   /****************************************/
+   /* Optional flat earth phase correction */
+   /****************************************/
+#ifdef	POLSARPROSIM_FLATEARTH
+   Flat_Earth_Phase_Removal                  (&Master_Record);
+#endif
+
    /**********************************************/
    /* Output the SAR images for the entire stack */
    /**********************************************/
@@ -391,6 +378,10 @@ int main(int argv, char *argc[])
    free                             (call_string);
    fclose                           (Master_Record.pOutputFile);
    fclose                           (Master_Record.pLogFile);
+
+   time(&stoptotal);
+   printf("Finished everything about %f seconds. \n",difftime(stoptotal, starttotal));
+
 
    /***************/
    /* End of Main */

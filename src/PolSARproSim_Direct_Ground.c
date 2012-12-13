@@ -328,7 +328,7 @@ int		PolSARproSim_Direct_Ground		(PolSARproSim_Record *pPR)
             /***************************************************/
             /* Combine contribution into SAR image accumulator */
             /***************************************************/
-            weight_average	+= Accumulate_SAR_Contribution (focus_x, focus_y, focus_srange, Shh, Shv, Svv, pPR);
+            weight_average	+= Accumulate_SAR_Contribution (focus_x, focus_y, focus_srange, Shh, Shv, Svv, pPR, pPR->current_track);
             weight_count	+= 1.0;
             /********************/
             /* end (if visible) */
@@ -455,11 +455,14 @@ void  *Direct_Ground_RangeLine   (void *threadarg)
    Direct_Ground_Thread_Arg   *pTA;
    PolSARproSim_Record        *pPR;
    double                     x;
-   unsigned short             seed[3];
+   double                     *pRandArray;
+//   unsigned short int         seed[3];
+//   unsigned int             seed, seed2;
    /* do thread assignments */
    pTA                                 = (Direct_Ground_Thread_Arg *)threadarg;
    pPR                                 = pTA->pPR;  // address to Master_Record   
    x                                   = pTA->x;
+   pRandArray                          = (double *) pTA->pRA;
    /* constants */
    const double		Pi                = 4.0*atan(1.0);
    const double		TwoPi             = 8.0*atan(1.0);
@@ -509,12 +512,8 @@ void  *Direct_Ground_RangeLine   (void *threadarg)
    double				gH, gV;
 #endif
 
-    double           randn;
-   /***********************************/
-   /* Seed for random number sequence */
-   /***********************************/
-   seed[0]     = pPR->seed + pTA->thread_id;
-   randn       = erand48(seed); // throw away the first one
+   double            rand1, rand2, rand3;
+
    /******************/
    /* Initialisation */
    /******************/
@@ -560,14 +559,12 @@ void  *Direct_Ground_RangeLine   (void *threadarg)
       /****************************************************/
       /* Sample random factors for scattering calculation */
       /****************************************************/
-      randn       = erand48(seed); 
-      while (randn < FLT_EPSILON) {
-         randn    = erand48(seed);
-      }
-      modf			= sqrt(-1.0*log(randn));
-      argf			= TwoPi*(erand48(seed)-0.5);
-      beta_xbragg	= 2.0*(erand48(seed)-0.5)*beta1;
-
+      rand1       = ((double *)pRandArray)[(pTA->thread_id*n_facets + i_facet + 0) % (pPR->nx*pPR->ny)];
+      rand2       = ((double *)pRandArray)[(pTA->thread_id*n_facets + i_facet + 1) % (pPR->nx*pPR->ny)];
+      rand3       = ((double *)pRandArray)[(pTA->thread_id*n_facets + i_facet + 2) % (pPR->nx*pPR->ny)];
+      modf        = sqrt(-1*log(rand1));
+      argf        = TwoPi*(rand2-0.5);
+      beta_xbragg	= 2.0*(rand3-0.5)*beta1;
       /*****************************/
       /* Take facet from list head */
       /*****************************/
@@ -652,7 +649,7 @@ void  *Direct_Ground_RangeLine   (void *threadarg)
          /***************************************************/
          /* Combine contribution into SAR image accumulator */
          /***************************************************/
-         weight_average	+= Accumulate_SAR_Contribution (focus_x, focus_y, focus_srange, Shh, Shv, Svv, pPR);
+         weight_average	+= Accumulate_SAR_Contribution (focus_x, focus_y, focus_srange, Shh, Shv, Svv, pPR, pPR->current_track);
          weight_count	+= 1.0;
          /********************/
          /* end (if visible) */
@@ -747,6 +744,10 @@ int		PolSARproSim_Direct_Ground_SMP		(PolSARproSim_Record        *pPR)
    int               ipix, jpix;
    sim_pixel			spix;
    
+   double            *RandArray; // this to store a huge amount of random variables
+   const long        randarraylength = pPR->nx * pPR->ny; 
+   long              irand;
+   
    /******************************************/
    /* Report call if running in VERBOSE mode */
    /******************************************/
@@ -774,6 +775,14 @@ int		PolSARproSim_Direct_Ground_SMP		(PolSARproSim_Record        *pPR)
    /******************/
    /* Initialisation */
    /******************/
+   /* initialzie the random number generator */
+   srand(pPR->seed);
+   /* Allocate space in memory for Tree_Location structure*/
+   RandArray      = (double *) calloc (randarraylength, sizeof(double));
+   /* populate the random number array */
+   for (irand = 0; irand < randarraylength; irand ++){
+      RandArray[irand] = drand();
+   }
    /**************************************************/
    /* Use the far-field model for the look direction */
    /**************************************************/
@@ -841,6 +850,7 @@ int		PolSARproSim_Direct_Ground_SMP		(PolSARproSim_Record        *pPR)
       threadarg[ix].x         = x;
       threadarg[ix].pPR       = pPR;
       threadarg[ix].thread_id = ix;
+      threadarg[ix].pRA       = &RandArray[0];
       /* create threads */
       rc=pthread_create(&threads[ix], &attr, Direct_Ground_RangeLine, (void *)&threadarg[ix]);
       if(rc){
@@ -957,7 +967,7 @@ int		PolSARproSim_Direct_Ground_SMP		(PolSARproSim_Record        *pPR)
       fprintf (pPR->pLogFile, "VV power scale factor\t= %lf\n", pPR->VVsf*pPR->VVsf);
       fflush  (pPR->pLogFile);
    }
-
+   
    /******************************************/
    /* Report call if running in VERBOSE mode */
    /******************************************/
@@ -978,6 +988,11 @@ int		PolSARproSim_Direct_Ground_SMP		(PolSARproSim_Record        *pPR)
 #ifdef POLSARPROSIM_MAX_PROGRESS
    PolSARproSim_indicate_progress (pPR);
 #endif
+   /***************/
+   /* Clean up    */
+   /***************/
+   free(RandArray);
+   
    /********************/
    /* Return to caller */
    /********************/

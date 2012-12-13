@@ -119,7 +119,7 @@ Complex		Bvv								(double theta, Complex epsilon);
 /*************************/
 
 double		Accumulate_SAR_Contribution	(double focus_x, double focus_y, double focus_srange,
-                                           Complex Shh, Complex Shv, Complex Svv, PolSARproSim_Record *pPR);
+                                           Complex Shh, Complex Shv, Complex Svv, PolSARproSim_Record *pPR, int track);
 int			Lookup_Direct_Attenuation		(d3Vector r, PolSARproSim_Record *pPR, double *gH, double *gV);
 int			Lookup_Bounce_Attenuation		(d3Vector r, PolSARproSim_Record *pPR, double *gH, double *gV);
 int			Polarisation_Vectors          (d3Vector k, d3Vector n, d3Vector *ph, d3Vector *pv);
@@ -148,6 +148,7 @@ void        Initialise_SAR_Stack				(PolSARproSim_Record *pPR);
 void        Write_SAR_Stack               (PolSARproSim_Record *pPR);
 void        Destroy_SAR_Stack             (PolSARproSim_Record *pPR);
 void        Write_Stack_LookVectors			(PolSARproSim_Record *pPR);
+int         Write_SIM_Record_As_POLSARPRO_BINARY	(SIM_Record *pSIMR);
 /************************/
 /* TCLTK string parsing */
 /************************/

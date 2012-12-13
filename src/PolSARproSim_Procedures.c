@@ -700,6 +700,7 @@ int		Input_PolSARproSim_Record		(const char *filename, PolSARproSim_Record *pPR)
       pPR->ForestOutput = (char *)calloc(MAX_STR, sizeof(char));                          /* Initialize the string containing the path & filename of forest output */
       read_string    (pInputFile, "forest_output",             pPR->ForestOutput);        /* Read the filename from parameter file */
    }
+      
    
    /************************/
    /* Close the input file */
@@ -5240,13 +5241,13 @@ Complex Bvv (double theta, Complex epsilon)
 /* SAR image calculation */
 /*************************/
 
-double		Point_Spread_Function			(double dx, double dy, PolSARproSim_Record *pPR)
+double		Point_Spread_Function			(double dx, double dy, PolSARproSim_Record *pPR, int track)
 {
    /****************************************************************************/
    /* Note that dx is azimuth displacement and dy is ground range displacement */
    /****************************************************************************/
    double		ax		= pPR->psfaaz;
-   double		ay		= pPR->psfagr[pPR->current_track];
+   double		ay		= pPR->psfagr[track];
    double		psf		= pPR->PSFamp * exp (-(ax*dx*dx+ay*dy*dy));
    return (psf);
 }
@@ -5254,7 +5255,7 @@ double		Point_Spread_Function			(double dx, double dy, PolSARproSim_Record *pPR)
 
  
 double		Accumulate_SAR_Contribution		(double focus_x, double focus_y, double focus_srange,
-                                              Complex Shh, Complex Shv, Complex Svv, PolSARproSim_Record *pPR)
+                                              Complex Shh, Complex Shv, Complex Svv, PolSARproSim_Record *pPR, int track)
 {
    double		dx		= pPR->deltax;
    double		dy		= pPR->deltay;
@@ -5284,8 +5285,8 @@ double		Accumulate_SAR_Contribution		(double focus_x, double focus_y, double foc
    Complex     cvalue;
    double		weight_sum	= 0.0;
    
-   spix.simpixeltype	= pPR->HHstack[pPR->current_track].Image.pixel_type;
-   gpix.simpixeltype	= pPR->HHstack[pPR->current_track].Image.pixel_type;
+   spix.simpixeltype	= pPR->HHstack[track].Image.pixel_type;
+   gpix.simpixeltype	= pPR->HHstack[track].Image.pixel_type;
    /**************************************************/
    /* Add contribution if it overlaps the image area */
    /**************************************************/
@@ -5309,7 +5310,7 @@ double		Accumulate_SAR_Contribution		(double focus_x, double focus_y, double foc
                   phi	= 2.0*k*focus_srange + k*daz*daz/focus_srange; //Interferometric phase
                   for (jpy=nymin; jpy<=nymax; jpy++) {
                      py				= ymid - jpy * dy;
-                     weight			= Point_Spread_Function (daz, py-focus_y, pPR);
+                     weight			= Point_Spread_Function (daz, py-focus_y, pPR, track);
                      weight_sum		+= weight*weight;
                      Polar_Assign_Complex (&cweight, weight, phi);
                      /* HH channel write */
@@ -5318,16 +5319,16 @@ double		Accumulate_SAR_Contribution		(double focus_x, double focus_y, double foc
                      spix.data.cf.y	= (float) cvalue.y;
 #ifdef ENABLE_THREADS
                      pthread_mutex_lock   (&PolSARproSim_HHmutex);
-                     gpix				= getSIMpixel (&(pPR->HHstack[pPR->current_track].Image), ipx, jpy);
+                     gpix				= getSIMpixel (&(pPR->HHstack[track].Image), ipx, jpy);
                      spix.data.cf.x	+= gpix.data.cf.x;
                      spix.data.cf.y	+= gpix.data.cf.y;
-                     putSIMpixel (&(pPR->HHstack[pPR->current_track].Image), spix, ipx, jpy);
+                     putSIMpixel (&(pPR->HHstack[track].Image), spix, ipx, jpy);
                      pthread_mutex_unlock (&PolSARproSim_HHmutex);
 #else
-                     gpix				= getSIMpixel (&(pPR->HHstack[pPR->current_track].Image), ipx, jpy);
+                     gpix				= getSIMpixel (&(pPR->HHstack[track].Image), ipx, jpy);
                      spix.data.cf.x	+= gpix.data.cf.x;
                      spix.data.cf.y	+= gpix.data.cf.y;
-                     putSIMpixel (&(pPR->HHstack[pPR->current_track].Image), spix, ipx, jpy);
+                     putSIMpixel (&(pPR->HHstack[track].Image), spix, ipx, jpy);
 #endif
                      /* HV channel write */
                      cvalue			= complex_mul (cweight, Shv);
@@ -5335,16 +5336,16 @@ double		Accumulate_SAR_Contribution		(double focus_x, double focus_y, double foc
                      spix.data.cf.y	= (float) cvalue.y;
 #ifdef ENABLE_THREADS
                      pthread_mutex_lock   (&PolSARproSim_HVmutex);
-                     gpix				= getSIMpixel (&(pPR->HVstack[pPR->current_track].Image), ipx, jpy);
+                     gpix				= getSIMpixel (&(pPR->HVstack[track].Image), ipx, jpy);
                      spix.data.cf.x	+= gpix.data.cf.x;
                      spix.data.cf.y	+= gpix.data.cf.y;
-                     putSIMpixel (&(pPR->HVstack[pPR->current_track].Image), spix, ipx, jpy);
+                     putSIMpixel (&(pPR->HVstack[track].Image), spix, ipx, jpy);
                      pthread_mutex_unlock (&PolSARproSim_HVmutex);
 #else
-                     gpix				= getSIMpixel (&(pPR->HVstack[pPR->current_track].Image), ipx, jpy);
+                     gpix				= getSIMpixel (&(pPR->HVstack[track].Image), ipx, jpy);
                      spix.data.cf.x	+= gpix.data.cf.x;
                      spix.data.cf.y	+= gpix.data.cf.y;
-                     putSIMpixel (&(pPR->HVstack[pPR->current_track].Image), spix, ipx, jpy);
+                     putSIMpixel (&(pPR->HVstack[track].Image), spix, ipx, jpy);
 #endif
                      /* VV channel write */
                      cvalue			= complex_mul (cweight, Svv);
@@ -5352,16 +5353,16 @@ double		Accumulate_SAR_Contribution		(double focus_x, double focus_y, double foc
                      spix.data.cf.y	= (float) cvalue.y;
 #ifdef ENABLE_THREADS
                      pthread_mutex_lock   (&PolSARproSim_VVmutex);
-                     gpix				= getSIMpixel (&(pPR->VVstack[pPR->current_track].Image), ipx, jpy);
+                     gpix				= getSIMpixel (&(pPR->VVstack[track].Image), ipx, jpy);
                      spix.data.cf.x	+= gpix.data.cf.x;
                      spix.data.cf.y	+= gpix.data.cf.y;
-                     putSIMpixel (&(pPR->VVstack[pPR->current_track].Image), spix, ipx, jpy);
+                     putSIMpixel (&(pPR->VVstack[track].Image), spix, ipx, jpy);
                      pthread_mutex_unlock (&PolSARproSim_VVmutex);
 #else
-                     gpix				= getSIMpixel (&(pPR->VVstack[pPR->current_track].Image), ipx, jpy);
+                     gpix				= getSIMpixel (&(pPR->VVstack[track].Image), ipx, jpy);
                      spix.data.cf.x	+= gpix.data.cf.x;
                      spix.data.cf.y	+= gpix.data.cf.y;
-                     putSIMpixel (&(pPR->VVstack[pPR->current_track].Image), spix, ipx, jpy);
+                     putSIMpixel (&(pPR->VVstack[track].Image), spix, ipx, jpy);
 #endif
                   }
                }
@@ -6339,56 +6340,68 @@ void		Flat_Earth_Phase_Removal		(PolSARproSim_Record *pPR)
    double			xmid		= pPR->xmid;
    double			ymid		= pPR->ymid;
    double			k			= pPR->k0;
-   const double	p_srange	= pPR->slant_range[pPR->current_track];
-   const double	thetai		= pPR->incidence_angle[pPR->current_track];
-   const double	p_height	= p_srange*cos(thetai);
-   const double	p_height2	= p_height*p_height;
-   const double	p_grange	= p_srange*sin(thetai);
-   int			i, j;
+//   const double	p_srange	= pPR->slant_range[track];
+//   const double	thetai		= pPR->incidence_angle[track];
+//   const double	p_height	= p_srange*cos(thetai);
+//   const double	p_height2	= p_height*p_height;
+//   const double	p_grange	= p_srange*sin(thetai);
+   double         p_srange;
+   double         thetai;
+   double         p_height;
+   double         p_height2;
+   double         p_grange;
+   int            i, j;
    double			x, y, gr, sr;
    double			phase;
-   Complex		c_phase;
+   Complex        c_phase;
    sim_pixel		s;
-   Complex		cs;
+   Complex        cs;
+   int            track;
    
-   for (j = 0; j < pPR->ny; j++) {
+   /* loop over tracks */
+   for (track = 0; track < pPR->Tracks; track++) {
+      p_srange    = pPR->slant_range[track];
+      thetai		= pPR->incidence_angle[track];
+      p_height    = p_srange*cos(thetai);
+      p_height2	= p_height*p_height;
+      p_grange    = p_srange*sin(thetai);
       
-      y		= ymid - j * dy;
-      
-      gr	= p_grange + y;
-      sr	= sqrt (gr*gr + p_height2);
-      phase	= 2.0*k*sr;
-      Polar_Assign_Complex (&c_phase, 1.0, -phase);
-      
-      for (i = 0; i < pPR->nx; i++) {
-         
-         x			= i * dx - xmid;
-         
-         s			= getSIMpixel (&(pPR->HHstack[pPR->current_track].Image), i, j);
-         cs			= xy_complex (s.data.cf.x, s.data.cf.y);
-         cs			= complex_mul (cs, c_phase);
-         s.data.cf.x	= (float) cs.x;
-         s.data.cf.y	= (float) cs.y;
-         putSIMpixel (&(pPR->HHstack[pPR->current_track].Image), s, i, j);
-         
-         s			= getSIMpixel (&(pPR->HVstack[pPR->current_track].Image), i, j);
-         cs			= xy_complex (s.data.cf.x, s.data.cf.y);
-         cs			= complex_mul (cs, c_phase);
-         s.data.cf.x	= (float) cs.x;
-         s.data.cf.y	= (float) cs.y;
-         putSIMpixel (&(pPR->HVstack[pPR->current_track].Image), s, i, j);
-         
-         s			= getSIMpixel (&(pPR->VVstack[pPR->current_track].Image), i, j);
-         cs			= xy_complex (s.data.cf.x, s.data.cf.y);
-         cs			= complex_mul (cs, c_phase);
-         s.data.cf.x	= (float) cs.x;
-         s.data.cf.y	= (float) cs.y;
-         putSIMpixel (&(pPR->VVstack[pPR->current_track].Image), s, i, j);
+      /* loop over range pixels */
+      for (j = 0; j < pPR->ny; j++) {
+         y		= ymid - j * dy;
+         gr	= p_grange + y;
+         sr	= sqrt (gr*gr + p_height2);
+         phase	= 2.0*k*sr;
+         Polar_Assign_Complex (&c_phase, 1.0, -phase);
+         /* loop over azimuth pixels */
+         for (i = 0; i < pPR->nx; i++) {
+            x			= i * dx - xmid;
+            /* remove phase from HH image */
+            s			= getSIMpixel (&(pPR->HHstack[track].Image), i, j);
+            cs			= xy_complex (s.data.cf.x, s.data.cf.y);
+            cs			= complex_mul (cs, c_phase);
+            s.data.cf.x	= (float) cs.x;
+            s.data.cf.y	= (float) cs.y;
+            putSIMpixel (&(pPR->HHstack[track].Image), s, i, j);
+            /* remove phase from HV image */
+            s			= getSIMpixel (&(pPR->HVstack[track].Image), i, j);
+            cs			= xy_complex (s.data.cf.x, s.data.cf.y);
+            cs			= complex_mul (cs, c_phase);
+            s.data.cf.x	= (float) cs.x;
+            s.data.cf.y	= (float) cs.y;
+            putSIMpixel (&(pPR->HVstack[track].Image), s, i, j);
+            /* remove phase from VV image */
+            s			= getSIMpixel (&(pPR->VVstack[track].Image), i, j);
+            cs			= xy_complex (s.data.cf.x, s.data.cf.y);
+            cs			= complex_mul (cs, c_phase);
+            s.data.cf.x	= (float) cs.x;
+            s.data.cf.y	= (float) cs.y;
+            putSIMpixel (&(pPR->VVstack[track].Image), s, i, j);
+            
+         }
          
       }
-      
    }
-   
    return;
 }
 

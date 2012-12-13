@@ -32,6 +32,7 @@
 #include	<stdio.h>
 #include	<stdlib.h>
 #include	<math.h>
+#include <pthread.h>
 
 #include	"Allometrics.h"
 #include	"Attenuation.h"
@@ -82,19 +83,21 @@ int		PolSARproSim_Direct_Ground				(PolSARproSim_Record *pPR);
 
 /* Thread argument structure */
 typedef struct direct_ground_threadarg_tag{
-   double                  x;
-   int                     thread_id;
-   PolSARproSim_Record     *pPR;
-   double                  weight_average;
+   double                  x;                /* x-axis location */
+   int                     thread_id;        /* thread, i.d. */
+   PolSARproSim_Record     *pPR;             
+   double                  weight_average;   
    double                  weight_count;
    double                  Sigma0HH;
    double                  Sigma0HV;
    double                  Sigma0VH;
    double                  Sigma0VV;
    Complex                 AvgShhvv, zhhvv;
-   double                  Sigma0_count;
+   double                  Sigma0_count;  
+   double                  *pRA;             /* pointer to randrom array */
 }Direct_Ground_Thread_Arg;
 
+pthread_mutex_t PolSARproSim_GNDmutex;
 
 #define	NO_POLSARPROSIM_DIRECTGROUND_ERRORS			0
 

@@ -317,9 +317,6 @@ typedef struct polsarprosim_record_tag {
    /***************/
    /* SAR imagery */
    /***************/
-//   SIM_Record		HHimage;				/* HH SAR images are stored here                                  */
-//   SIM_Record		HVimage;				/* HV SAR images are stored here                                  */
-//   SIM_Record		VVimage;				/* VV SAR images are stored here                                  */
    SIM_Stack      *HHstack;         /* Stack of HH images are stored here                             */
    SIM_Stack      *HVstack;         /* Stack of HV images are stored here                             */
    SIM_Stack      *VVstack;         /* Stack of VV images are stored here                             */   

@@ -203,7 +203,7 @@ void		*Image_Short_Veg_Direct_Stems		(void *threadarg)
          /***************************************************/
          /* Combine contribution into SAR image accumulator */
          /***************************************************/
-         weight_average	+= Accumulate_SAR_Contribution (focus_x, focus_y, focus_srange, Shh, Shv, Svv, pPR);
+         weight_average	+= Accumulate_SAR_Contribution (focus_x, focus_y, focus_srange, Shh, Shv, Svv, pPR, pPR->current_track);
          weight_count	+= 1.0;
       }
    }
@@ -396,7 +396,7 @@ void     *Image_Short_Veg_Direct_Leaves      (void *threadarg)
          /***************************************************/
          /* Combine contribution into SAR image accumulator */
          /***************************************************/
-         weight_average	+= Accumulate_SAR_Contribution (focus_x, focus_y, focus_srange, Shh, Shv, Svv, pPR);
+         weight_average	+= Accumulate_SAR_Contribution (focus_x, focus_y, focus_srange, Shh, Shv, Svv, pPR, pPR->current_track);
          weight_count	+= 1.0;
       }
    }
@@ -909,7 +909,7 @@ int		PolSARproSim_Short_Vegetation_Direct		(PolSARproSim_Record *pPR)
             /***************************************************/
             /* Combine contribution into SAR image accumulator */
             /***************************************************/
-            weight_average	+= Accumulate_SAR_Contribution (focus_x, focus_y, focus_srange, Shh, Shv, Svv, pPR);
+            weight_average	+= Accumulate_SAR_Contribution (focus_x, focus_y, focus_srange, Shh, Shv, Svv, pPR, pPR->current_track);
             weight_count	+= 1.0;
          }
       }
@@ -1000,7 +1000,7 @@ int		PolSARproSim_Short_Vegetation_Direct		(PolSARproSim_Record *pPR)
             /***************************************************/
             /* Combine contribution into SAR image accumulator */
             /***************************************************/
-            weight_average	+= Accumulate_SAR_Contribution (focus_x, focus_y, focus_srange, Shh, Shv, Svv, pPR);
+            weight_average	+= Accumulate_SAR_Contribution (focus_x, focus_y, focus_srange, Shh, Shv, Svv, pPR, pPR->current_track);
             weight_count	+= 1.0;
          }
       }
@@ -1354,7 +1354,7 @@ void		*Image_Short_Veg_Bounce_Stems		(void *threadarg)
                   /***************************************************/
                   /* Combine contribution into SAR image accumulator */
                   /***************************************************/
-                  weight_average	+= Accumulate_SAR_Contribution (focus_x, focus_y, focus_srange, Shh, Shv, Svv, pPR);
+                  weight_average	+= Accumulate_SAR_Contribution (focus_x, focus_y, focus_srange, Shh, Shv, Svv, pPR, pPR->current_track);
                   weight_count	+= 1.0;
                }
             }
@@ -1681,7 +1681,7 @@ void		*Image_Short_Veg_Bounce_Leaves		(void *threadarg)
                   /* Combine contribution into SAR image accumulator */
                   /***************************************************/
                  // printf("%d) Leaf Shh,Shv,Svv = %f, %f,%f\n", pTA->thread_id, Shh.x, Shv.x, Svv.x);
-                  weight_average	+= Accumulate_SAR_Contribution (focus_x, focus_y, focus_srange, Shh, Shv, Svv, pPR);
+                  weight_average	+= Accumulate_SAR_Contribution (focus_x, focus_y, focus_srange, Shh, Shv, Svv, pPR, pPR->current_track);
                   weight_count	+= 1.0;
                }
             }
@@ -2382,7 +2382,7 @@ int		PolSARproSim_Short_Vegetation_Bounce		(PolSARproSim_Record *pPR)
                      /***************************************************/
                      /* Combine contribution into SAR image accumulator */
                      /***************************************************/
-                     weight_average	+= Accumulate_SAR_Contribution (focus_x, focus_y, focus_srange, Shh, Shv, Svv, pPR);
+                     weight_average	+= Accumulate_SAR_Contribution (focus_x, focus_y, focus_srange, Shh, Shv, Svv, pPR, pPR->current_track);
                      weight_count	+= 1.0;
                   }
                }
@@ -2516,7 +2516,7 @@ int		PolSARproSim_Short_Vegetation_Bounce		(PolSARproSim_Record *pPR)
                      /***************************************************/
                      /* Combine contribution into SAR image accumulator */
                      /***************************************************/
-                     weight_average	+= Accumulate_SAR_Contribution (focus_x, focus_y, focus_srange, Shh, Shv, Svv, pPR);
+                     weight_average	+= Accumulate_SAR_Contribution (focus_x, focus_y, focus_srange, Shh, Shv, Svv, pPR, pPR->current_track);
                      weight_count	+= 1.0;
                   }
                }

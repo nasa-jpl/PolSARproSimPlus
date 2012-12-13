@@ -77,6 +77,7 @@
 /**********************************/
 
 typedef struct sargeometry_tag {
+ int           track;
 /*********************************/
 /* Direct backscatter quantities */
 /*********************************/
@@ -117,8 +118,10 @@ typedef struct sargeometry_tag {
 /* SAR geometry routines */
 /*************************/
 
-int		Initialise_SAR_Geometry			(SarGeometry *pSG, PolSARproSim_Record *pPR);
+int		Initialise_SAR_Geometry			(SarGeometry *pSG, PolSARproSim_Record *pPR, int track);
+//int		Initialise_Stack_Geometry		(PolSARproSim_Record *pPR);
 int		Delete_SAR_Geometry				(SarGeometry *pSG);
+//int		Delete_Stack_Geometry			(PolSARproSim_Record *pPR);
 
 /********************************************************************/
 /* Short vegetation interferometric SAR image calculation prototype */
@@ -128,6 +131,7 @@ int		PolSARproSim_Forest_Direct		(PolSARproSim_Record *pPR);
 int		PolSARproSim_Forest_Bounce		(PolSARproSim_Record *pPR);
 int		PolSARproSim_Forest_SMP       (PolSARproSim_Record *pPR);
 
+
 #define	NO_POLSARPROSIM_FOREST_ERRORS			0
 
 /***************************************/
@@ -136,8 +140,8 @@ int		PolSARproSim_Forest_SMP       (PolSARproSim_Record *pPR);
 
 typedef struct imgtree_threadarg_tag{
    Tree                   tree1;
-   SarGeometry            *pSG;
-   SarGeometry            *pSG2;
+   SarGeometry            *pSGdirect;
+   SarGeometry            *pSGbounce;
    PolSARproSim_Record    *pPR;
    int                    itree;
 }ImageTree_Thread_Arg;
