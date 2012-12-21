@@ -89,6 +89,6 @@
 pthread_mutex_t PolSARproSim_HHmutex;
 pthread_mutex_t PolSARproSim_HVmutex;
 pthread_mutex_t PolSARproSim_VVmutex;
-
+pthread_mutex_t PolSARproSim_MaxHgtmutex;
 
 #endif

@@ -178,25 +178,13 @@ int		Delete_SAR_Geometry			(SarGeometry *pSG)
 
 double      Change_Branch          (Branch *pB, PolSARproSim_Record *pPR)
 {
-//   double				cyl_x, cyl_y, cyl_height;  
-//   /************************/
-//   /* Mark cylinder centre */
-//   /************************/
-//   double            height = pC->base.x[2];
-//   
-//   cyl_x             = pC->base.x[0] + drand()*pPR->wavelength/100*height;
-//   cyl_y             = pC->base.x[1] + drand()*pPR->wavelength/100*height;
-//   cyl_height			= pC->base.x[2];// + drand()*pPR->wavelength/10*height;
-//
-//   pC->base = Cartesian_Assign_d3Vector (cyl_x, cyl_y, cyl_height);
-//   
 
    double   moisture;
    Complex  permittivity;
    
    moisture          = pB->moisture + pB->moisture*drand()/10;
    permittivity      = vegetation_permittivity (moisture, pPR->frequency);
-   pB->permittivity	= Copy_Complex (&permittivity);
+  // pB->permittivity	= Copy_Complex (&permittivity);
    return(NO_POLSARPROSIM_FOREST_ERRORS);
 
 }
@@ -306,6 +294,12 @@ double		Image_Cylinder_Direct	(Cylinder *pC, SarGeometry *pSG, PolSARproSim_Reco
    /* Combine contribution into SAR image accumulator */
    /***************************************************/
    weight_average	= Accumulate_SAR_Contribution (focus_x, focus_y, focus_srange, Shh, Shv, Svv, pPR, pSG->track);
+   /*****************************/
+   /* populate Max Height image */
+   /*****************************/
+   if(pSG->track == 0){
+      Max_Height_Generation     (focus_x, focus_y, cyl_height, pPR);
+   }
    return (weight_average);
 }
 
@@ -381,6 +375,12 @@ double		Image_Foliage_Direct	(Leaf *pL, SarGeometry *pSG, PolSARproSim_Record *p
    /* Combine contribution into SAR image accumulator */
    /***************************************************/
    weight_average	= Accumulate_SAR_Contribution (focus_x, focus_y, focus_srange, Shh, Shv, Svv, pPR, pSG->track);
+   /*****************************/
+   /* populate Max Height image */
+   /*****************************/
+   if(pSG->track == 0){
+      Max_Height_Generation     (focus_x, focus_y, flg_height, pPR);
+   }
    return (weight_average);
 }
 
@@ -517,6 +517,12 @@ double		Image_Foliage_Bounce	(Leaf *pL, SarGeometry *pSG, PolSARproSim_Record *p
             /* Combine contribution into SAR image accumulator */
             /***************************************************/
             weight_average	= Accumulate_SAR_Contribution (focus_x, focus_y, focus_srange, Shh, Shv, Svv, pPR, pSG->track);
+            /*****************************/
+            /* populate Max Height image */
+            /*****************************/
+            if(pSG->track == 0){
+               Max_Height_Generation     (focus_x, focus_y, flg_height, pPR);
+            }
          }
       }
    }
@@ -690,6 +696,12 @@ double		Image_Cylinder_Bounce	(Cylinder *pC, SarGeometry *pSG, PolSARproSim_Reco
             /* Combine contribution into SAR image accumulator */
             /***************************************************/
             weight_average	= Accumulate_SAR_Contribution (focus_x, focus_y, focus_srange, Shh, Shv, Svv, pPR, pSG->track);
+            /*****************************/
+            /* populate Max Height image */
+            /*****************************/            
+            if(pSG->track == 0){
+               Max_Height_Generation     (focus_x, focus_y, cyl_height, pPR);
+            }
          }
       }
    }
@@ -1443,7 +1455,6 @@ void		*Image_Tree_SMP		(void *threadarg)
    double            leafL1, leafL2, leafL3; //to calculate leaf depolarization factors
    double            weight_sum2;
    int               track; // to loop over tracks
-   
    /************************/
    /* Initialise variables */
    /************************/
@@ -1470,7 +1481,7 @@ void		*Image_Tree_SMP		(void *threadarg)
             for (i_section = 0; i_section < Nsections; i_section++) {
                rtn_value	= Cylinder_from_Branch (&cyl1, pB, i_section, Nsections);
                weight_sum	+= Image_Cylinder_Direct (&cyl1, &(pSGdirect[track]), pPR, 1.0, Cscatt_Flag);
-               weight_sum2	+= Image_Cylinder_Bounce (&cyl1, &(pSGbounce[track]), pPR, 1.0, Cscatt_Flag);
+               weight_sum2	+= Image_Cylinder_Bounce (&cyl1, &(pSGbounce[track]), pPR, 1.0, Cscatt_Flag);                  
                weight_count	+= 1.0;
             }
             Change_Branch(pB, pPR);

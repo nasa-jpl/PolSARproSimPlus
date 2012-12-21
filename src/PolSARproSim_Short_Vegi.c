@@ -204,6 +204,12 @@ void		*Image_Short_Veg_Direct_Stems		(void *threadarg)
          /* Combine contribution into SAR image accumulator */
          /***************************************************/
          weight_average	+= Accumulate_SAR_Contribution (focus_x, focus_y, focus_srange, Shh, Shv, Svv, pPR, pPR->current_track);
+         /*****************************/
+         /* populate Max Height image */
+         /*****************************/            
+         if(pPR->current_track == 0){
+            Max_Height_Generation     (focus_x, focus_y, stem_height, pPR);
+         }
          weight_count	+= 1.0;
       }
    }
@@ -397,6 +403,13 @@ void     *Image_Short_Veg_Direct_Leaves      (void *threadarg)
          /* Combine contribution into SAR image accumulator */
          /***************************************************/
          weight_average	+= Accumulate_SAR_Contribution (focus_x, focus_y, focus_srange, Shh, Shv, Svv, pPR, pPR->current_track);
+         /*****************************/
+         /* populate Max Height image */
+         /*****************************/            
+         if(pPR->current_track == 0){
+            Max_Height_Generation     (focus_x, focus_y, leaf_height, pPR);
+         }
+
          weight_count	+= 1.0;
       }
    }
@@ -1355,6 +1368,12 @@ void		*Image_Short_Veg_Bounce_Stems		(void *threadarg)
                   /* Combine contribution into SAR image accumulator */
                   /***************************************************/
                   weight_average	+= Accumulate_SAR_Contribution (focus_x, focus_y, focus_srange, Shh, Shv, Svv, pPR, pPR->current_track);
+                  /*****************************/
+                  /* populate Max Height image */
+                  /*****************************/            
+                  if(pPR->current_track == 0){
+                     Max_Height_Generation     (focus_x, focus_y, stem_height, pPR);
+                  }
                   weight_count	+= 1.0;
                }
             }
@@ -1682,6 +1701,12 @@ void		*Image_Short_Veg_Bounce_Leaves		(void *threadarg)
                   /***************************************************/
                  // printf("%d) Leaf Shh,Shv,Svv = %f, %f,%f\n", pTA->thread_id, Shh.x, Shv.x, Svv.x);
                   weight_average	+= Accumulate_SAR_Contribution (focus_x, focus_y, focus_srange, Shh, Shv, Svv, pPR, pPR->current_track);
+                  /*****************************/
+                  /* populate Max Height image */
+                  /*****************************/            
+                  if(pPR->current_track == 0){
+                     Max_Height_Generation     (focus_x, focus_y, leaf_height, pPR);
+                  }
                   weight_count	+= 1.0;
                }
             }

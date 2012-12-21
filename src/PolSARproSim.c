@@ -232,10 +232,12 @@ int main(int argv, char *argc[])
    /*************************************************************/
    
    Create_SIM_Record                (&(Master_Record.Ground_Height));
+   Create_SIM_Record                (&(Master_Record.Max_Height));
    Ground_Surface_Generation        (&Master_Record);
    
 #ifndef POLSARPROSIM_NOSIMOUTPUT
-   Write_SIM_Record                 (&(Master_Record.Ground_Height));
+  // Write_SIM_Record                 (&(Master_Record.Ground_Height));
+   Write_SIM_Record_As_POLSARPRO_BINARY        (&(Master_Record.Ground_Height));
 #endif
    
    /****************************************************/
@@ -364,9 +366,9 @@ int main(int argv, char *argc[])
    /**********************************************/
    /* Output the SAR images for the entire stack */
    /**********************************************/
-   Write_SAR_Stack                  (&Master_Record);
-   Write_Stack_LookVectors          (&Master_Record);
-
+   Write_SAR_Stack                              (&Master_Record);
+   Write_Stack_LookVectors                      (&Master_Record);
+   Write_SIM_Record_As_POLSARPRO_BINARY         (&(Master_Record.Max_Height));
    /******************************/
    /* Tidy up before leaving     */
    /******************************/

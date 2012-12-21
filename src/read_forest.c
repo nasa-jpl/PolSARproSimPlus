@@ -88,8 +88,8 @@ int		Check_PolSARproSim_Forest		(PolSARproSim_Record *pPR)
          printf("ERROR: Bad Tree description (canopy depth  + canopy dry depth > tree height) for tree no.: %d\n", itree);
          exit(0); /* these errors should be bad enough to quit program */
       }
-      if(pPR->Tree_Location[itree].species < 0 || pPR->Tree_Location[itree].species > 4)  { /* For now keep it to 4, should change to > pPR->Nspecies once all is integrated */ 
-         printf("ERROR: Bad Tree description (species < 1 or >4) for tree no.: %d\n", itree);
+      if(pPR->Tree_Location[itree].species < 0 || pPR->Tree_Location[itree].species > pPR->Nspecies)  { 
+         printf("ERROR: Bad Tree description (species < 0 or > No. of species) for tree no.: %d\n", itree);
          exit(0); /* these errors should be bad enough to quit program */
       }
       if(pPR->Tree_Location[itree].dbh < DBL_EPSILON)  {

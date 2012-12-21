@@ -149,6 +149,7 @@ void        Write_SAR_Stack               (PolSARproSim_Record *pPR);
 void        Destroy_SAR_Stack             (PolSARproSim_Record *pPR);
 void        Write_Stack_LookVectors			(PolSARproSim_Record *pPR);
 int         Write_SIM_Record_As_POLSARPRO_BINARY	(SIM_Record *pSIMR);
+void        Max_Height_Generation         (double  focus_x, double focus_y, double height, PolSARproSim_Record *pPR);
 /************************/
 /* TCLTK string parsing */
 /************************/

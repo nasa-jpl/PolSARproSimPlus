@@ -790,7 +790,6 @@ int		Input_PolSARproSim_Record		(const char *filename, PolSARproSim_Record *pPR)
    pPR->f_ground_range              = DEFAULT_RESOLUTION_SAMPLING_FACTOR;
    pPR->deltay                      = pPR->ground_range_resolution[0]*pPR->f_ground_range;
    
-   
    /******************************************************/
    /* Read and report the species specific parameters    */
    /******************************************************/
@@ -1057,6 +1056,7 @@ void	Ground_Surface_Generation	(PolSARproSim_Record *pPR)
    double			length	= pPR->large_scale_length;
    double			height_std	= pPR->large_scale_height_stdev;
    SIM_Record		*pSR		= &(pPR->Ground_Height);
+   SIM_Record     *pSRHgt  = &(pPR->Max_Height);
    int            N			= POLSARPROSIM_GROUND_FOURIER_MOMENTS;
    const double	PI			= DPI_RAD;
    double			alphax	= sqrt(1.0+sx*sx);
@@ -1110,9 +1110,9 @@ void	Ground_Surface_Generation	(PolSARproSim_Record *pPR)
    /* Initialise ground height map variable */
    /*****************************************/
    
-   ground_height_filename	= (char*) calloc (strlen(pPR->pMasterDirectory)+strlen("ground_height.sim")+1, sizeof(char));
+   ground_height_filename	= (char*) calloc (strlen(pPR->pMasterDirectory)+strlen("ground_height.bin")+1, sizeof(char));
    strcpy  (ground_height_filename, pPR->pMasterDirectory);
-   strcat  (ground_height_filename, "ground_height.sim");
+   strcat  (ground_height_filename, "ground_height.bin");
    
    Destroy_SIM_Record (pSR);
    Create_SIM_Record (pSR);
@@ -1120,6 +1120,18 @@ void	Ground_Surface_Generation	(PolSARproSim_Record *pPR)
                           Lx, Ly, "PolSARproSim ground height map");
    p.simpixeltype	= pSR->pixel_type;
    free (ground_height_filename);
+   
+   ground_height_filename	= (char*) calloc (strlen(pPR->pMasterDirectory)+strlen("max_height.bin")+1, sizeof(char));
+   strcpy  (ground_height_filename, pPR->pMasterDirectory);
+   strcat  (ground_height_filename, "max_height.bin");
+   
+   Destroy_SIM_Record (pSRHgt);
+   Create_SIM_Record (pSRHgt);
+   Initialise_SIM_Record (pSRHgt, ground_height_filename, nx, ny, SIM_FLOAT_TYPE, 
+                          Lx, Ly, "PolSARproSim maximum height map");
+   p.simpixeltype	= pSRHgt->pixel_type;
+   free (ground_height_filename);
+   
    
 #ifndef FLAT_DEM
    
@@ -1206,6 +1218,7 @@ void	Ground_Surface_Generation	(PolSARproSim_Record *pPR)
          }
          p.data.f	= (float) complex_real (hxy);
          putSIMpixel_periodic (pSR, p, i, j);
+         putSIMpixel_periodic (pSRHgt, p, i, j);
       }
    }
    
@@ -1238,6 +1251,7 @@ void	Ground_Surface_Generation	(PolSARproSim_Record *pPR)
          p			 = getSIMpixel_periodic (pSR, i, j);
          p.data.f		*= (float) height_factor;
          putSIMpixel_periodic (pSR, p, i, j);
+         putSIMpixel_periodic (pSRHgt, p, i, j);
       }
    }
    
@@ -1253,6 +1267,7 @@ void	Ground_Surface_Generation	(PolSARproSim_Record *pPR)
          p	= getSIMpixel_periodic (pSR, i, j);
          p.data.f	= (float) (sx*xi+sy*yj+p.data.f*alpha);
          putSIMpixel_periodic (pSR, p, i, j);
+         putSIMpixel_periodic (pSRHgt, p, i, j);
       }
    }
    
@@ -1265,6 +1280,7 @@ void	Ground_Surface_Generation	(PolSARproSim_Record *pPR)
          yj	= -yj;
          p.data.f	= (float) (sx*xi+sy*yj);
          putSIMpixel (pSR, p, i, j);
+         putSIMpixel (pSRHgt, p, i, j);
       }
    }
    
@@ -5284,7 +5300,7 @@ double		Accumulate_SAR_Contribution		(double focus_x, double focus_y, double foc
    sim_pixel   gpix;
    Complex     cvalue;
    double		weight_sum	= 0.0;
-   
+      
    spix.simpixeltype	= pPR->HHstack[track].Image.pixel_type;
    gpix.simpixeltype	= pPR->HHstack[track].Image.pixel_type;
    /**************************************************/
@@ -5373,6 +5389,32 @@ double		Accumulate_SAR_Contribution		(double focus_x, double focus_y, double foc
    return (weight_sum);
 }
 
+void        Max_Height_Generation     (double  focus_x, double focus_y, double height, PolSARproSim_Record *pPR)
+{
+   double         dx    = pPR->deltax;
+   double         dy		= pPR->deltay;
+   double         xmid	= pPR->xmid;
+   double         ymid	= pPR->ymid;
+   /**************************************************************/
+   /* Find pixel coordinates for pixel closest to point of focus */
+   /**************************************************************/
+   int         ix		= (int) ((xmid+focus_x)/dx);
+   int         jy		= (int) ((ymid-focus_y)/dy);
+   sim_pixel	spix;
+   sim_pixel   gpix;
+      
+   spix.simpixeltype	= pPR->Max_Height.pixel_type;
+   gpix.simpixeltype	= pPR->Max_Height.pixel_type;
+
+   pthread_mutex_lock   (&PolSARproSim_MaxHgtmutex);
+   gpix				= getSIMpixel (&(pPR->Max_Height), ix, jy);
+   if(gpix.data.f < height){
+      spix.data.f    = height;
+      putSIMpixel (&(pPR->Max_Height), spix, ix, jy);
+   }
+   pthread_mutex_unlock (&PolSARproSim_MaxHgtmutex);
+
+}
 
 
 int			Polarisation_Vectors			(d3Vector k, d3Vector n, d3Vector *ph, d3Vector *pv)
@@ -6191,8 +6233,9 @@ double		Estimate_SAR_Foliage (Tree *pT, PolSARproSim_Record *pPR, long *nf)
 
 int		Write_SIM_Record_As_POLSARPRO_BINARY	(SIM_Record *pSIMR)
 {
-   SIM_Complex_Float	*column	= (SIM_Complex_Float*) calloc (pSIMR->ny, sizeof (SIM_Complex_Float));
-   FILE				*pSBF;
+   SIM_Complex_Float	*column     = (SIM_Complex_Float*) calloc (pSIMR->ny, sizeof (SIM_Complex_Float));
+   float             *column_f   = (float *) calloc(pSIMR->ny, sizeof(float));
+   FILE              *pSBF;
    int				i, j;
    sim_pixel			sp;
    
@@ -6201,21 +6244,29 @@ int		Write_SIM_Record_As_POLSARPRO_BINARY	(SIM_Record *pSIMR)
       for (j=0; j<pSIMR->ny; j++) {
          sp	= getSIMpixel (pSIMR, i, pSIMR->ny-j-1);
          switch (sp.simpixeltype) {
-            case SIM_BYTE_TYPE:				column[j].x	= (float) sp.data.b;		column[j].y	= 0.0f;		break;
-            case SIM_WORD_TYPE:			column[j].x	= (float) sp.data.w;		column[j].y	= 0.0f;		break;
-            case SIM_DWORD_TYPE:			column[j].x	= (float) sp.data.dw;		column[j].y	= 0.0f;		break;
-            case SIM_FLOAT_TYPE:			column[j].x	= (float) sp.data.f;		column[j].y	= 0.0f;		break;
-            case SIM_DOUBLE_TYPE:			column[j].x	= (float) sp.data.d;		column[j].y	= 0.0f;		break;
+            case SIM_BYTE_TYPE:              column_f[j]	= (float) sp.data.b;		break;
+            case SIM_WORD_TYPE:              column_f[j]	= (float) sp.data.w;		break;
+            case SIM_DWORD_TYPE:             column_f[j]	= (float) sp.data.dw;	break;
+            case SIM_FLOAT_TYPE:             column_f[j]	= (float) sp.data.f;		break;
+            case SIM_DOUBLE_TYPE:            column_f[j]	= (float) sp.data.d;		break;
             case SIM_COMPLEX_FLOAT_TYPE:		column[j].x	= (float) sp.data.cf.x;		column[j].y	= (float) -sp.data.cf.y;		break;
             case SIM_COMPLEX_DOUBLE_TYPE:		column[j].x	= (float) sp.data.cd.x;		column[j].y	= (float) -sp.data.cd.y;		break;
          }
       }
-      fwrite (column, sizeof (SIM_Complex_Float), pSIMR->ny, pSBF);
+      if(sp.simpixeltype == SIM_COMPLEX_FLOAT_TYPE || sp.simpixeltype == SIM_COMPLEX_DOUBLE_TYPE){
+         fwrite (column, sizeof (SIM_Complex_Float), pSIMR->ny, pSBF);
+      }else{
+         fwrite (column_f, sizeof (float), pSIMR->ny, pSBF);
+      }
    }
    fclose (pSBF);
    free (column);
+   free (column_f);
    return (NO_SIMPRIMITIVE_ERRORS);
 }
+
+
+
 
 /***************************************************************/
 /* SAR image output with optional choice of SIM format imagery */
