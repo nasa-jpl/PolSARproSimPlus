@@ -227,16 +227,15 @@ int main(int argv, char *argc[])
    /****************************************************/
    /* Stage 1: Create the 3D description of the forest */
    /****************************************************/
+   
    /*************************************************************/
    /* Generate ground height map on ground range - azimuth grid */
    /*************************************************************/
-   
    Create_SIM_Record                (&(Master_Record.Ground_Height));
    Create_SIM_Record                (&(Master_Record.Max_Height));
    Ground_Surface_Generation        (&Master_Record);
    
 #ifndef POLSARPROSIM_NOSIMOUTPUT
-  // Write_SIM_Record                 (&(Master_Record.Ground_Height));
    Write_SIM_Record_As_POLSARPRO_BINARY        (&(Master_Record.Ground_Height));
 #endif
    
@@ -380,7 +379,12 @@ int main(int argv, char *argc[])
    free                             (call_string);
    fclose                           (Master_Record.pOutputFile);
    fclose                           (Master_Record.pLogFile);
-
+   Destroy_SIM_Record               (&(Master_Record.Ground_Height));
+   Destroy_SIM_Record               (&(Master_Record.Max_Height));
+   
+   /***********/
+   /* Time it */
+   /***********/   
    time(&stoptotal);
    printf("Finished everything about %f seconds. \n",difftime(stoptotal, starttotal));
 

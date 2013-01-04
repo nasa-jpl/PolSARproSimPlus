@@ -298,7 +298,8 @@ double		Image_Cylinder_Direct	(Cylinder *pC, SarGeometry *pSG, PolSARproSim_Reco
    /* populate Max Height image */
    /*****************************/
    if(pSG->track == 0){
-      Max_Height_Generation     (focus_x, focus_y, cyl_height, pPR);
+//      Max_Height_Generation     (focus_x, focus_y, cyl_height, pPR);
+      Max_Height_Generation     (cyl_x, cyl_y, cyl_height, pPR);
    }
    return (weight_average);
 }
@@ -379,7 +380,8 @@ double		Image_Foliage_Direct	(Leaf *pL, SarGeometry *pSG, PolSARproSim_Record *p
    /* populate Max Height image */
    /*****************************/
    if(pSG->track == 0){
-      Max_Height_Generation     (focus_x, focus_y, flg_height, pPR);
+//      Max_Height_Generation     (focus_x, focus_y, flg_height, pPR);
+      Max_Height_Generation     (flg_x, flg_y, flg_height, pPR);
    }
    return (weight_average);
 }
@@ -521,7 +523,8 @@ double		Image_Foliage_Bounce	(Leaf *pL, SarGeometry *pSG, PolSARproSim_Record *p
             /* populate Max Height image */
             /*****************************/
             if(pSG->track == 0){
-               Max_Height_Generation     (focus_x, focus_y, flg_height, pPR);
+//               Max_Height_Generation     (focus_x, focus_y, flg_height, pPR);
+               Max_Height_Generation     (flg_x, flg_y, flg_height, pPR);
             }
          }
       }
@@ -700,7 +703,8 @@ double		Image_Cylinder_Bounce	(Cylinder *pC, SarGeometry *pSG, PolSARproSim_Reco
             /* populate Max Height image */
             /*****************************/            
             if(pSG->track == 0){
-               Max_Height_Generation     (focus_x, focus_y, cyl_height, pPR);
+               //Max_Height_Generation     (focus_x, focus_y, cyl_height, pPR);
+               Max_Height_Generation     (cyl_x, cyl_y, cyl_height, pPR);
             }
          }
       }

@@ -208,7 +208,8 @@ void		*Image_Short_Veg_Direct_Stems		(void *threadarg)
          /* populate Max Height image */
          /*****************************/            
          if(pPR->current_track == 0){
-            Max_Height_Generation     (focus_x, focus_y, stem_height, pPR);
+//            Max_Height_Generation     (focus_x, focus_y, stem_height, pPR);
+            Max_Height_Generation     (stem_x, stem_y, stem_height, pPR);
          }
          weight_count	+= 1.0;
       }
@@ -407,7 +408,8 @@ void     *Image_Short_Veg_Direct_Leaves      (void *threadarg)
          /* populate Max Height image */
          /*****************************/            
          if(pPR->current_track == 0){
-            Max_Height_Generation     (focus_x, focus_y, leaf_height, pPR);
+//            Max_Height_Generation     (focus_x, focus_y, leaf_height, pPR);
+            Max_Height_Generation     (leaf_x, leaf_y, leaf_height, pPR);
          }
 
          weight_count	+= 1.0;
@@ -1372,7 +1374,8 @@ void		*Image_Short_Veg_Bounce_Stems		(void *threadarg)
                   /* populate Max Height image */
                   /*****************************/            
                   if(pPR->current_track == 0){
-                     Max_Height_Generation     (focus_x, focus_y, stem_height, pPR);
+//                     Max_Height_Generation     (focus_x, focus_y, stem_height, pPR);
+                     Max_Height_Generation     (stem_x, stem_y, stem_height, pPR);
                   }
                   weight_count	+= 1.0;
                }
@@ -1705,7 +1708,8 @@ void		*Image_Short_Veg_Bounce_Leaves		(void *threadarg)
                   /* populate Max Height image */
                   /*****************************/            
                   if(pPR->current_track == 0){
-                     Max_Height_Generation     (focus_x, focus_y, leaf_height, pPR);
+//                     Max_Height_Generation     (focus_x, focus_y, leaf_height, pPR);
+                     Max_Height_Generation     (leaf_x, leaf_y, leaf_height, pPR);
                   }
                   weight_count	+= 1.0;
                }
