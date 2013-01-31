@@ -89,6 +89,8 @@
 pthread_mutex_t PolSARproSim_HHmutex;
 pthread_mutex_t PolSARproSim_HVmutex;
 pthread_mutex_t PolSARproSim_VVmutex;
+/* global mutex for Max Height Image */
 pthread_mutex_t PolSARproSim_MaxHgtmutex;
-
+/* global mutex for vertical change profile mean and variance vectors */
+pthread_mutex_t PolSARproSim_Statmutex;
 #endif

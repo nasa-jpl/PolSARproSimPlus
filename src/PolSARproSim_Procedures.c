@@ -619,6 +619,8 @@ int		Input_PolSARproSim_Record		(const char *filename, PolSARproSim_Record *pPR)
    /* required by module read_parfile */
    static char    buff[MAX_STR];   
    double         baseline[2];
+   int            change_model_type;
+   double         model_coeffs[3];
    double         master_track_height;
    double         master_track_ground_range;
    double         slave_height;
@@ -657,9 +659,10 @@ int		Input_PolSARproSim_Record		(const char *filename, PolSARproSim_Record *pPR)
    
    fprintf (pPR->pLogFile, "\nInputs using keyword driven searches in parameter file ...\n\n");
    read_integer   (pInputFile,    "tracks",                   &(pPR->Tracks));
+   /* Initialize Track dependent inputs */
+   pPR->slant_range                 = (double *)calloc (pPR->Tracks, sizeof (double));
+   pPR->incidence_angle             = (double *)calloc (pPR->Tracks, sizeof (double));
    /* read in the geometry */
-   pPR->slant_range			= (double*) calloc (pPR->Tracks, sizeof (double));
-   pPR->incidence_angle		= (double*) calloc (pPR->Tracks, sizeof (double));
    read_double   (pInputFile,    "center_slant_range_master",  &(pPR->slant_range[0]));
    read_double   (pInputFile,    "incidence_angle_master",     &(pPR->incidence_angle[0]));
    pPR->incidence_angle[0] *=DEG_TO_RAD; /* convert to radians */
@@ -699,8 +702,62 @@ int		Input_PolSARproSim_Record		(const char *filename, PolSARproSim_Record *pPR)
    if(pPR->ForestInput_Flag != EXTERNAL_FOREST_DEFINITION){
       pPR->ForestOutput = (char *)calloc(MAX_STR, sizeof(char));                          /* Initialize the string containing the path & filename of forest output */
       read_string    (pInputFile, "forest_output",             pPR->ForestOutput);        /* Read the filename from parameter file */
+      printf("READ FOREST OUTPUT STRING: --%s--\n", pPR->ForestOutput);  
    }
-      
+   /* Read in track dependent temporal change parameters for modeling temporal decorrelation */
+   /* Allocate Memory and initialzie all to zero */
+   pPR->Position_Change_Model       = (int *)calloc(pPR->Tracks, sizeof(int));   
+   pPR->Moisture_Change_Model       = (int *)calloc(pPR->Tracks, sizeof(int)); 
+   pPR->motion_coeff_A              = (double *)calloc(pPR->Tracks, sizeof(double));
+   pPR->motion_coeff_B              = (double *)calloc(pPR->Tracks, sizeof(double));
+   pPR->motion_coeff_C              = (double *)calloc(pPR->Tracks, sizeof(double));
+   pPR->moisture_coeff_A            = (double *)calloc(pPR->Tracks, sizeof(double));
+   pPR->moisture_coeff_B            = (double *)calloc(pPR->Tracks, sizeof(double));
+   pPR->moisture_coeff_C            = (double *)calloc(pPR->Tracks, sizeof(double));
+   for (i = 0; i < pPR->Tracks; i++) {
+      pPR->Position_Change_Model[i]    = 0;
+      pPR->Moisture_Change_Model[i]    = 0;
+      pPR->motion_coeff_A[i]           = 0.0;
+      pPR->motion_coeff_B[i]           = 0.0;
+      pPR->motion_coeff_C[i]           = 0.0;
+      pPR->moisture_coeff_A[i]         = 0.0;
+      pPR->moisture_coeff_B[i]         = 0.0;
+      pPR->moisture_coeff_C[i]         = 0.0;
+   }
+   /* read the input file */
+   for (i = 1; i < pPR->Tracks; i++) {
+      /* position change e.g. due to wind */
+      sprintf(buff,                 "position_change_model_track_%d", i);
+      if(read_integer   (pInputFile,   buff,     &change_model_type)!= -1){
+         pPR->Position_Change_Model[i] = change_model_type;
+         sprintf(buff,                 "position_change_coeff_track_%d", i);
+         read_dvector   (pInputFile,   buff, (double *)&model_coeffs,3); 
+         pPR->motion_coeff_A[i]        = model_coeffs[0];
+         pPR->motion_coeff_B[i]        = model_coeffs[1];
+         pPR->motion_coeff_C[i]        = model_coeffs[2];
+      }else{
+         printf("(Default) No position changes to track %d\n", i);
+      }
+      /* moisture change, e.g. due to rain */
+      sprintf(buff,                 "moisture_change_model_track_%d", i);
+      if(read_integer   (pInputFile,   buff,     &change_model_type)!= -1){
+         pPR->Moisture_Change_Model[i] = change_model_type;
+         sprintf(buff,                 "moisture_change_coeff_track_%d", i);
+         read_dvector   (pInputFile,   buff, (double *)&model_coeffs,3); 
+         pPR->moisture_coeff_A[i]      = model_coeffs[0];
+         pPR->moisture_coeff_B[i]      = model_coeffs[1];
+         pPR->moisture_coeff_C[i]      = model_coeffs[2];
+      }else{
+         printf("(Default) No moisture changes to track %d\n", i);
+      }
+   }
+   for (i = 0; i < pPR->Tracks; i++) {
+      printf ("%d\t\t\t/* Position Change Model Type for track %d\t*/\n", pPR->Position_Change_Model[i],i);
+      printf ("%.3f,%.3f,%.3f\t/* Position Change Model Coefficients for track %d\t*/\n", pPR->motion_coeff_A[i], pPR->motion_coeff_B[i], pPR->motion_coeff_C[i], i);
+      printf ("%d\t\t\t/* Moisture Change Model Type for track %d\t*/\n", pPR->Moisture_Change_Model[i],i);
+      printf ("%.3f,%.3f,%.3f\t/* Moisture Change Model Coefficients for track %d\t*/\n", pPR->moisture_coeff_A[i], pPR->moisture_coeff_B[i], pPR->moisture_coeff_C[i], i);
+   }
+
    
    /************************/
    /* Close the input file */
@@ -734,6 +791,13 @@ int		Input_PolSARproSim_Record		(const char *filename, PolSARproSim_Record *pPR)
 #endif
    fprintf (pPR->pLogFile, "%s\t\t\t/* Forest input File \t*/\n", pPR->ForestData);
    fprintf (pPR->pLogFile, "%s\t\t\t/* Species input File \t*/\n\n", pPR->SpeciesData);
+   for (i = 0; i < pPR->Tracks; i++) {
+      fprintf (pPR->pLogFile, "%d\t\t\t/* Position Change Model Type for track %d\t*/\n", pPR->Position_Change_Model[i],i);
+      fprintf (pPR->pLogFile, "%.3f,%.3f,%.3f\t/* Position Change Model Coefficients for track %d\t*/\n", pPR->motion_coeff_A[i], pPR->motion_coeff_B[i], pPR->motion_coeff_C[i], i);
+      fprintf (pPR->pLogFile, "%d\t\t\t/* Moisture Change Model Type for track %d\t*/\n", pPR->Moisture_Change_Model[i],i);
+      fprintf (pPR->pLogFile, "%.3f,%.3f,%.3f\t/* Moisture Change Model Coefficients for track %d\t*/\n", pPR->moisture_coeff_A[i], pPR->moisture_coeff_B[i], pPR->moisture_coeff_C[i], i);
+   }
+
    
    fflush (pPR->pLogFile);
    
@@ -762,6 +826,13 @@ int		Input_PolSARproSim_Record		(const char *filename, PolSARproSim_Record *pPR)
    if(pPR->ForestInput_Flag != EXTERNAL_FOREST_DEFINITION){
       fprintf (pPR->pOutputFile, "%s\t\t\t/* Forest output File \t*/\n", pPR->ForestOutput);
    }
+   for (i = 0; i < pPR->Tracks; i++) {
+      fprintf (pPR->pOutputFile, "%d\t\t\t/* Position Change Model Type for track %d\t*/\n", pPR->Position_Change_Model[i],i);
+      fprintf (pPR->pOutputFile, "%.3f,%.3f,%.3f\t/* Position Change Model Coefficients for track %d\t*/\n", pPR->motion_coeff_A[i], pPR->motion_coeff_B[i], pPR->motion_coeff_C[i], i);
+      fprintf (pPR->pOutputFile, "%d\t\t\t/* Moisture Change Model Type for track %d\t*/\n", pPR->Moisture_Change_Model[i],i);
+      fprintf (pPR->pOutputFile, "%.3f,%.3f,%.3f\t/* Moisture Change Model Coefficients for track %d\t*/\n", pPR->moisture_coeff_A[i], pPR->moisture_coeff_B[i], pPR->moisture_coeff_C[i], i);
+   }
+
    fflush (pPR->pOutputFile);
    
    /**************************************/
@@ -1028,6 +1099,28 @@ int		Input_PolSARproSim_Record		(const char *filename, PolSARproSim_Record *pPR)
    fprintf (pPR->pLogFile, "Initial PSF scaling is %lf\n", pPR->PSFamp);
    fflush  (pPR->pLogFile);
    
+   /***********************************************/
+   /* Initialize Temporal decorrelation Variables */
+   /***********************************************/
+   pPR->change_height_delta         = CHANGE_HEIGHT_DELTA;
+   pPR->change_profile_bin_res      = pPR->max_tree_height/CHANGE_PROFILE_BINS;
+#ifdef OUTPUT_CHANGE_STATS_ON
+   pPR->motion_profile_mean         = (double *)calloc(CHANGE_PROFILE_BINS*pPR->Tracks, sizeof(double));
+   pPR->motion_profile_var          = (double *)calloc(CHANGE_PROFILE_BINS*pPR->Tracks, sizeof(double));
+   pPR->motion_profile_count        = (int    *)calloc(CHANGE_PROFILE_BINS*pPR->Tracks, sizeof(int));
+   pPR->moisture_profile_mean       = (double *)calloc(CHANGE_PROFILE_BINS*pPR->Tracks, sizeof(double));
+   pPR->moisture_profile_var        = (double *)calloc(CHANGE_PROFILE_BINS*pPR->Tracks, sizeof(double));
+   pPR->moisture_profile_count      = (int    *)calloc(CHANGE_PROFILE_BINS*pPR->Tracks, sizeof(int));
+
+   for(i=0; i<CHANGE_PROFILE_BINS*pPR->Tracks; i++){
+      pPR->motion_profile_count[i]     = 0;
+      pPR->motion_profile_mean[i]      = 0.0;
+      pPR->motion_profile_var[i]       = 0.0;
+      pPR->moisture_profile_count[i]   = 0;
+      pPR->moisture_profile_mean[i]    = 0.0;
+      pPR->moisture_profile_var[i]     = 0.0;
+   }
+#endif
    /*********************************/
    /* Initialise progress indicator */
    /*********************************/

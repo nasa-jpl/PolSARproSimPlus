@@ -238,6 +238,16 @@ d3Vector	d3Vector_sum				(d3Vector d3v1, d3Vector d3v2)
  return (v);
 }
 
+d3Vector	d3Vector_hadamard_product	(d3Vector d3v1, d3Vector d3v2)
+{
+ d3Vector	v;
+ v.x[0]		= d3v1.x[0]*d3v2.x[0];
+ v.x[1]		= d3v1.x[1]*d3v2.x[1];
+ v.x[2]		= d3v1.x[2]*d3v2.x[2];
+ Polar_d3Vector (&v);
+ return (v);
+}
+
 /*************************************/
 /* Doubly linked list implementation */
 /*************************************/

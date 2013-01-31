@@ -313,7 +313,7 @@ int main(int argv, char *argc[])
       /* Calculate the direct ground contribution */
       /********************************************/
 #ifdef ENABLE_THREADS
-      PolSARproSim_Direct_Ground_SMP            (&Master_Record);
+      //PolSARproSim_Direct_Ground_SMP            (&Master_Record);
 #else
       PolSARproSim_Direct_Ground                (&Master_Record);
 #endif      
@@ -321,8 +321,8 @@ int main(int argv, char *argc[])
       /* Calculate the short vegetation contribution */
       /***********************************************/
 #ifdef ENABLE_THREADS
-      PolSARproSim_Short_Vegetation_Direct_SMP  (&Master_Record);
-      PolSARproSim_Short_Vegetation_Bounce_SMP  (&Master_Record);
+    //  PolSARproSim_Short_Vegetation_Direct_SMP  (&Master_Record);
+   //   PolSARproSim_Short_Vegetation_Bounce_SMP  (&Master_Record);
 #else
       PolSARproSim_Short_Vegetation_Direct      (&Master_Record);
       PolSARproSim_Short_Vegetation_Bounce      (&Master_Record);
@@ -354,7 +354,7 @@ int main(int argv, char *argc[])
    time(&stopforest);
    printf("Finished Imaging forest about %f seconds. \n",difftime(stopforest, startforest));
 #endif
- 
+
    /****************************************/
    /* Optional flat earth phase correction */
    /****************************************/
@@ -382,12 +382,13 @@ int main(int argv, char *argc[])
    Destroy_SIM_Record               (&(Master_Record.Ground_Height));
    Destroy_SIM_Record               (&(Master_Record.Max_Height));
    
+   
+   
    /***********/
    /* Time it */
    /***********/   
    time(&stoptotal);
    printf("Finished everything about %f seconds. \n",difftime(stoptotal, starttotal));
-
 
    /***************/
    /* End of Main */

@@ -357,6 +357,27 @@ typedef struct polsarprosim_record_tag {
    /* Forest input flag: 0 = skip forest drawing, 1 = draw forest image              --RAedit */
    /*******************************************************************************************/
    int            ForestDraw_Flag;      
+   /**************************/
+   /* Temporal Decorrelation */
+   /**************************/
+   int            *Position_Change_Model; /* Type of model (linear, quadratic etc) for scatterer motion  */
+   int            *Moisture_Change_Model; /* Type of mdoel for change of scatterer moisture              */
+   double         *motion_coeff_A;        /***************************************************************/
+   double         *motion_coeff_B;        /*                                                             */
+   double         *motion_coeff_C;        /*        Motion and Moisture                                  */
+   double         *moisture_coeff_A;      /*        change model coefficients                            */
+   double         *moisture_coeff_B;      /*                                                             */
+   double         *moisture_coeff_C;      /***************************************************************/
+   double         change_height_delta;    /* Height strata thickness to preserve vertical change profile */
+   double         *motion_profile_mean;   /* The vertical motion profile in the mean sense (for monitoring)               */
+   double         *motion_profile_var;    /* variance of the vertical motion profile (for monitoring)    */
+   int            *motion_profile_count;  /* for counting the number of entries in vertical profiles     */
+   double         *moisture_profile_mean; /* The vertical motion profile in the mean sense (for monitoring)               */
+   double         *moisture_profile_var;  /* variance of the vertical motion profile (for monitoring)    */
+   int            *moisture_profile_count;/* for counting the number of entries in vertical profiles     */
+
+   double         change_profile_bin_res; /* resolution of vertical motion profile (for moonitoring)     */
+   
 } PolSARproSim_Record;
 
 /*********************************/

@@ -456,12 +456,10 @@ void  *Direct_Ground_RangeLine   (void *threadarg)
    PolSARproSim_Record        *pPR;
    double                     x;
    double                     *pRandArray;
-//   unsigned short int         seed[3];
-//   unsigned int             seed, seed2;
    /* do thread assignments */
    pTA                                 = (Direct_Ground_Thread_Arg *)threadarg;
    pPR                                 = pTA->pPR;  // address to Master_Record   
-   x                                   = pTA->x;
+   x                                   = pTA->x;   // along-track location relative to scene center
    pRandArray                          = (double *) pTA->pRA;
    /* constants */
    const double		Pi                = 4.0*atan(1.0);

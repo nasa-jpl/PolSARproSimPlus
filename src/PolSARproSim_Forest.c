@@ -175,18 +175,125 @@ int		Delete_SAR_Geometry			(SarGeometry *pSG)
    return (rtn_value);
 }
 
-
-double      Change_Branch          (Branch *pB, PolSARproSim_Record *pPR)
+/************************************************************/
+/* Temporal Decorrelation Model implementation for branches */
+/************************************************************/
+int      Model_Branch_Change        (Tree *pT, Branch *pB, PolSARproSim_Record *pPR, int current_track, d3Vector *motion, double *moisture, double cyl_z)
 {
-
-   double   moisture;
-   Complex  permittivity;
+   double      tree_altitude        = pT->base.x[2];     //tree altitutde (this includes ground height)
+   //double      tree_height          = pT->height;        //height of tree from base to top 
+   //double      branch_radius        = pB->start_radius;  //start radius of branch being changed
+   //double      branch_start_height  = pB->b0.x[2];       //starting altitude of branch (includes ground height)
+   double      normalizestd         = 3.464101615;       // square root of 12, to normalize the standard deviation of a uniform RV to 1
+   /* parameters to be computed */
+   double      delta_x, delta_y, delta_z;                //motion offsets
    
-   moisture          = pB->moisture + pB->moisture*drand()/10;
-   permittivity      = vegetation_permittivity (moisture, pPR->frequency);
-  // pB->permittivity	= Copy_Complex (&permittivity);
-   return(NO_POLSARPROSIM_FOREST_ERRORS);
+   double      change_stdev;                             //standard deviation of the amount of change 
+   double      cyl_height     = cyl_z - tree_altitude;   //height of cylinder (branch approximation) that needs to be moved
+   double      damping_factor = 1;//branch_radius/pT->dbh/2; //damp the motion by branch radius         
 
+   //seed the random number generator
+   srand(rand());
+
+   
+   /* no change on reference track */
+   if(current_track == 0){
+      *motion     = Cartesian_Assign_d3Vector	(0.0, 0.0, 0.0);
+      *moisture   = 0.0;
+   }else{
+   
+      /***********************************/
+      /* Compute components of 3D motion */
+      /***********************************/ 
+      if(pPR->Position_Change_Model[current_track]       == CHANGE_MODEL_NONE){
+         change_stdev   = 0.0;
+      }else if(pPR->Position_Change_Model[current_track] == CHANGE_MODEL_POLYNOMIAL){
+         change_stdev   = (pPR->motion_coeff_A[current_track] * cyl_height * cyl_height + pPR->motion_coeff_B[current_track] * cyl_height + pPR->motion_coeff_C[current_track]) * damping_factor;
+      }else if(pPR->Position_Change_Model[current_track] == CHANGE_MODEL_EXPONENTIAL){
+         change_stdev   = (pPR->motion_coeff_A[current_track] * exp(pPR->motion_coeff_B[current_track] * cyl_height) + pPR->motion_coeff_C[current_track]) * damping_factor;
+      }else{
+         change_stdev = 0.0;
+      }
+      /* realize position change */
+      delta_x  = (drand() - 0.5)*change_stdev*normalizestd;
+      delta_y  = (drand() - 0.5)*change_stdev*normalizestd;
+      delta_z  = (drand() - 0.5)*change_stdev*normalizestd;
+      *motion  = Cartesian_Assign_d3Vector	(delta_x, delta_y, delta_z);
+      
+      /***************************/
+      /* Compute moisture change */
+      /***************************/
+      if(pPR->Moisture_Change_Model[current_track]       == CHANGE_MODEL_NONE){
+         change_stdev   = 0.0;
+      }else if(pPR->Moisture_Change_Model[current_track] == CHANGE_MODEL_POLYNOMIAL){
+         change_stdev   = (pPR->moisture_coeff_A[current_track] * cyl_height * cyl_height + pPR->moisture_coeff_B[current_track] * cyl_height + pPR->moisture_coeff_C[current_track]) * damping_factor;
+      }else if(pPR->Moisture_Change_Model[current_track] == CHANGE_MODEL_EXPONENTIAL){
+         change_stdev   = (pPR->moisture_coeff_A[current_track] * exp(pPR->moisture_coeff_B[current_track] * cyl_height) + pPR->moisture_coeff_C[current_track]) * damping_factor;
+      }else{
+         change_stdev = 0.0;
+      }
+      /*realize moisture change */
+      *moisture = (drand() - 0.5)*change_stdev*normalizestd;
+   }
+   return(NO_POLSARPROSIM_FOREST_ERRORS);
+}
+
+/************************************************************/
+/* Applying moisture and position changes to cylinders      */
+/************************************************************/
+double      Change_Cylinder      (Cylinder *pC, Branch *pB, PolSARproSim_Record *pPR, d3Vector motion_offset, double moisture_offset, int current_track)
+{
+   d3Vector          new_base;
+   double            moisture;
+   Complex           permittivity;
+   d3Vector          orig_base, applied_offset;
+#ifdef OUTPUT_CHANGE_STATS_ON
+   double            cyl_original_height = pC->base.x[2];
+   int               change_profile_bin_index;
+   int               change_profile_bin_count;
+   double            motion_profile_mean;
+   double            motion_profile_var;
+   double            moisture_profile_mean;
+   double            moisture_profile_var;
+#endif
+
+   Create_d3Vector(&orig_base);
+   Create_d3Vector(&applied_offset);
+
+   /* apply moisture change */
+   moisture          = pB->moisture + moisture_offset;
+   permittivity      = vegetation_permittivity (moisture, pPR->frequency);
+   pC->permittivity	= Copy_Complex (&permittivity);
+   
+   /* apply position change */
+   Copy_d3Vector     (&orig_base, &(pC->base));
+   new_base          = d3Vector_sum (pC->base, motion_offset);
+   Copy_d3Vector     (&(pC->base), &(new_base));
+   applied_offset    = d3Vector_difference (pC->base, orig_base);
+   
+#ifdef OUTPUT_CHANGE_STATS_ON  
+   /* calculate first two moments of the vertical change profiles */
+   /* motion */
+   pthread_mutex_lock         (&PolSARproSim_Statmutex);
+   change_profile_bin_index   = (int)(cyl_original_height/pPR->max_tree_height*CHANGE_PROFILE_BINS);
+   change_profile_bin_index   = change_profile_bin_index*pPR->Tracks+current_track;
+   change_profile_bin_count   = pPR->motion_profile_count[change_profile_bin_index];
+   motion_profile_mean        = pPR->motion_profile_mean[change_profile_bin_index];
+   motion_profile_var         = pPR->motion_profile_var [change_profile_bin_index];
+   pPR->motion_profile_mean [change_profile_bin_index] = motion_profile_mean + (applied_offset.x[0] - motion_profile_mean)/(double)(change_profile_bin_count+1);
+   pPR->motion_profile_var  [change_profile_bin_index] = motion_profile_var  + (applied_offset.x[0] - motion_profile_mean) * (applied_offset.x[0] - pPR->motion_profile_mean[change_profile_bin_index]); 
+   pPR->motion_profile_count[change_profile_bin_index]++;
+   /* moisture */
+   change_profile_bin_count   = pPR->moisture_profile_count[change_profile_bin_index];
+   moisture_profile_mean      = pPR->moisture_profile_mean[change_profile_bin_index];
+   moisture_profile_var       = pPR->moisture_profile_var [change_profile_bin_index];
+   pPR->moisture_profile_mean [change_profile_bin_index] = moisture_profile_mean + (moisture_offset - moisture_profile_mean)/(double)(change_profile_bin_count+1);
+   pPR->moisture_profile_var  [change_profile_bin_index] = moisture_profile_var  + (moisture_offset - moisture_profile_mean) * (moisture_offset - pPR->moisture_profile_mean[change_profile_bin_index]); 
+   pPR->moisture_profile_count[change_profile_bin_index]++;
+   pthread_mutex_unlock       (&PolSARproSim_Statmutex);
+#endif 
+
+   return(NO_POLSARPROSIM_FOREST_ERRORS);
 }
 
 double      Move_Leaf           (Leaf *pL, PolSARproSim_Record *pPR)
@@ -1449,16 +1556,18 @@ void		*Image_Tree_SMP		(void *threadarg)
    Cylinder          cyl1;
    double            weight_sum;
    double            weight_count;
-   //double            weight_avg;
    int               rtn_value;
    double            tb_scaling;
    double            flg_scaling;
    long              iLeaf;
    Leaf              *pL;
    int               Cscatt_Flag;
-   double            leafL1, leafL2, leafL3; //to calculate leaf depolarization factors
+   double            leafL1, leafL2, leafL3;       //to calculate leaf depolarization factors
    double            weight_sum2;
-   int               track; // to loop over tracks
+   int               track;                        // to loop over tracks
+   d3Vector          motion_offset;                // offset for adding motion to a cylinder/leaf 
+   double            moisture_offset;              // offset for adding moisture to a cylinder/leaf
+   double            change_start_height;          // to allow re-computation of offsets to preserve vertical profiles
    /************************/
    /* Initialise variables */
    /************************/
@@ -1468,6 +1577,8 @@ void		*Image_Tree_SMP		(void *threadarg)
 #else
    Cscatt_Flag	= POLSARPROSIM_SAR_GRG_TERTIARY_BRANCHES;
 #endif
+   Create_d3Vector(&motion_offset);
+   
    /*******************/
    /* Image the stems */
    /*******************/
@@ -1481,14 +1592,24 @@ void		*Image_Tree_SMP		(void *threadarg)
          Nsections	= (int) (pB->l/bsecl) + 1;
          deltat		= 1.0 / (double) Nsections;
          deltar		= (pB->start_radius - pB->end_radius) / (double) Nsections;
+         change_start_height  = pB->b0.x[2];
          for (track=0;track<pPR->Tracks;track++){
+            /* compute initial change in branch properties (position and moisture) */
+            Model_Branch_Change (pT, pB, pPR, track, &motion_offset, &moisture_offset, change_start_height);
             for (i_section = 0; i_section < Nsections; i_section++) {
                rtn_value	= Cylinder_from_Branch (&cyl1, pB, i_section, Nsections);
+               /* recompute changed properties if branch exceed a height level */
+               if(cyl1.base.x[2] > change_start_height + pPR->change_height_delta) {
+                  Model_Branch_Change (pT, pB, pPR, track, &motion_offset, &moisture_offset, cyl1.base.x[2]);
+                  change_start_height = cyl1.base.x[2];
+               }
+               /* change the cylinder properties */
+               Change_Cylinder (&cyl1, pB, pPR, motion_offset, moisture_offset, track);
+               /* image cylinders */
                weight_sum	+= Image_Cylinder_Direct (&cyl1, &(pSGdirect[track]), pPR, 1.0, Cscatt_Flag);
                weight_sum2	+= Image_Cylinder_Bounce (&cyl1, &(pSGbounce[track]), pPR, 1.0, Cscatt_Flag);                  
                weight_count	+= 1.0;
             }
-            Change_Branch(pB, pPR);
          }
          pB			= pB->next;
       }
@@ -1506,14 +1627,24 @@ void		*Image_Tree_SMP		(void *threadarg)
          Nsections	= (int) (pB->l/bsecl) + 1;
          deltat		= 1.0 / (double) Nsections;
          deltar		= (pB->start_radius - pB->end_radius) / (double) Nsections;
+         change_start_height  = pB->b0.x[2];
          for (track=0;track<pPR->Tracks;track++){
+            /* compute initial change in branch properties (position and moisture) */
+            Model_Branch_Change (pT, pB, pPR, track, &motion_offset, &moisture_offset, change_start_height);
             for (i_section = 0; i_section < Nsections; i_section++) {
                rtn_value	= Cylinder_from_Branch (&cyl1, pB, i_section, Nsections);
+               /* recompute changed properties if branch exceed a height level */
+               if(cyl1.base.x[2] > change_start_height + pPR->change_height_delta) {
+                  Model_Branch_Change (pT, pB, pPR, track, &motion_offset, &moisture_offset, cyl1.base.x[2]);
+                  change_start_height = cyl1.base.x[2];
+               }
+               /* change the cylinder properties */
+               Change_Cylinder (&cyl1, pB, pPR, motion_offset, moisture_offset, track); 
+               /* image cylinders */
                weight_sum	+= Image_Cylinder_Direct (&cyl1, &(pSGdirect[track]), pPR, 1.0, Cscatt_Flag);
                weight_sum2	+= Image_Cylinder_Bounce (&cyl1, &(pSGbounce[track]), pPR, 1.0, Cscatt_Flag);
                weight_count	+= 1.0;
             }
-            Change_Branch(pB, pPR);
          }
          pB			= pB->next;
       }
@@ -1526,14 +1657,24 @@ void		*Image_Tree_SMP		(void *threadarg)
          Nsections	= (int) (pB->l/bsecl) + 1;
          deltat		= 1.0 / (double) Nsections;
          deltar		= (pB->start_radius - pB->end_radius) / (double) Nsections;
+         change_start_height  = pB->b0.x[2];
          for (track=0;track<pPR->Tracks;track++){
+            /* compute initial change in branch properties (position and moisture) */
+            Model_Branch_Change (pT, pB, pPR, track, &motion_offset, &moisture_offset, change_start_height);
             for (i_section = 0; i_section < Nsections; i_section++) {
                rtn_value	= Cylinder_from_Branch (&cyl1, pB, i_section, Nsections);
+               /* recompute changed properties if branch exceed a height level */
+               if(cyl1.base.x[2] > change_start_height + pPR->change_height_delta) {
+                  Model_Branch_Change (pT, pB, pPR, track, &motion_offset, &moisture_offset, cyl1.base.x[2]);
+                  change_start_height = cyl1.base.x[2];
+               }
+               /* change the cylinder properties */
+               Change_Cylinder (&cyl1, pB, pPR, motion_offset, moisture_offset, track); 
+               /* image cylinders */
                weight_sum	+= Image_Cylinder_Direct (&cyl1, &(pSGdirect[track]), pPR, 1.0, Cscatt_Flag);
                weight_sum2	+= Image_Cylinder_Bounce (&cyl1, &(pSGbounce[track]), pPR, 1.0, Cscatt_Flag);
                weight_count	+= 1.0;
             }
-            Change_Branch(pB, pPR);
          }
          pB			= pB->next;
       }
@@ -1551,14 +1692,24 @@ void		*Image_Tree_SMP		(void *threadarg)
          Nsections	= (int) (pB->l/bsecl) + 1;
          deltat		= 1.0 / (double) Nsections;
          deltar		= (pB->start_radius - pB->end_radius) / (double) Nsections;
+         change_start_height  = pB->b0.x[2];
          for (track=0;track<pPR->Tracks;track++){
+            /* compute initial change in branch properties (position and moisture) */
+            Model_Branch_Change (pT, pB, pPR, track, &motion_offset, &moisture_offset, change_start_height);
             for (i_section = 0; i_section < Nsections; i_section++) {
                rtn_value	= Cylinder_from_Branch (&cyl1, pB, i_section, Nsections);
+               /* recompute changed properties if branch exceed a height level */
+               if(cyl1.base.x[2] > change_start_height + pPR->change_height_delta) {
+                  Model_Branch_Change (pT, pB, pPR, track, &motion_offset, &moisture_offset, cyl1.base.x[2]);
+                  change_start_height = cyl1.base.x[2];
+               }
+               /* change the cylinder properties */
+               Change_Cylinder (&cyl1, pB, pPR, motion_offset, moisture_offset, track); 
+               /* image cylinders */
                weight_sum	+= Image_Cylinder_Direct (&cyl1, &(pSGdirect[track]), pPR, 1.0, Cscatt_Flag);
                weight_sum2	+= Image_Cylinder_Bounce (&cyl1, &(pSGbounce[track]), pPR, 1.0, Cscatt_Flag);
                weight_count	+= 1.0;
             }
-            Change_Branch(pB, pPR);
          }
          pB			= pB->next;
       }
@@ -1584,14 +1735,24 @@ void		*Image_Tree_SMP		(void *threadarg)
          Nsections       = (int) (pB->l/bsecl) + 1;
          deltat          = 1.0 / (double) Nsections;
          deltar          = (pB->start_radius - pB->end_radius) / (double) Nsections;
+         change_start_height  = pB->b0.x[2];
          for (track=0;track<pPR->Tracks;track++){
+            /* compute initial change in branch properties (position and moisture) */
+            Model_Branch_Change (pT, pB, pPR, track, &motion_offset, &moisture_offset, change_start_height);
             for (i_section = 0; i_section < Nsections; i_section++) {
                rtn_value     = Cylinder_from_Branch (&cyl1, pB, i_section, Nsections);
+               /* recompute changed properties if branch exceed a height level */
+               if(cyl1.base.x[2] > change_start_height + pPR->change_height_delta) {
+                  Model_Branch_Change (pT, pB, pPR, track, &motion_offset, &moisture_offset, cyl1.base.x[2]);
+                  change_start_height = cyl1.base.x[2];
+               }
+               /* change the cylinder properties */
+               Change_Cylinder (&cyl1, pB, pPR, motion_offset, moisture_offset, track); 
+               /* image cylinders */
                weight_sum		+= Image_Cylinder_Direct (&cyl1, &(pSGdirect[track]), pPR, tb_scaling, Cscatt_Flag);
                weight_sum2		+= Image_Cylinder_Bounce (&cyl1, &(pSGbounce[track]), pPR, tb_scaling, Cscatt_Flag);
                weight_count	+= 1.0;
             }
-            Change_Branch(pB, pPR);  
          }
          pB              = pB->next;
       }
@@ -1647,6 +1808,10 @@ int		PolSARproSim_Forest_SMP		(PolSARproSim_Record *pPR)
    pthread_attr_t          attr;       /* a global thread attribute              */
    int                     rc;         /* thread return code                     */
    void                    *status;    /* thread status                          */
+#ifdef OUTPUT_CHANGE_STATS_ON 
+   int i,j,index;
+#endif
+
    
    /* initialize thread variables */
    pthread_attr_init(&attr);
@@ -1756,6 +1921,49 @@ int		PolSARproSim_Forest_SMP		(PolSARproSim_Record *pPR)
    }
    free(threadarg);
 
+   /***************************************************************************/
+   /* Report statistics of changes applied to scatterer position and moisture */
+   /***************************************************************************/
+#ifdef OUTPUT_CHANGE_STATS_ON 
+   fprintf (pPR->pLogFile, "\nMotion Offset Profile (x-axis only): Height [m], mean [line 0], variance [line 0], count [line 0], mean [line 1], variance [line 1]..... \n");
+   for(i=0;i<CHANGE_PROFILE_BINS;i++){
+      fprintf(pPR->pLogFile, "%f",  (double)(i*pPR->change_profile_bin_res));
+      for(j=0;j<pPR->Tracks;j++){
+         index = i * pPR->Tracks + j;
+         if(pPR->motion_profile_count[index] > 2){
+            /* this is what the statistics should really be */
+            fprintf (pPR->pLogFile, "\t%f\t%f\t%d", pPR->motion_profile_mean[index], 
+                   (double)(pPR->motion_profile_var[index]/(pPR->motion_profile_count[index]-1)), 
+                   pPR->motion_profile_count[index]);
+         }else{
+            /* this is just to avoid divide by zero, may be inaccurate */
+            fprintf (pPR->pLogFile, "\t%f\t%f\t%d", pPR->motion_profile_mean[i+j], 
+                   (double)(pPR->motion_profile_var[index]/(pPR->motion_profile_count[index]+1)),
+                   pPR->motion_profile_count[index]);
+         }
+      }
+      fprintf (pPR->pLogFile, "\n");
+   }
+   fprintf (pPR->pLogFile, "\nMoisture Offset Profile: Height [m], mean [line 0], variance [line 0], mean [line 1], count [line 0], variance [line 1]..... \n");
+   for(i=0;i<CHANGE_PROFILE_BINS;i++){
+      fprintf(pPR->pLogFile, "%f",  (double)(i*pPR->change_profile_bin_res));
+      for(j=0;j<pPR->Tracks;j++){
+         index = i * pPR->Tracks + j;
+         if(pPR->moisture_profile_count[index] > 2){
+            /* this is what the statistics should really be */
+            fprintf (pPR->pLogFile, "\t%f\t%f\t%d", pPR->moisture_profile_mean[index], 
+                   (double)(pPR->moisture_profile_var[index]/(pPR->moisture_profile_count[index]-1)), 
+                   pPR->moisture_profile_count[index]);
+         }else{
+            /* this is just to avoid divide by zero, may be inaccurate */
+            fprintf (pPR->pLogFile, "\t%f\t%f\t%d", pPR->moisture_profile_mean[i+j], 
+                   (double)(pPR->moisture_profile_var[index]/(pPR->moisture_profile_count[index]+1)),
+                   pPR->moisture_profile_count[index]);
+         }
+      }
+      fprintf (pPR->pLogFile, "\n");
+   }
+#endif 
 
    /**********************************************/
    /* Report progress if running in VERBOSE mode */
@@ -1782,6 +1990,3 @@ int		PolSARproSim_Forest_SMP		(PolSARproSim_Record *pPR)
    /*****************************/
    return (NO_POLSARPROSIM_FOREST_ERRORS);
 }
-
-
-

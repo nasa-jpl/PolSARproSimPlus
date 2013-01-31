@@ -66,6 +66,7 @@ d3Vector	d3Vector_difference					(d3Vector d3v1, d3Vector d3v2);
 d3Vector	d3Vector_cross_product				(d3Vector d3v1, d3Vector d3v2);
 d3Vector	d3Vector_reflect					(d3Vector d3v,  d3Vector n);
 d3Vector	d3Vector_sum						(d3Vector d3v1, d3Vector d3v2);
+d3Vector	d3Vector_hadamard_product	(d3Vector d3v1, d3Vector d3v2);
 
 /*************************************/
 /* Doubly linked list implementation */

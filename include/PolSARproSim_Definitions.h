@@ -385,5 +385,17 @@
 /* if this is defined hyperthreading is enabled    */
 //#define  ENABLE_THREADS
 
+/***************************************************/
+/* Temporal Decorrelation Model                    */
+/***************************************************/
+/* model type */
+#define  CHANGE_MODEL_NONE                   0
+#define  CHANGE_MODEL_POLYNOMIAL             1
+#define  CHANGE_MODEL_EXPONENTIAL            2
+/* no. of bins in height profile */
+#define  CHANGE_PROFILE_BINS                 100
+#define  CHANGE_HEIGHT_DELTA                 2.0
+/* whether to write out statistics of change profiles */
+//#define  OUTPUT_CHANGE_STATS_ON
 
 #endif
