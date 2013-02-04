@@ -810,7 +810,7 @@ int		Input_PolSARproSim_Record		(const char *filename, PolSARproSim_Record *pPR)
    fprintf (pPR->pOutputFile, "%lf\t\t/* Centre frequency in GHz \t*/\n", pPR->frequency);
    fprintf (pPR->pOutputFile, "%lf\t\t/* Azimuth resolution (width at half-height power) in metres \t*/\n", pPR->azimuth_resolution);
    fprintf (pPR->pOutputFile, "%lf\t\t/* Slant range resolution (width at half-height power) in metres \t*/\n", pPR->slant_range_resolution);
-   fprintf (pPR->pOutputFile, "%d\t\t\t/* Ground model: 0 = smoothest … 10 = roughest \t*/\n",  DEM_model);
+   fprintf (pPR->pOutputFile, "%d\t\t\t/* Ground model: 0 = smoothest, 10 = roughest \t*/\n",  DEM_model);
    fprintf (pPR->pOutputFile, "%lf\t\t/* Ground slope in azimuth direction (dimensionless) \t*/\n", pPR->slope_x);
    fprintf (pPR->pOutputFile, "%lf\t\t/* Ground slope in ground range direction (dimensionless) \t*/\n", pPR->slope_y);
    fprintf (pPR->pOutputFile, "%d\t\t\t/* Random number generator seed \t*/\n",  pPR->seed);
@@ -1061,6 +1061,8 @@ int		Input_PolSARproSim_Record		(const char *filename, PolSARproSim_Record *pPR)
    
    pPR->xmid		= (pPR->nx/2)*pPR->deltax;
    pPR->ymid		= (pPR->ny/2)*pPR->deltay;
+
+#ifdef POLSARPROSIM_PSF_GAUSSIAN
    pPR->psfaaz    = 4.0*log(sqrt(2.0))/(pPR->azimuth_resolution*pPR->azimuth_resolution);
    pPR->psfagr    = (double*) calloc (pPR->Tracks, sizeof (double));
    for (pPR->current_track = 0; pPR->current_track < pPR->Tracks; pPR->current_track++) {
@@ -1069,6 +1071,20 @@ int		Input_PolSARproSim_Record		(const char *filename, PolSARproSim_Record *pPR)
    pPR->psfasr    = 4.0*log(sqrt(2.0))/(pPR->slant_range_resolution*pPR->slant_range_resolution);
    psf_azextent	= sqrt(-log(sqrt(POWER_AT_PSF_EDGE))/pPR->psfaaz);
    psf_srextent	= sqrt(-log(sqrt(POWER_AT_PSF_EDGE))/pPR->psfasr);
+#else
+   pPR->psfaaz    = 4.0*log(sqrt(2.0))/(pPR->azimuth_resolution*pPR->azimuth_resolution);
+   pPR->psfagr    = (double*) calloc (pPR->Tracks, sizeof (double));
+   for (pPR->current_track = 0; pPR->current_track < pPR->Tracks; pPR->current_track++) {
+      pPR->psfagr[pPR->current_track]	= 4.0*log(sqrt(2.0))/(pPR->ground_range_resolution[pPR->current_track]*pPR->ground_range_resolution[pPR->current_track]);
+   }
+   pPR->psfasr    = 4.0*log(sqrt(2.0))/(pPR->slant_range_resolution*pPR->slant_range_resolution);
+   psf_azextent	= sqrt(-log(sqrt(POWER_AT_PSF_EDGE))/pPR->psfaaz);
+   psf_srextent	= sqrt(-log(sqrt(POWER_AT_PSF_EDGE))/pPR->psfasr);
+   
+   psf_azextent   = 3 * pPR->deltax;
+   psf_srextent   = 3 * pPR->deltay * sin(pPR->incidence_angle[0]);
+#endif
+
    pPR->PSFnx		= (int) (psf_azextent/pPR->deltax) + 1;
    pPR->PSFnx		= 2*(pPR->PSFnx/2)+1;
    pPR->PSFny		= (int) (psf_srextent/(pPR->deltay*sin(pPR->incidence_angle[0]))) + 1;
@@ -5350,21 +5366,27 @@ Complex Bvv (double theta, Complex epsilon)
 /* SAR image calculation */
 /*************************/
 
-double		Point_Spread_Function			(double dx, double dy, PolSARproSim_Record *pPR, int track)
+double		Point_Spread_Function			(double dx, double dy, PolSARproSim_Record *pPR, int track, double inc_angle)
 {
    /****************************************************************************/
    /* Note that dx is azimuth displacement and dy is ground range displacement */
    /****************************************************************************/
    double		ax		= pPR->psfaaz;
    double		ay		= pPR->psfagr[track];
-   double		psf		= pPR->PSFamp * exp (-(ax*dx*dx+ay*dy*dy));
+   double		psf;
+   
+#ifdef   POLSARPROSIM_PSF_GAUSSIAN
+   psf   		= pPR->PSFamp * exp (-(ax*dx*dx+ay*dy*dy));
+#else
+   psf         = pPR->PSFamp * Sinc(DPI_RAD * dx / pPR->deltax) * Sinc(DPI_RAD * dy / pPR->deltay*sin(inc_angle));
+#endif
    return (psf);
 }
 
 
  
 double		Accumulate_SAR_Contribution		(double focus_x, double focus_y, double focus_srange,
-                                              Complex Shh, Complex Shv, Complex Svv, PolSARproSim_Record *pPR, int track)
+                                              Complex Shh, Complex Shv, Complex Svv, PolSARproSim_Record *pPR, int track, double focus_angle)
 {
    double		dx		= pPR->deltax;
    double		dy		= pPR->deltay;
@@ -5419,7 +5441,7 @@ double		Accumulate_SAR_Contribution		(double focus_x, double focus_y, double foc
                   phi	= 2.0*k*focus_srange + k*daz*daz/focus_srange; //Interferometric phase
                   for (jpy=nymin; jpy<=nymax; jpy++) {
                      py				= ymid - jpy * dy;
-                     weight			= Point_Spread_Function (daz, py-focus_y, pPR, track);
+                     weight			= Point_Spread_Function (daz, py-focus_y, pPR, track, focus_angle);
                      weight_sum		+= weight*weight;
                      Polar_Assign_Complex (&cweight, weight, phi);
                      /* HH channel write */

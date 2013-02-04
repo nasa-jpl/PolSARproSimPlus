@@ -237,8 +237,9 @@
 /* SAR image calculation */
 /*************************/
 
-#define DEFAULT_RESOLUTION_SAMPLING_FACTOR		0.6667               /* Ratio of pixel dimension to resolution, default 2/3	*/
+#define  DEFAULT_RESOLUTION_SAMPLING_FACTOR		0.6667               /* Ratio of pixel dimension to resolution, default 2/3	*/
 #define	POWER_AT_PSF_EDGE                      0.0001               /* Helps fix the extent to which the PSF is calculated	*/
+//#define  POLSARPROSIM_PSF_GAUSSIAN                                   /* If this is defined a Gaussain PSF will be used        */
 
 /**********************************************/
 /* Direct ground surface backscatter controls */

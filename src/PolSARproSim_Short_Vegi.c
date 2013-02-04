@@ -68,7 +68,7 @@ void		*Image_Short_Veg_Direct_Stems		(void *threadarg)
    double				p_thetai		= pPR->incidence_angle[pPR->current_track];
    double				p_height		= p_srange*cos(p_thetai);
    double				p_grange		= p_srange*sin(p_thetai);
-   double				focus_x, focus_y, focus_grange, focus_srange, focus_height;
+   double				focus_x, focus_y, focus_grange, focus_srange, focus_height, focus_angle;
    double				weight_average	= 0.0;
    double				weight_count	= 0.0;
    double				Sigma0HH		= 0.0;
@@ -200,10 +200,11 @@ void		*Image_Short_Veg_Direct_Stems		(void *threadarg)
          focus_y			= focus_grange - p_grange;
          focus_height	= 0.0;
          focus_srange	= sqrt ((p_height-focus_height)*(p_height-focus_height) + (p_grange+focus_y)*(p_grange+focus_y));
+         focus_angle    = atan2 (focus_grange, p_height);
          /***************************************************/
          /* Combine contribution into SAR image accumulator */
          /***************************************************/
-         weight_average	+= Accumulate_SAR_Contribution (focus_x, focus_y, focus_srange, Shh, Shv, Svv, pPR, pPR->current_track);
+         weight_average	+= Accumulate_SAR_Contribution (focus_x, focus_y, focus_srange, Shh, Shv, Svv, pPR, pPR->current_track, focus_angle);
          /*****************************/
          /* populate Max Height image */
          /*****************************/            
@@ -266,7 +267,7 @@ void     *Image_Short_Veg_Direct_Leaves      (void *threadarg)
    double				Sa_scaling;
    double				theta, phi;
    double				leaf_x, leaf_y, leaf_grange, leaf_srange, leaf_height;
-   double				focus_x, focus_y, focus_grange, focus_srange, focus_height;
+   double				focus_x, focus_y, focus_grange, focus_srange, focus_height, focus_angle;
    c33Matrix         S_leaf;
    d3Vector          ki, ks;
    c3Vector          ch, cv;
@@ -400,10 +401,11 @@ void     *Image_Short_Veg_Direct_Leaves      (void *threadarg)
          focus_y			= focus_grange - p_grange;
          focus_height	= 0.0;
          focus_srange	= sqrt ((p_height-focus_height)*(p_height-focus_height) + (p_grange+focus_y)*(p_grange+focus_y));
+         focus_angle    = atan2 (focus_grange, p_height);
          /***************************************************/
          /* Combine contribution into SAR image accumulator */
          /***************************************************/
-         weight_average	+= Accumulate_SAR_Contribution (focus_x, focus_y, focus_srange, Shh, Shv, Svv, pPR, pPR->current_track);
+         weight_average	+= Accumulate_SAR_Contribution (focus_x, focus_y, focus_srange, Shh, Shv, Svv, pPR, pPR->current_track, focus_angle);
          /*****************************/
          /* populate Max Height image */
          /*****************************/            
@@ -725,7 +727,7 @@ int		PolSARproSim_Short_Vegetation_Direct		(PolSARproSim_Record *pPR)
    double				theta, phi;
    double				stem_x, stem_y, stem_grange, stem_srange, stem_height;
    double				leaf_x, leaf_y, leaf_grange, leaf_srange, leaf_height;
-   double				focus_x, focus_y, focus_grange, focus_srange, focus_height;
+   double				focus_x, focus_y, focus_grange, focus_srange, focus_height, focus_angle;
    c33Matrix			S_stem, S_leaf;
    d3Vector          ki, ks;
    c3Vector          ch, cv;
@@ -921,10 +923,11 @@ int		PolSARproSim_Short_Vegetation_Direct		(PolSARproSim_Record *pPR)
             focus_y			= focus_grange - p_grange;
             focus_height	= 0.0;
             focus_srange	= sqrt ((p_height-focus_height)*(p_height-focus_height) + (p_grange+focus_y)*(p_grange+focus_y));
+            focus_angle    = atan2 (focus_grange, p_height);
             /***************************************************/
             /* Combine contribution into SAR image accumulator */
             /***************************************************/
-            weight_average	+= Accumulate_SAR_Contribution (focus_x, focus_y, focus_srange, Shh, Shv, Svv, pPR, pPR->current_track);
+            weight_average	+= Accumulate_SAR_Contribution (focus_x, focus_y, focus_srange, Shh, Shv, Svv, pPR, pPR->current_track, focus_angle);
             weight_count	+= 1.0;
          }
       }
@@ -1012,10 +1015,11 @@ int		PolSARproSim_Short_Vegetation_Direct		(PolSARproSim_Record *pPR)
             focus_y			= focus_grange - p_grange;
             focus_height	= 0.0;
             focus_srange	= sqrt ((p_height-focus_height)*(p_height-focus_height) + (p_grange+focus_y)*(p_grange+focus_y));
+            focus_angle    = atan2 (focus_grange, p_height);
             /***************************************************/
             /* Combine contribution into SAR image accumulator */
             /***************************************************/
-            weight_average	+= Accumulate_SAR_Contribution (focus_x, focus_y, focus_srange, Shh, Shv, Svv, pPR, pPR->current_track);
+            weight_average	+= Accumulate_SAR_Contribution (focus_x, focus_y, focus_srange, Shh, Shv, Svv, pPR, pPR->current_track, focus_angle);
             weight_count	+= 1.0;
          }
       }
@@ -1105,7 +1109,7 @@ void		*Image_Short_Veg_Bounce_Stems		(void *threadarg)
    double				yp, zp;
    double				Sa_scaling;
    double				theta, phi;
-   double				focus_x, focus_y, focus_grange, focus_srange, focus_height;
+   double				focus_x, focus_y, focus_grange, focus_srange, focus_height, focus_angle;
    double				p_srange       = pPR->slant_range[pPR->current_track];
    double				p_thetai       = pPR->incidence_angle[pPR->current_track];
    double				p_height       = p_srange*cos(p_thetai);
@@ -1300,6 +1304,7 @@ void		*Image_Short_Veg_Bounce_Stems		(void *threadarg)
                   focus_y			= focus_grange - p_grange;
                   focus_height	= 0.0;
                   focus_srange	= sqrt ((p_height-focus_height)*(p_height-focus_height) + (p_grange+focus_y)*(p_grange+focus_y));
+                  focus_angle    = atan2 (focus_grange, p_height);
                   /******************************************/
                   /* Calculate the stem scattering matrices */
                   /******************************************/
@@ -1369,7 +1374,7 @@ void		*Image_Short_Veg_Bounce_Stems		(void *threadarg)
                   /***************************************************/
                   /* Combine contribution into SAR image accumulator */
                   /***************************************************/
-                  weight_average	+= Accumulate_SAR_Contribution (focus_x, focus_y, focus_srange, Shh, Shv, Svv, pPR, pPR->current_track);
+                  weight_average	+= Accumulate_SAR_Contribution (focus_x, focus_y, focus_srange, Shh, Shv, Svv, pPR, pPR->current_track, focus_angle);
                   /*****************************/
                   /* populate Max Height image */
                   /*****************************/            
@@ -1439,7 +1444,7 @@ void		*Image_Short_Veg_Bounce_Leaves		(void *threadarg)
    double				yp, zp;
    double				Sa_scaling;
    double				theta, phi;
-   double				focus_x, focus_y, focus_grange, focus_srange, focus_height;
+   double				focus_x, focus_y, focus_grange, focus_srange, focus_height, focus_angle;
    double				p_srange       = pPR->slant_range[pPR->current_track];
    double				p_thetai       = pPR->incidence_angle[pPR->current_track];
    double				p_height       = p_srange*cos(p_thetai);
@@ -1633,6 +1638,7 @@ void		*Image_Short_Veg_Bounce_Leaves		(void *threadarg)
                   focus_y			= focus_grange - p_grange;
                   focus_height	= 0.0;
                   focus_srange	= sqrt ((p_height-focus_height)*(p_height-focus_height) + (p_grange+focus_y)*(p_grange+focus_y));
+                  focus_angle    = atan2 (focus_grange, p_height);
                   /******************************************/
                   /* Calculate the leaf scattering matrices */
                   /******************************************/
@@ -1703,7 +1709,7 @@ void		*Image_Short_Veg_Bounce_Leaves		(void *threadarg)
                   /* Combine contribution into SAR image accumulator */
                   /***************************************************/
                  // printf("%d) Leaf Shh,Shv,Svv = %f, %f,%f\n", pTA->thread_id, Shh.x, Shv.x, Svv.x);
-                  weight_average	+= Accumulate_SAR_Contribution (focus_x, focus_y, focus_srange, Shh, Shv, Svv, pPR, pPR->current_track);
+                  weight_average	+= Accumulate_SAR_Contribution (focus_x, focus_y, focus_srange, Shh, Shv, Svv, pPR, pPR->current_track, focus_angle);
                   /*****************************/
                   /* populate Max Height image */
                   /*****************************/            
@@ -2084,7 +2090,7 @@ int		PolSARproSim_Short_Vegetation_Bounce		(PolSARproSim_Record *pPR)
    double				xp, yp, zp;
    double				Sa_scaling;
    double				theta, phi;
-   double				focus_x, focus_y, focus_grange, focus_srange, focus_height;
+   double				focus_x, focus_y, focus_grange, focus_srange, focus_height, focus_angle;
    double				p_srange       = pPR->slant_range[pPR->current_track];
    double				p_thetai       = pPR->incidence_angle[pPR->current_track];
    double				p_height       = p_srange*cos(p_thetai);
@@ -2342,6 +2348,7 @@ int		PolSARproSim_Short_Vegetation_Bounce		(PolSARproSim_Record *pPR)
                      focus_y			= focus_grange - p_grange;
                      focus_height	= 0.0;
                      focus_srange	= sqrt ((p_height-focus_height)*(p_height-focus_height) + (p_grange+focus_y)*(p_grange+focus_y));
+                     focus_angle    = atan2 (focus_grange, p_height);
                      /******************************************/
                      /* Calculate the stem scattering matrices */
                      /******************************************/
@@ -2411,7 +2418,7 @@ int		PolSARproSim_Short_Vegetation_Bounce		(PolSARproSim_Record *pPR)
                      /***************************************************/
                      /* Combine contribution into SAR image accumulator */
                      /***************************************************/
-                     weight_average	+= Accumulate_SAR_Contribution (focus_x, focus_y, focus_srange, Shh, Shv, Svv, pPR, pPR->current_track);
+                     weight_average	+= Accumulate_SAR_Contribution (focus_x, focus_y, focus_srange, Shh, Shv, Svv, pPR, pPR->current_track, focus_angle);
                      weight_count	+= 1.0;
                   }
                }
@@ -2476,6 +2483,7 @@ int		PolSARproSim_Short_Vegetation_Bounce		(PolSARproSim_Record *pPR)
                      focus_y			= focus_grange - p_grange;
                      focus_height	= 0.0;
                      focus_srange	= sqrt ((p_height-focus_height)*(p_height-focus_height) + (p_grange+focus_y)*(p_grange+focus_y));
+                     focus_angle    = atan2 (focus_grange, p_height);
                      /******************************************/
                      /* Calculate the leaf scattering matrices */
                      /******************************************/
@@ -2545,7 +2553,7 @@ int		PolSARproSim_Short_Vegetation_Bounce		(PolSARproSim_Record *pPR)
                      /***************************************************/
                      /* Combine contribution into SAR image accumulator */
                      /***************************************************/
-                     weight_average	+= Accumulate_SAR_Contribution (focus_x, focus_y, focus_srange, Shh, Shv, Svv, pPR, pPR->current_track);
+                     weight_average	+= Accumulate_SAR_Contribution (focus_x, focus_y, focus_srange, Shh, Shv, Svv, pPR, pPR->current_track, focus_angle);
                      weight_count	+= 1.0;
                   }
                }

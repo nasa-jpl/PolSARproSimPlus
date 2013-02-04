@@ -79,6 +79,7 @@ int		PolSARproSim_Direct_Ground		(PolSARproSim_Record *pPR)
    double				p_grange	= p_srange*sin(p_thetai);
    double				facet_x, facet_y, facet_grange, facet_srange, facet_height;
    double				focus_x, focus_y, focus_grange, focus_srange, focus_height;
+   double            focus_angle;
    double				weight_average	= 0.0;
    double				weight_count	= 0.0;
    double				Sigma0HH       = 0.0;
@@ -325,10 +326,11 @@ int		PolSARproSim_Direct_Ground		(PolSARproSim_Record *pPR)
             focus_y       = focus_grange - p_grange;
             focus_height	= 0.0;
             focus_srange	= sqrt ((p_height-focus_height)*(p_height-focus_height) + (p_grange+focus_y)*(p_grange+focus_y));
+            focus_angle    = atan2 ( focus_grange, p_height);
             /***************************************************/
             /* Combine contribution into SAR image accumulator */
             /***************************************************/
-            weight_average	+= Accumulate_SAR_Contribution (focus_x, focus_y, focus_srange, Shh, Shv, Svv, pPR, pPR->current_track);
+            weight_average	+= Accumulate_SAR_Contribution (focus_x, focus_y, focus_srange, Shh, Shv, Svv, pPR, pPR->current_track, focus_angle);
             weight_count	+= 1.0;
             /********************/
             /* end (if visible) */
@@ -497,6 +499,7 @@ void  *Direct_Ground_RangeLine   (void *threadarg)
    double				p_grange          = p_srange*sin(p_thetai);
    double				facet_x, facet_y, facet_grange, facet_srange, facet_height;
    double				focus_x, focus_y, focus_grange, focus_srange, focus_height;
+   double            focus_angle; //focus look angle
    double				weight_average    = 0.0;
    double				weight_count      = 0.0;
    double				Sigma0HH          = 0.0;
@@ -644,10 +647,11 @@ void  *Direct_Ground_RangeLine   (void *threadarg)
          focus_y        = focus_grange - p_grange;
          focus_height	= 0.0;
          focus_srange	= sqrt ((p_height-focus_height)*(p_height-focus_height) + (p_grange+focus_y)*(p_grange+focus_y));
+         focus_angle    = atan2 ( focus_grange, p_height);
          /***************************************************/
          /* Combine contribution into SAR image accumulator */
          /***************************************************/
-         weight_average	+= Accumulate_SAR_Contribution (focus_x, focus_y, focus_srange, Shh, Shv, Svv, pPR, pPR->current_track);
+         weight_average	+= Accumulate_SAR_Contribution (focus_x, focus_y, focus_srange, Shh, Shv, Svv, pPR, pPR->current_track, focus_angle);
          weight_count	+= 1.0;
          /********************/
          /* end (if visible) */

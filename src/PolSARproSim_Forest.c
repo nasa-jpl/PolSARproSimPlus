@@ -330,7 +330,7 @@ double		Image_Cylinder_Direct	(Cylinder *pC, SarGeometry *pSG, PolSARproSim_Reco
    int               rtn_lookup;
 #endif
    double				cyl_x, cyl_y, cyl_grange, cyl_srange, cyl_height;
-   double				focus_x, focus_y, focus_grange, focus_srange, focus_height;
+   double				focus_x, focus_y, focus_grange, focus_srange, focus_height, focus_angle;
    double				weight_average;
    d3Vector          tip;
    /************************/
@@ -397,10 +397,11 @@ double		Image_Cylinder_Direct	(Cylinder *pC, SarGeometry *pSG, PolSARproSim_Reco
    focus_y           = focus_grange - pSG->p_grange;
    focus_height		= 0.0;
    focus_srange		= sqrt ((pSG->p_height-focus_height)*(pSG->p_height-focus_height) + (pSG->p_grange+focus_y)*(pSG->p_grange+focus_y));
+   focus_angle       = atan2 (focus_grange, pSG->p_height);
    /***************************************************/
    /* Combine contribution into SAR image accumulator */
    /***************************************************/
-   weight_average	= Accumulate_SAR_Contribution (focus_x, focus_y, focus_srange, Shh, Shv, Svv, pPR, pSG->track);
+   weight_average	= Accumulate_SAR_Contribution (focus_x, focus_y, focus_srange, Shh, Shv, Svv, pPR, pSG->track, focus_angle);
    /*****************************/
    /* populate Max Height image */
    /*****************************/
@@ -421,7 +422,7 @@ double		Image_Foliage_Direct	(Leaf *pL, SarGeometry *pSG, PolSARproSim_Record *p
    int				rtn_lookup;
 #endif
    double				flg_x, flg_y, flg_grange, flg_srange, flg_height;
-   double				focus_x, focus_y, focus_grange, focus_srange, focus_height;
+   double				focus_x, focus_y, focus_grange, focus_srange, focus_height, focus_angle;
    double				weight_average;
    /*******************************/
    /* Mark foliage element centre */
@@ -479,10 +480,11 @@ double		Image_Foliage_Direct	(Leaf *pL, SarGeometry *pSG, PolSARproSim_Record *p
    focus_y           = focus_grange - pSG->p_grange;
    focus_height		= 0.0;
    focus_srange		= sqrt ((pSG->p_height-focus_height)*(pSG->p_height-focus_height) + (pSG->p_grange+focus_y)*(pSG->p_grange+focus_y));
+   focus_angle       = atan2 (focus_grange, pSG->p_height);
    /***************************************************/
    /* Combine contribution into SAR image accumulator */
    /***************************************************/
-   weight_average	= Accumulate_SAR_Contribution (focus_x, focus_y, focus_srange, Shh, Shv, Svv, pPR, pSG->track);
+   weight_average	= Accumulate_SAR_Contribution (focus_x, focus_y, focus_srange, Shh, Shv, Svv, pPR, pSG->track, focus_angle);
    /*****************************/
    /* populate Max Height image */
    /*****************************/
@@ -512,7 +514,7 @@ double		Image_Foliage_Bounce	(Leaf *pL, SarGeometry *pSG, PolSARproSim_Record *p
    Complex			Shh, Shv, Svh, Svv;
    Complex			zhhvv;
    double				flg_x, flg_y, flg_height;
-   double				focus_x, focus_y, focus_grange, focus_srange, focus_height;
+   double				focus_x, focus_y, focus_grange, focus_srange, focus_height, focus_angle;
    double				weight_average	= 0.0;
    Plane				Pg;
    d3Vector			g;
@@ -556,6 +558,7 @@ double		Image_Foliage_Bounce	(Leaf *pL, SarGeometry *pSG, PolSARproSim_Record *p
             focus_y			= focus_grange - pSG->p_grange;
             focus_height	= 0.0;
             focus_srange	= sqrt ((pSG->p_height-focus_height)*(pSG->p_height-focus_height) + (pSG->p_grange+focus_y)*(pSG->p_grange+focus_y));
+            focus_angle    = atan2 (focus_grange, pSG->p_height);
             /******************************************/
             /* Calculate the stem scattering matrices */
             /******************************************/
@@ -625,7 +628,7 @@ double		Image_Foliage_Bounce	(Leaf *pL, SarGeometry *pSG, PolSARproSim_Record *p
             /***************************************************/
             /* Combine contribution into SAR image accumulator */
             /***************************************************/
-            weight_average	= Accumulate_SAR_Contribution (focus_x, focus_y, focus_srange, Shh, Shv, Svv, pPR, pSG->track);
+            weight_average	= Accumulate_SAR_Contribution (focus_x, focus_y, focus_srange, Shh, Shv, Svv, pPR, pSG->track, focus_angle);
             /*****************************/
             /* populate Max Height image */
             /*****************************/
@@ -656,7 +659,7 @@ double		Image_Cylinder_Bounce	(Cylinder *pC, SarGeometry *pSG, PolSARproSim_Reco
    Complex			Shh, Shv, Svh, Svv;
    Complex			zhhvv;
    double				cyl_x, cyl_y, cyl_height;
-   double				focus_x, focus_y, focus_grange, focus_srange, focus_height;
+   double				focus_x, focus_y, focus_grange, focus_srange, focus_height, focus_angle;
    double				weight_average	= 0.0;
    Plane				Pg;
    d3Vector			g;
@@ -714,6 +717,7 @@ double		Image_Cylinder_Bounce	(Cylinder *pC, SarGeometry *pSG, PolSARproSim_Reco
             focus_y			= focus_grange - pSG->p_grange;
             focus_height	= 0.0;
             focus_srange	= sqrt ((pSG->p_height-focus_height)*(pSG->p_height-focus_height) + (pSG->p_grange+focus_y)*(pSG->p_grange+focus_y));
+            focus_angle    = atan2 (focus_grange, pSG->p_height);
             /***********************************************************/
             /* Additional wave and cylinder local polarisation vectors */
             /***********************************************************/
@@ -805,7 +809,7 @@ double		Image_Cylinder_Bounce	(Cylinder *pC, SarGeometry *pSG, PolSARproSim_Reco
             /***************************************************/
             /* Combine contribution into SAR image accumulator */
             /***************************************************/
-            weight_average	= Accumulate_SAR_Contribution (focus_x, focus_y, focus_srange, Shh, Shv, Svv, pPR, pSG->track);
+            weight_average	= Accumulate_SAR_Contribution (focus_x, focus_y, focus_srange, Shh, Shv, Svv, pPR, pSG->track, focus_angle);
             /*****************************/
             /* populate Max Height image */
             /*****************************/            

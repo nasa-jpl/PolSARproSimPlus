@@ -375,7 +375,6 @@ typedef struct polsarprosim_record_tag {
    double         *moisture_profile_mean; /* The vertical motion profile in the mean sense (for monitoring)               */
    double         *moisture_profile_var;  /* variance of the vertical motion profile (for monitoring)    */
    int            *moisture_profile_count;/* for counting the number of entries in vertical profiles     */
-
    double         change_profile_bin_res; /* resolution of vertical motion profile (for moonitoring)     */
    
 } PolSARproSim_Record;

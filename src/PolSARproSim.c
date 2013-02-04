@@ -313,7 +313,7 @@ int main(int argv, char *argc[])
       /* Calculate the direct ground contribution */
       /********************************************/
 #ifdef ENABLE_THREADS
-      //PolSARproSim_Direct_Ground_SMP            (&Master_Record);
+      PolSARproSim_Direct_Ground_SMP            (&Master_Record);
 #else
       PolSARproSim_Direct_Ground                (&Master_Record);
 #endif      
@@ -321,8 +321,8 @@ int main(int argv, char *argc[])
       /* Calculate the short vegetation contribution */
       /***********************************************/
 #ifdef ENABLE_THREADS
-    //  PolSARproSim_Short_Vegetation_Direct_SMP  (&Master_Record);
-   //   PolSARproSim_Short_Vegetation_Bounce_SMP  (&Master_Record);
+      PolSARproSim_Short_Vegetation_Direct_SMP  (&Master_Record);
+      PolSARproSim_Short_Vegetation_Bounce_SMP  (&Master_Record);
 #else
       PolSARproSim_Short_Vegetation_Direct      (&Master_Record);
       PolSARproSim_Short_Vegetation_Bounce      (&Master_Record);
