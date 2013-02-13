@@ -631,10 +631,7 @@ void	Generate_PSF_Lookup_Tables	(PolSARproSim_Record *pPR)
          tmax     = thetamax;
       }
    }
-   PSFt_length    = (int)rint((tmax-tmin)*RAD_TO_DEG); 
-   if(PSFt_length == 0){
-      PSFt_length = 1;
-   }
+   PSFt_length    = (int)rint((tmax-tmin)*RAD_TO_DEG)+1; 
    pPR->min_inc_angle      = tmin;
    pPR->deltax_OS          = pPR->deltax/PSF_OVERSAMPLING_FACTOR;
    pPR->deltay_OS          = pPR->deltay/PSF_OVERSAMPLING_FACTOR;
@@ -5540,7 +5537,7 @@ double		Accumulate_SAR_Contribution		(double focus_x, double focus_y, double foc
    double      off_y = focus_y - (ymid - jy * dy);
    int         ioffx = (int)((off_x+pPR->deltax/2)/pPR->deltax_OS);
    int         ioffy = (int)((off_y+pPR->deltay/2)/pPR->deltay_OS);
-   int         itheta = (int)rint((focus_angle - pPR->min_inc_angle)*RAD_TO_DEG);
+   int         itheta = (int)((focus_angle - pPR->min_inc_angle)*RAD_TO_DEG);
    /***********************************************/
    /* Find extent of loop for pixel contributions */
    /***********************************************/

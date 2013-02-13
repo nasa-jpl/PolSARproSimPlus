@@ -277,7 +277,7 @@
 /* Acceptance testing controls */
 /*******************************/
 
-#define	SWITCH_ATTENUATION_ON
+//#define	SWITCH_ATTENUATION_ON
 /* No attenuation effects if undefined							*/
 /*#define	RAYLEIGH_LEAF										*/
 /* Rayleigh scattering for short vegi and foliage if defined	*/
