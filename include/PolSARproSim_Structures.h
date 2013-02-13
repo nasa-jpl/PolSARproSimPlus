@@ -332,6 +332,15 @@ typedef struct polsarprosim_record_tag {
    double			HVsf;					/* Normalisation factor recovered from HH DG image                */
    double			VVsf;					/* Normalisation factor recovered from HH DG image                */
    double			PSFamp;				/* Scaling for the PSF to yield m.sq.pxl as backscattering coeff.	*/
+   double         *PSFazmat;        /* Azimuth PSF lookup table                                       */
+   double         **PSFgrmat;       /* Ground-range PSF lookup table                                  */
+   double         PSFeta;           /* Point Spread Function broadening factor (0: Hann, 1: Uniform)  */
+   double         deltax_OS;        /* Oversampled PSF resolution in azimuth                          */
+   double         deltay_OS;        /* Oversampled PSF resolution in range                            */
+   int            PSFx_mid;         /* Used to calculate PSF integration indeces for azimuth          */
+   int            PSFy_mid;         /* Used to calculate PSF integration indeces for range            */
+   double         min_inc_angle;    /* minimum incidence angle for all tracks                         */
+   double         max_inc_angle;    /* maximum incidence angle for all tracks                         */
    /***********************/
    /* File name variables */
    /***********************/

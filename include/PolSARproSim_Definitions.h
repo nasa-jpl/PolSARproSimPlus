@@ -237,16 +237,19 @@
 /* SAR image calculation */
 /*************************/
 
-#define  DEFAULT_RESOLUTION_SAMPLING_FACTOR		0.6667               /* Ratio of pixel dimension to resolution, default 2/3	*/
-#define	POWER_AT_PSF_EDGE                      0.0001               /* Helps fix the extent to which the PSF is calculated	*/
-//#define  POLSARPROSIM_PSF_GAUSSIAN                                   /* If this is defined a Gaussain PSF will be used        */
+#define  DEFAULT_RESOLUTION_SAMPLING_FACTOR		0.6667               /* Ratio of pixel dimension to resolution, default 2/3               */
+#define	POWER_AT_PSF_EDGE                      0.0001               /* Helps fix the extent to which the PSF is calculated               */
+//#define  POLSARPROSIM_PSF_GAUSSIAN                                 /* If this is defined a Gaussain PSF will be used                    */
+#define  PSF_OVERSAMPLING_FACTOR                100                  /* to determine the resolution of the PSF lookup tables              */
+#define  PSF_SHOULDER                           1.1                  /* extra samples on either side of the PSF vectors                   */
+#define  PSF_INCIDENCE_ANGLE_RESOLUTION         1                    /* resolution of incidence angles for PSF in ground range (degrees)  */
 
 /**********************************************/
 /* Direct ground surface backscatter controls */
 /**********************************************/
 
 //#define	POLSARPROSIM_DIRECTGROUND_SPECKLE_FACTOR	2            /* Controls how many facets there are per resolution cell: n = 4f^2, f=2, n=16	*/
-#define	POLSARPROSIM_DIRECTGROUND_SPECKLE_FACTOR     1                /* Controls how many facets there are per resolution cell: n = 4f^2, f=2, n=16	*/ /* RAedit 05/02/2012 */
+#define	POLSARPROSIM_DIRECTGROUND_SPECKLE_FACTOR     2                /* Controls how many facets there are per resolution cell: n = 4f^2, f=2, n=16	*/ /* RAedit 05/02/2012 */
 //#define	POLSARPROSIM_DIRECTGROUND_DELTAB_FACTOR		15.0         /* Beta rotation angle factor for increased entropy	(range 0-100, default 33.0)	*/
 #define	POLSARPROSIM_DIRECTGROUND_DELTAB_FACTOR		0.1              /* Beta rotation angle factor for increased entropy	(range 0-100, default 33.0)	*/ /* RAedit 07/10/2012 */
 

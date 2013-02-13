@@ -605,6 +605,116 @@ void		Surface_Parameters (PolSARproSim_Record *pPR, int DEM_model)
    return;
 }
 
+/****************************************************************************/
+/* Pre-compute the Point Spread Functions and populate PSF lookup tables    */
+/****************************************************************************/
+void	Generate_PSF_Lookup_Tables	(PolSARproSim_Record *pPR)
+{
+   double         psfx, psfy, offset, psfsum;
+   int            PSFx_length, PSFy_length, PSFt_length, ipix, i, j, k, t, ulim, llim;
+   double         *PSFazvec, *PSFsrvec;
+   double         thetamin, thetamax, grmax, grmin, tmin, tmax, p_height, inc_angle;
+   
+   /* compute the minimum and maximum incidence angles for all tracks */ 
+   p_height       = pPR->slant_range[0]*cos(pPR->incidence_angle[0]);
+   tmin           = pPR->incidence_angle[0];
+   tmax           = pPR->incidence_angle[0];
+   for(i=0;i<pPR->Tracks;i++){
+      grmin       = pPR->slant_range[i]*sin(pPR->incidence_angle[i]) - pPR->Ly/2;
+      grmax       = pPR->slant_range[i]*sin(pPR->incidence_angle[i]) + pPR->Ly/2;
+      thetamin    = atan2(grmin, p_height);
+      thetamax    = atan2(grmax, p_height);
+      if(tmin > thetamin){
+         tmin     = thetamin;
+      }
+      if(tmax < thetamax){
+         tmax     = thetamax;
+      }
+   }
+   PSFt_length    = (int)rint((tmax-tmin)*RAD_TO_DEG); 
+   if(PSFt_length == 0){
+      PSFt_length = 1;
+   }
+   pPR->min_inc_angle      = tmin;
+   pPR->deltax_OS          = pPR->deltax/PSF_OVERSAMPLING_FACTOR;
+   pPR->deltay_OS          = pPR->deltay/PSF_OVERSAMPLING_FACTOR;
+   PSFx_length             = (int)(2*(pPR->PSFnx + PSF_SHOULDER)*PSF_OVERSAMPLING_FACTOR)+1;
+   PSFy_length             = (int)(2*(pPR->PSFny + PSF_SHOULDER)*PSF_OVERSAMPLING_FACTOR)+1;
+   /* allocate memory for PSF vectors and lookup tables */
+   PSFazvec                = (double*) calloc (PSFx_length, sizeof (double));
+   PSFsrvec                = (double*) calloc (PSFy_length, sizeof (double));
+   pPR->PSFazmat           = (double*) calloc ((2*pPR->PSFnx + 1)*(PSF_OVERSAMPLING_FACTOR +1), sizeof (double));//
+   pPR->PSFgrmat           = (double**) calloc ((2*pPR->PSFny + 1)*(PSF_OVERSAMPLING_FACTOR +1), sizeof (double));
+   for(i =0;i<(2*pPR->PSFny + 1)*(PSF_OVERSAMPLING_FACTOR +1);i++){
+      pPR->PSFgrmat[i]  = (double*) calloc (PSFt_length, sizeof (double));
+   }
+   
+   /************************************************/
+   /* Azimuth PSF calculation                      */
+   /************************************************/
+   /* populate the azimuth spread function vector */
+   for (i = 0; i<PSFx_length; i++){
+      psfx           = - (pPR->PSFnx + PSF_SHOULDER) * pPR->deltax + i*pPR->deltax_OS;
+      if(fabs(1-(psfx/pPR->deltax)*(psfx/pPR->deltax)) < DBL_EPSILON){
+         PSFazvec[i] = 0.0;
+      }else{
+         PSFazvec[i]    = Sinc(DPI_RAD * psfx/pPR->deltax) + 1/DPI_RAD*(1-pPR->PSFeta)/(1+pPR->PSFeta)*sin(DPI_RAD*psfx/pPR->deltax)*(psfx/pPR->deltax)/(1-(psfx/pPR->deltax)*(psfx/pPR->deltax));
+      }
+   }
+   /* integrate the azimuth point spread function and store it in the Azimuth PSF lookup table */
+   for (i = 0; i < (2*pPR->PSFnx + 1); i++) {
+      ipix    = i - pPR->PSFnx;
+      for (j = 0; j < (PSF_OVERSAMPLING_FACTOR + 1); j++) {
+         offset   = j * pPR->deltax_OS - pPR->deltax/2;
+         /* determine integration limits */
+         llim     = (int)(PSFx_length/2) + (int)(offset/pPR->deltax_OS) - (int)(PSF_OVERSAMPLING_FACTOR/2) + (int)(ipix*PSF_OVERSAMPLING_FACTOR)-1;
+         ulim     = (int)(PSFx_length/2) + (int)(offset/pPR->deltax_OS) + (int)(PSF_OVERSAMPLING_FACTOR/2) + (int)(ipix*PSF_OVERSAMPLING_FACTOR)-1;
+         psfsum   = 0;
+         /* integrate the Point Spread Function */
+         for (k = llim; k <= ulim; k++) {
+            psfsum  +=PSFazvec[k];
+         }
+         pPR->PSFazmat[i*(PSF_OVERSAMPLING_FACTOR + 1) + j] = psfsum;
+      }
+   }
+
+   /************************************************/
+   /* Ground range PSF calculation                 */
+   /************************************************/
+   /* compute a PSF lookup table for each incidence angle */
+   for (t = 0; t< PSFt_length; t ++){
+      inc_angle  = tmin + PSF_INCIDENCE_ANGLE_RESOLUTION * DEG_TO_RAD * t;
+      /* populate the ground-range point spread function vector */
+      for (i = 0; i<PSFy_length; i++){
+         psfy           = - (pPR->PSFny + PSF_SHOULDER) * pPR->deltay + i*pPR->deltay_OS;
+         psfy           = psfy / sin(inc_angle);
+         if(fabs(1-(psfy/pPR->deltay)*(psfy/pPR->deltay)) < DBL_EPSILON){
+            PSFsrvec[i] = 0.0;
+         }else{
+            PSFsrvec[i] = Sinc(DPI_RAD * psfy/pPR->deltay) + 1/DPI_RAD*(1-pPR->PSFeta)/(1+pPR->PSFeta)*sin(DPI_RAD*psfy/pPR->deltay)*(psfy/pPR->deltay)/(1-(psfy/pPR->deltay)*(psfy/pPR->deltay));
+         }
+      }
+      /* integrate the slant range point spread function and store it in array */
+      for (i = 0; i < (2*pPR->PSFny + 1); i++) {
+         ipix    = i - pPR->PSFny;
+         for (j = 0; j < (PSF_OVERSAMPLING_FACTOR + 1); j++) {
+            offset    = j * pPR->deltay_OS - pPR->deltay/2;
+            /* determine integration limits */
+            llim      = (int)(PSFy_length/2) + (int)(offset/pPR->deltay_OS) - (int)(PSF_OVERSAMPLING_FACTOR/2) + (int)(ipix*PSF_OVERSAMPLING_FACTOR)-1;
+            ulim      = (int)(PSFy_length/2) + (int)(offset/pPR->deltay_OS) + (int)(PSF_OVERSAMPLING_FACTOR/2) + (int)(ipix*PSF_OVERSAMPLING_FACTOR)-1;
+            psfsum = 0;
+            /* integrate the Point Spread Function */
+            for (k = llim; k <= ulim; k++) {
+               psfsum  +=PSFsrvec[k];
+            }
+            //pPR->PSFsrmat[i*(PSF_OVERSAMPLING_FACTOR + 1) + j] = psfsum;
+            pPR->PSFgrmat[i*(PSF_OVERSAMPLING_FACTOR + 1) + j][t] = psfsum;
+         }
+      }
+   }
+
+}
+
 /*************************************************/
 /* Read the input file with the setup parameters */
 /*************************************************/
@@ -688,6 +798,7 @@ int		Input_PolSARproSim_Record		(const char *filename, PolSARproSim_Record *pPR)
    read_double    (pInputFile,   "global_tree_height",         &(pPR->mean_tree_height));
    read_double    (pInputFile,   "forest_stand_area",          &(pPR->Stand_Area)); 
    read_integer   (pInputFile,   "stem_density",               &(pPR->req_trees_per_hectare));   
+   read_double    (pInputFile,   "PSF_broadening_factor",      &(pPR->PSFeta));
 #ifdef INPUT_GROUND_MV
    read_integer   (pInputFile,    "ground_moisture",           &GMV_model);
 #endif
@@ -1071,6 +1182,13 @@ int		Input_PolSARproSim_Record		(const char *filename, PolSARproSim_Record *pPR)
    pPR->psfasr    = 4.0*log(sqrt(2.0))/(pPR->slant_range_resolution*pPR->slant_range_resolution);
    psf_azextent	= sqrt(-log(sqrt(POWER_AT_PSF_EDGE))/pPR->psfaaz);
    psf_srextent	= sqrt(-log(sqrt(POWER_AT_PSF_EDGE))/pPR->psfasr);
+
+   pPR->PSFnx		= (int) (psf_azextent/pPR->deltax) + 1;
+   pPR->PSFnx		= 2*(pPR->PSFnx/2)+1;
+   pPR->PSFny		= (int) (psf_srextent/(pPR->deltay*sin(pPR->incidence_angle[0]))) + 1;
+   pPR->PSFny		= 2*(pPR->PSFny/2)+1;
+
+
 #else
    pPR->psfaaz    = 4.0*log(sqrt(2.0))/(pPR->azimuth_resolution*pPR->azimuth_resolution);
    pPR->psfagr    = (double*) calloc (pPR->Tracks, sizeof (double));
@@ -1080,15 +1198,21 @@ int		Input_PolSARproSim_Record		(const char *filename, PolSARproSim_Record *pPR)
    pPR->psfasr    = 4.0*log(sqrt(2.0))/(pPR->slant_range_resolution*pPR->slant_range_resolution);
    psf_azextent	= sqrt(-log(sqrt(POWER_AT_PSF_EDGE))/pPR->psfaaz);
    psf_srextent	= sqrt(-log(sqrt(POWER_AT_PSF_EDGE))/pPR->psfasr);
-   
-   psf_azextent   = 3 * pPR->deltax;
-   psf_srextent   = 3 * pPR->deltay * sin(pPR->incidence_angle[0]);
-#endif
+
+//   psf_azextent   = 3 * pPR->deltax;
+//   psf_srextent   = 3 * pPR->deltay * sin(pPR->incidence_angle[0]);
 
    pPR->PSFnx		= (int) (psf_azextent/pPR->deltax) + 1;
    pPR->PSFnx		= 2*(pPR->PSFnx/2)+1;
    pPR->PSFny		= (int) (psf_srextent/(pPR->deltay*sin(pPR->incidence_angle[0]))) + 1;
    pPR->PSFny		= 2*(pPR->PSFny/2)+1;
+
+   /* generate point spread function lookup tables */
+   Generate_PSF_Lookup_Tables	(pPR);
+#endif
+
+   
+
    
    /*********************************************/
    /* Report SAR imaging parameters to log file */
@@ -1106,7 +1230,7 @@ int		Input_PolSARproSim_Record		(const char *filename, PolSARproSim_Record *pPR)
    fprintf (pPR->pLogFile, "PSF azimuth     extent is %d pixels\n", pPR->PSFnx);
    fprintf (pPR->pLogFile, "PSF slant range extent is %d pixels\n", pPR->PSFny);
    fflush  (pPR->pLogFile);
-   
+
    /***********************************/
    /* Initialise PSF scaling to unity */
    /***********************************/
@@ -5362,6 +5486,7 @@ Complex Bvv (double theta, Complex epsilon)
    return (Rvv);
 }
 
+
 /*************************/
 /* SAR image calculation */
 /*************************/
@@ -5374,15 +5499,26 @@ double		Point_Spread_Function			(double dx, double dy, PolSARproSim_Record *pPR,
    double		ax		= pPR->psfaaz;
    double		ay		= pPR->psfagr[track];
    double		psf;
-   
-#ifdef   POLSARPROSIM_PSF_GAUSSIAN
+
    psf   		= pPR->PSFamp * exp (-(ax*dx*dx+ay*dy*dy));
-#else
-   psf         = pPR->PSFamp * Sinc(DPI_RAD * dx / pPR->deltax) * Sinc(DPI_RAD * dy / pPR->deltay*sin(inc_angle));
-#endif
    return (psf);
 }
 
+double		Lookup_PSF_value              (int ioffx, int ioffy, int inx, int iny, int itheta, PolSARproSim_Record *pPR)
+{
+   /****************************************************************************/
+   /* Note that dx is azimuth displacement and dy is ground range displacement */
+   /****************************************************************************/
+   double		psf, psfaz, psfgr;
+
+   psfaz       = pPR->PSFazmat[inx*(PSF_OVERSAMPLING_FACTOR + 1) + ioffx];
+   psfgr       = pPR->PSFgrmat[iny*(PSF_OVERSAMPLING_FACTOR + 1) + ioffy][itheta];
+
+   
+   psf         = pPR->PSFamp* psfgr * psfaz;
+   
+   return (psf);
+}
 
  
 double		Accumulate_SAR_Contribution		(double focus_x, double focus_y, double focus_srange,
@@ -5396,8 +5532,15 @@ double		Accumulate_SAR_Contribution		(double focus_x, double focus_y, double foc
    /**************************************************************/
    /* Find pixel coordinates for pixel closest to point of focus */
    /**************************************************************/
-   int         ix		= (int) ((xmid+focus_x)/dx);
-   int         jy		= (int) ((ymid-focus_y)/dy);
+//   int         ix		= (int) ((xmid+focus_x)/dx);
+//   int         jy		= (int) ((ymid-focus_y)/dy);
+   int         ix		= (int)rint ((xmid+focus_x)/dx);
+   int         jy		= (int)rint ((ymid-focus_y)/dy);
+   double      off_x = focus_x - (ix * dx - xmid);
+   double      off_y = focus_y - (ymid - jy * dy);
+   int         ioffx = (int)((off_x+pPR->deltax/2)/pPR->deltax_OS);
+   int         ioffy = (int)((off_y+pPR->deltay/2)/pPR->deltay_OS);
+   int         itheta = (int)rint((focus_angle - pPR->min_inc_angle)*RAD_TO_DEG);
    /***********************************************/
    /* Find extent of loop for pixel contributions */
    /***********************************************/
@@ -5441,7 +5584,11 @@ double		Accumulate_SAR_Contribution		(double focus_x, double focus_y, double foc
                   phi	= 2.0*k*focus_srange + k*daz*daz/focus_srange; //Interferometric phase
                   for (jpy=nymin; jpy<=nymax; jpy++) {
                      py				= ymid - jpy * dy;
+#ifdef   POLSARPROSIM_PSF_GAUSSIAN
                      weight			= Point_Spread_Function (daz, py-focus_y, pPR, track, focus_angle);
+#else                     
+                     weight			= Lookup_PSF_value (ioffx, ioffy, ipx-ix+pPR->PSFnx, jpy-jy+pPR->PSFny, itheta, pPR);
+#endif
                      weight_sum		+= weight*weight;
                      Polar_Assign_Complex (&cweight, weight, phi);
                      /* HH channel write */
