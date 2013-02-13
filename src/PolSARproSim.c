@@ -278,7 +278,7 @@ int main(int argv, char *argc[])
    /* Calculate the vegetation effective permittivities */
    /*****************************************************/
 #ifdef ENABLE_THREADS
-  // Effective_Permittivities_SMP     (&Master_Record);
+   Effective_Permittivities_SMP     (&Master_Record);
 #else
    Effective_Permittivities         (&Master_Record);
 #endif
@@ -288,7 +288,7 @@ int main(int argv, char *argc[])
    /***************************************************/
 
 #ifdef ENABLE_THREADS
- //  Attenuation_Map_SMP              (&Master_Record);
+   Attenuation_Map_SMP              (&Master_Record);
 #else
    Attenuation_Map                  (&Master_Record);
 #endif
@@ -321,8 +321,8 @@ int main(int argv, char *argc[])
       /* Calculate the short vegetation contribution */
       /***********************************************/
 #ifdef ENABLE_THREADS
-  //    PolSARproSim_Short_Vegetation_Direct_SMP  (&Master_Record);
-  //    PolSARproSim_Short_Vegetation_Bounce_SMP  (&Master_Record);
+      PolSARproSim_Short_Vegetation_Direct_SMP  (&Master_Record);
+      PolSARproSim_Short_Vegetation_Bounce_SMP  (&Master_Record);
 #else
       PolSARproSim_Short_Vegetation_Direct      (&Master_Record);
       PolSARproSim_Short_Vegetation_Bounce      (&Master_Record);
@@ -359,7 +359,7 @@ int main(int argv, char *argc[])
    /* Optional flat earth phase correction */
    /****************************************/
 #ifdef	POLSARPROSIM_FLATEARTH
-//   Flat_Earth_Phase_Removal                  (&Master_Record);
+   Flat_Earth_Phase_Removal                  (&Master_Record);
 #endif
 
    /**********************************************/
