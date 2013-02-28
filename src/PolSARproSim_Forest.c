@@ -175,21 +175,18 @@ int		Delete_SAR_Geometry			(SarGeometry *pSG)
    return (rtn_value);
 }
 
-/************************************************************/
-/* Temporal Decorrelation Model implementation for branches */
-/************************************************************/
-int      Model_Branch_Change        (Tree *pT, Branch *pB, PolSARproSim_Record *pPR, int current_track, d3Vector *motion, double *moisture, double cyl_z)
+/***********************************************************************/
+/* Temporal Decorrelation Model implementation for branches and leaves */
+/***********************************************************************/
+int      Model_Change        (Tree *pT, PolSARproSim_Record *pPR, int current_track, d3Vector *motion, double *moisture, double obj_z)
 {
    double      tree_altitude        = pT->base.x[2];     //tree altitutde (this includes ground height)
-   //double      tree_height          = pT->height;        //height of tree from base to top 
-   //double      branch_radius        = pB->start_radius;  //start radius of branch being changed
-   //double      branch_start_height  = pB->b0.x[2];       //starting altitude of branch (includes ground height)
    double      normalizestd         = 3.464101615;       // square root of 12, to normalize the standard deviation of a uniform RV to 1
    /* parameters to be computed */
    double      delta_x, delta_y, delta_z;                //motion offsets
    
    double      change_stdev;                             //standard deviation of the amount of change 
-   double      cyl_height     = cyl_z - tree_altitude;   //height of cylinder (branch approximation) that needs to be moved
+   double      obj_height     = obj_z - tree_altitude;   //height of cylinder (branch approximation) that needs to be moved
    double      damping_factor = 1;//branch_radius/pT->dbh/2; //damp the motion by branch radius         
 
    //seed the random number generator
@@ -208,9 +205,9 @@ int      Model_Branch_Change        (Tree *pT, Branch *pB, PolSARproSim_Record *
       if(pPR->Position_Change_Model[current_track]       == CHANGE_MODEL_NONE){
          change_stdev   = 0.0;
       }else if(pPR->Position_Change_Model[current_track] == CHANGE_MODEL_POLYNOMIAL){
-         change_stdev   = (pPR->motion_coeff_A[current_track] * cyl_height * cyl_height + pPR->motion_coeff_B[current_track] * cyl_height + pPR->motion_coeff_C[current_track]) * damping_factor;
+         change_stdev   = (pPR->motion_coeff_A[current_track] * obj_height * obj_height + pPR->motion_coeff_B[current_track] * obj_height + pPR->motion_coeff_C[current_track]) * damping_factor;
       }else if(pPR->Position_Change_Model[current_track] == CHANGE_MODEL_EXPONENTIAL){
-         change_stdev   = (pPR->motion_coeff_A[current_track] * exp(pPR->motion_coeff_B[current_track] * cyl_height) + pPR->motion_coeff_C[current_track]) * damping_factor;
+         change_stdev   = (pPR->motion_coeff_A[current_track] * exp(pPR->motion_coeff_B[current_track] * obj_height) + pPR->motion_coeff_C[current_track]) * damping_factor;
       }else{
          change_stdev = 0.0;
       }
@@ -226,9 +223,9 @@ int      Model_Branch_Change        (Tree *pT, Branch *pB, PolSARproSim_Record *
       if(pPR->Moisture_Change_Model[current_track]       == CHANGE_MODEL_NONE){
          change_stdev   = 0.0;
       }else if(pPR->Moisture_Change_Model[current_track] == CHANGE_MODEL_POLYNOMIAL){
-         change_stdev   = (pPR->moisture_coeff_A[current_track] * cyl_height * cyl_height + pPR->moisture_coeff_B[current_track] * cyl_height + pPR->moisture_coeff_C[current_track]) * damping_factor;
+         change_stdev   = (pPR->moisture_coeff_A[current_track] * obj_height * obj_height + pPR->moisture_coeff_B[current_track] * obj_height + pPR->moisture_coeff_C[current_track]) * damping_factor;
       }else if(pPR->Moisture_Change_Model[current_track] == CHANGE_MODEL_EXPONENTIAL){
-         change_stdev   = (pPR->moisture_coeff_A[current_track] * exp(pPR->moisture_coeff_B[current_track] * cyl_height) + pPR->moisture_coeff_C[current_track]) * damping_factor;
+         change_stdev   = (pPR->moisture_coeff_A[current_track] * exp(pPR->moisture_coeff_B[current_track] * obj_height) + pPR->moisture_coeff_C[current_track]) * damping_factor;
       }else{
          change_stdev = 0.0;
       }
@@ -237,6 +234,8 @@ int      Model_Branch_Change        (Tree *pT, Branch *pB, PolSARproSim_Record *
    }
    return(NO_POLSARPROSIM_FOREST_ERRORS);
 }
+
+
 
 /************************************************************/
 /* Applying moisture and position changes to cylinders      */
@@ -296,22 +295,63 @@ double      Change_Cylinder      (Cylinder *pC, Branch *pB, PolSARproSim_Record 
    return(NO_POLSARPROSIM_FOREST_ERRORS);
 }
 
-double      Move_Leaf           (Leaf *pL, PolSARproSim_Record *pPR)
+/************************************************************/
+/* Applying moisture and position changes to a leaf         */
+/************************************************************/
+double      Change_Leaf      (Leaf *pL, PolSARproSim_Record *pPR, d3Vector motion_offset, double moisture_offset, int current_track)
 {
-   double				leaf_x, leaf_y, leaf_height;  
-   /************************/
-   /* Mark cylinder centre */
-   /************************/
-   double            height = pL->cl.x[2];
-   
-   leaf_x            = pL->cl.x[0] + drand()*pPR->wavelength/100*height;
-   leaf_y            = pL->cl.x[1] + drand()*pPR->wavelength/100*height;
-   leaf_height       = pL->cl.x[2];// + drand()*pPR->wavelength/10*height;
+   d3Vector          new_base;
+   double            moisture;
+   Complex           permittivity;
+   d3Vector          orig_base, applied_offset;
+#ifdef OUTPUT_CHANGE_STATS_ON
+   double            leaf_original_height = pL->cl.x[2];
+   int               change_profile_bin_index;
+   int               change_profile_bin_count;
+   double            motion_profile_mean;
+   double            motion_profile_var;
+   double            moisture_profile_mean;
+   double            moisture_profile_var;
+#endif
 
-   pL->cl = Cartesian_Assign_d3Vector (leaf_x, leaf_y, leaf_height);
+   Create_d3Vector(&orig_base);
+   Create_d3Vector(&applied_offset);
+
+   /* apply moisture change */
+   moisture          = pL->moisture + moisture_offset;
+   pL->moisture      = moisture;
+   permittivity      = vegetation_permittivity (moisture, pPR->frequency);
+   pL->permittivity	= Copy_Complex (&permittivity);
    
+   /* apply position change */
+   Copy_d3Vector     (&orig_base, &(pL->cl));
+   new_base          = d3Vector_sum (pL->cl, motion_offset);
+   Copy_d3Vector     (&(pL->cl), &(new_base));
+   applied_offset    = d3Vector_difference (pL->cl, orig_base);
+   
+#ifdef OUTPUT_CHANGE_STATS_ON  
+   /* calculate first two moments of the vertical change profiles */
+   /* motion */
+   pthread_mutex_lock         (&PolSARproSim_Statmutex);
+   change_profile_bin_index   = (int)(cyl_original_height/pPR->max_tree_height*CHANGE_PROFILE_BINS);
+   change_profile_bin_index   = change_profile_bin_index*pPR->Tracks+current_track;
+   change_profile_bin_count   = pPR->motion_profile_count[change_profile_bin_index];
+   motion_profile_mean        = pPR->motion_profile_mean[change_profile_bin_index];
+   motion_profile_var         = pPR->motion_profile_var [change_profile_bin_index];
+   pPR->motion_profile_mean [change_profile_bin_index] = motion_profile_mean + (applied_offset.x[0] - motion_profile_mean)/(double)(change_profile_bin_count+1);
+   pPR->motion_profile_var  [change_profile_bin_index] = motion_profile_var  + (applied_offset.x[0] - motion_profile_mean) * (applied_offset.x[0] - pPR->motion_profile_mean[change_profile_bin_index]); 
+   pPR->motion_profile_count[change_profile_bin_index]++;
+   /* moisture */
+   change_profile_bin_count   = pPR->moisture_profile_count[change_profile_bin_index];
+   moisture_profile_mean      = pPR->moisture_profile_mean[change_profile_bin_index];
+   moisture_profile_var       = pPR->moisture_profile_var [change_profile_bin_index];
+   pPR->moisture_profile_mean [change_profile_bin_index] = moisture_profile_mean + (moisture_offset - moisture_profile_mean)/(double)(change_profile_bin_count+1);
+   pPR->moisture_profile_var  [change_profile_bin_index] = moisture_profile_var  + (moisture_offset - moisture_profile_mean) * (moisture_offset - pPR->moisture_profile_mean[change_profile_bin_index]); 
+   pPR->moisture_profile_count[change_profile_bin_index]++;
+   pthread_mutex_unlock       (&PolSARproSim_Statmutex);
+#endif 
+
    return(NO_POLSARPROSIM_FOREST_ERRORS);
-
 }
 
 
@@ -319,7 +359,7 @@ double      Move_Leaf           (Leaf *pL, PolSARproSim_Record *pPR)
 /* Forest interferometric SAR image calculation definition */
 /***********************************************************/
 
-double		Image_Cylinder_Direct	(Cylinder *pC, SarGeometry *pSG, PolSARproSim_Record *pPR, double Sa_scaling, int flag)
+double		Image_Cylinder_Direct	(Cylinder *pC, SarGeometry *pSG, PolSARproSim_Record *pPR, double Sa_scaling, int flag, c4Vector *pSVec)
 {
    c33Matrix			Scyl;
    c3Vector          Eh, Ev;
@@ -342,42 +382,52 @@ double		Image_Cylinder_Direct	(Cylinder *pC, SarGeometry *pSG, PolSARproSim_Reco
    /***************************************/
    /* Equivalent upward pointing cylinder */
    /***************************************/
-   if (pC->axis.theta > DPI_RAD/2.0) {
-      tip		= d3Vector_sum (pC->base, d3Vector_double_multiply (pC->axis, pC->length));
-      pC->axis	= d3Vector_double_multiply (pC->axis, -1.0);
-      Assign_Cylinder (pC, pC->length, pC->radius, pC->permittivity, pC->axis, tip);
-   }
-   /************************************************/
-   /* Calculate the cylinder scattering amplitudes */
-   /************************************************/
-   if (flag == POLSARPROSIM_SAR_INF_TERTIARY_BRANCHES) {
-      Scyl				= InfCylSav2	(pC, &(pSG->ks), &(pSG->ki), &(pSG->Ytable), &(pSG->Jtable));
-   } else {
-      Scyl				= GrgCylSa		(pC, &(pSG->ks), &(pSG->ki));
-   }
-   Eh					= c33Matrix_c3Vector_product	(Scyl, pSG->ch);
-   Ev					= c33Matrix_c3Vector_product	(Scyl, pSG->cv);
-   Shh				= c3Vector_scalar_product	(pSG->ch, Eh);
-   Shv				= c3Vector_scalar_product	(pSG->ch, Ev);
-   Svh				= c3Vector_scalar_product	(pSG->cv, Eh);
-   Svv				= c3Vector_scalar_product	(pSG->cv, Ev);
-   /***********************************/
-   /* Incorporate attenuation effects */
-   /***********************************/
+   if(pPR->ForestFastMode[pSG->track] == FOREST_FAST_MODE_OFF){
+      if (pC->axis.theta > DPI_RAD/2.0) {
+         tip		= d3Vector_sum (pC->base, d3Vector_double_multiply (pC->axis, pC->length));
+         pC->axis	= d3Vector_double_multiply (pC->axis, -1.0);
+         Assign_Cylinder (pC, pC->length, pC->radius, pC->permittivity, pC->axis, tip);
+      }
+      /************************************************/
+      /* Calculate the cylinder scattering amplitudes */
+      /************************************************/
+      if (flag == POLSARPROSIM_SAR_INF_TERTIARY_BRANCHES) {
+         Scyl				= InfCylSav2	(pC, &(pSG->ks), &(pSG->ki), &(pSG->Ytable), &(pSG->Jtable));
+      } else {
+         Scyl				= GrgCylSa		(pC, &(pSG->ks), &(pSG->ki));
+      }
+      Eh					= c33Matrix_c3Vector_product	(Scyl, pSG->ch);
+      Ev					= c33Matrix_c3Vector_product	(Scyl, pSG->cv);
+      Shh				= c3Vector_scalar_product	(pSG->ch, Eh);
+      Shv				= c3Vector_scalar_product	(pSG->ch, Ev);
+      Svh				= c3Vector_scalar_product	(pSG->cv, Eh);
+      Svv				= c3Vector_scalar_product	(pSG->cv, Ev);
+      /***********************************/
+      /* Incorporate attenuation effects */
+      /***********************************/
 #ifdef SWITCH_ATTENUATION_ON
-   rtn_lookup		= Lookup_Direct_Attenuation (cyl_centre, pPR, &gH, &gV);
-   Shh				= complex_rmul (Shh, gH*gH);
-   Shv				= complex_rmul (Shv, gH*gV);
-   Svh				= complex_rmul (Svh, gV*gH);
-   Svv				= complex_rmul (Svv, gV*gV);
+      rtn_lookup		= Lookup_Direct_Attenuation (cyl_centre, pPR, &gH, &gV);
+      Shh				= complex_rmul (Shh, gH*gH);
+      Shv				= complex_rmul (Shv, gH*gV);
+      Svh				= complex_rmul (Svh, gV*gH);
+      Svv				= complex_rmul (Svv, gV*gV);
 #endif
-   /*****************************************/
-   /* Incorporate stochastic scaling factor */
-   /*****************************************/
-   Shh				= complex_rmul (Shh, Sa_scaling);
-   Shv				= complex_rmul (Shv, Sa_scaling);
-   Svh				= complex_rmul (Svh, Sa_scaling);
-   Svv				= complex_rmul (Svv, Sa_scaling);
+      /*****************************************/
+      /* Incorporate stochastic scaling factor */
+      /*****************************************/
+      Shh				= complex_rmul (Shh, Sa_scaling);
+      Shv				= complex_rmul (Shv, Sa_scaling);
+      Svh				= complex_rmul (Svh, Sa_scaling);
+      Svv				= complex_rmul (Svv, Sa_scaling);
+      if(pSG->track == 0){
+         *pSVec      = Assign_c4Vector (Shh, Shv, Svh, Svv);
+      }
+   }else{
+      Shh            = pSVec->z[0];
+      Shv            = pSVec->z[1];
+      Svh            = pSVec->z[2];
+      Svv            = pSVec->z[3];
+   }
    /**************************************/
    /* Monitor backscattering coefficient */
    /**************************************/
@@ -412,7 +462,7 @@ double		Image_Cylinder_Direct	(Cylinder *pC, SarGeometry *pSG, PolSARproSim_Reco
    return (weight_average);
 }
 
-double		Image_Foliage_Direct	(Leaf *pL, SarGeometry *pSG, PolSARproSim_Record *pPR, double Sa_scaling)
+double		Image_Foliage_Direct	(Leaf *pL, SarGeometry *pSG, PolSARproSim_Record *pPR, double Sa_scaling, d3Vector *pLeaf_Depolarization, c4Vector *pSVec)
 {
    c33Matrix			Sflg;
    c3Vector			Eh, Ev;
@@ -433,11 +483,17 @@ double		Image_Foliage_Direct	(Leaf *pL, SarGeometry *pSG, PolSARproSim_Record *p
    /***********************************************/
    /* Calculate the foliage scattering amplitudes */
    /***********************************************/
+//#ifndef RAYLEIGH_LEAF
+//   Sflg				= Leaf_Scattering_Matrix (pL, pPR->Tertiary_leafL1, pPR->Tertiary_leafL2, pPR->Tertiary_leafL3, &(pSG->ki), &(pSG->ks));
+//#else
+//   Sflg				= Leaf_Scattering_Matrix (pL, pPR->Tertiary_leafL1, pPR->Tertiary_leafL2, pPR->Tertiary_leafL3, &(pSG->ki));
+//#endif
 #ifndef RAYLEIGH_LEAF
-   Sflg				= Leaf_Scattering_Matrix (pL, pPR->Tertiary_leafL1, pPR->Tertiary_leafL2, pPR->Tertiary_leafL3, &(pSG->ki), &(pSG->ks));
+   Sflg				= Leaf_Scattering_Matrix (pL, pLeaf_Depolarization->x[0], pLeaf_Depolarization->x[1], pLeaf_Depolarization->x[2], &(pSG->ki), &(pSG->ks));
 #else
-   Sflg				= Leaf_Scattering_Matrix (pL, pPR->Tertiary_leafL1, pPR->Tertiary_leafL2, pPR->Tertiary_leafL3, &(pSG->ki));
+   Sflg				= Leaf_Scattering_Matrix (pL, pLeaf_Depolarization->x[0], pLeaf_Depolarization->x[1], pLeaf_Depolarization->x[2], &(pSG->ki));
 #endif
+
    Eh             = c33Matrix_c3Vector_product	(Sflg, pSG->ch);
    Ev             = c33Matrix_c3Vector_product	(Sflg, pSG->cv);
    Shh				= c3Vector_scalar_product	(pSG->ch, Eh);
@@ -500,41 +556,41 @@ double		Image_Foliage_Direct	(Leaf *pL, SarGeometry *pSG, PolSARproSim_Record *p
 /* Ground-volume imaging ... */
 /*****************************/
 
-double		Image_Foliage_Bounce	(Leaf *pL, SarGeometry *pSG, PolSARproSim_Record *pPR, double Sa_scaling)
+double		Image_Foliage_Bounce	(Leaf *pL, SarGeometry *pSG, PolSARproSim_Record *pPR, double Sa_scaling, d3Vector *pLeaf_Depolarization, c4Vector *pSVec)
 {
    d3Vector			flg_centre;
 #ifdef SWITCH_ATTENUATION_ON
    int				rtn_lookup;
-   double				gHi, gVi, gHr, gVr, gHs, gVs;
+   double			gHi, gVi, gHr, gVr, gHs, gVs;
 #endif
-   c33Matrix			Gi	= Idem_c33Matrix ();
-   c33Matrix			Gr	= Idem_c33Matrix ();
-   c33Matrix			Gs	= Idem_c33Matrix ();
+   c33Matrix		Gi	= Idem_c33Matrix ();
+   c33Matrix		Gr	= Idem_c33Matrix ();
+   c33Matrix		Gs	= Idem_c33Matrix ();
    c3Vector			Eh, Ev;
    Complex			Shh, Shv, Svh, Svv;
    Complex			zhhvv;
-   double				flg_x, flg_y, flg_height;
-   double				focus_x, focus_y, focus_grange, focus_srange, focus_height, focus_angle;
-   double				weight_average	= 0.0;
+   double			flg_x, flg_y, flg_height;
+   double			focus_x, focus_y, focus_grange, focus_srange, focus_height, focus_angle;
+   double			weight_average	= 0.0;
    Plane				Pg;
    d3Vector			g;
    d3Vector			nm	= d3Vector_double_multiply (pSG->n, -1.0);
    Ray				Rb;
    d3Vector			eff_bounce_centre;
-   double				bounce_distance;
+   double			bounce_distance;
    d3Vector			specular_point;
-   double				specular_distance;
-   double				eff_grange, eff_srange;
+   double			specular_distance;
+   double			eff_grange, eff_srange;
    d3Vector			a;
-   c33Matrix			Sflg1, Sflg2, SflgT;
+   c33Matrix		Sflg1, Sflg2, SflgT;
    int				rtn_value;
    /***********************/
    /* Mark foliage centre */
    /***********************/
-   Copy_d3Vector		(&flg_centre, &(pL->cl));
+   Copy_d3Vector	(&flg_centre, &(pL->cl));
    flg_x				= flg_centre.x[0];
    flg_y				= flg_centre.x[1];
-   flg_height			= flg_centre.x[2];
+   flg_height		= flg_centre.x[2];
    /*****************************************/
    /* Calculate the reflection plane origin */
    /*****************************************/
@@ -562,13 +618,21 @@ double		Image_Foliage_Bounce	(Leaf *pL, SarGeometry *pSG, PolSARproSim_Record *p
             /******************************************/
             /* Calculate the stem scattering matrices */
             /******************************************/
+//#ifndef RAYLEIGH_LEAF
+//            Sflg1			= Leaf_Scattering_Matrix (pL, pPR->Tertiary_leafL1, pPR->Tertiary_leafL2, pPR->Tertiary_leafL3, &(pSG->kr), &(pSG->ks));
+//            Sflg2			= Leaf_Scattering_Matrix (pL, pPR->Tertiary_leafL1, pPR->Tertiary_leafL2, pPR->Tertiary_leafL3, &(pSG->ki), &(pSG->krm));
+//#else
+//            Sflg1			= Leaf_Scattering_Matrix (pL, pPR->Tertiary_leafL1, pPR->Tertiary_leafL2, pPR->Tertiary_leafL3, &(pSG->kr));
+//            Sflg2			= Leaf_Scattering_Matrix (pL, pPR->Tertiary_leafL1, pPR->Tertiary_leafL2, pPR->Tertiary_leafL3, &(pSG->ki));
+//#endif
 #ifndef RAYLEIGH_LEAF
-            Sflg1			= Leaf_Scattering_Matrix (pL, pPR->Tertiary_leafL1, pPR->Tertiary_leafL2, pPR->Tertiary_leafL3, &(pSG->kr), &(pSG->ks));
-            Sflg2			= Leaf_Scattering_Matrix (pL, pPR->Tertiary_leafL1, pPR->Tertiary_leafL2, pPR->Tertiary_leafL3, &(pSG->ki), &(pSG->krm));
+            Sflg1			= Leaf_Scattering_Matrix (pL, pLeaf_Depolarization->x[0],  pLeaf_Depolarization->x[1], pLeaf_Depolarization->x[2], &(pSG->kr), &(pSG->ks));
+            Sflg2			= Leaf_Scattering_Matrix (pL, pLeaf_Depolarization->x[0],  pLeaf_Depolarization->x[1], pLeaf_Depolarization->x[2], &(pSG->ki), &(pSG->krm));
 #else
-            Sflg1			= Leaf_Scattering_Matrix (pL, pPR->Tertiary_leafL1, pPR->Tertiary_leafL2, pPR->Tertiary_leafL3, &(pSG->kr));
-            Sflg2			= Leaf_Scattering_Matrix (pL, pPR->Tertiary_leafL1, pPR->Tertiary_leafL2, pPR->Tertiary_leafL3, &(pSG->ki));
+            Sflg1			= Leaf_Scattering_Matrix (pL, pLeaf_Depolarization->x[0],  pLeaf_Depolarization->x[1], pLeaf_Depolarization->x[2], &(pSG->kr));
+            Sflg2			= Leaf_Scattering_Matrix (pL, pLeaf_Depolarization->x[0],  pLeaf_Depolarization->x[1], pLeaf_Depolarization->x[2], &(pSG->ki));
 #endif
+
             /**********************************/
             /* Calculate attenuation matrices */
             /**********************************/
@@ -645,33 +709,33 @@ double		Image_Foliage_Bounce	(Leaf *pL, SarGeometry *pSG, PolSARproSim_Record *p
    return		(weight_average);
 }
 
-double		Image_Cylinder_Bounce	(Cylinder *pC, SarGeometry *pSG, PolSARproSim_Record *pPR, double Sa_scaling, int flag)
+double		Image_Cylinder_Bounce	(Cylinder *pC, SarGeometry *pSG, PolSARproSim_Record *pPR, double Sa_scaling, int flag, c4Vector *pSVec)
 {
    d3Vector			cyl_centre			= d3Vector_sum (pC->base, d3Vector_double_multiply (pC->axis, 0.5*pC->length));
 #ifdef SWITCH_ATTENUATION_ON
    int				rtn_lookup;
-   double				gHi, gVi, gHr, gVr, gHs, gVs;
+   double			gHi, gVi, gHr, gVr, gHs, gVs;
 #endif
-   c33Matrix			Gi	= Idem_c33Matrix ();
-   c33Matrix			Gr	= Idem_c33Matrix ();
-   c33Matrix			Gs	= Idem_c33Matrix ();
+   c33Matrix		Gi	= Idem_c33Matrix ();
+   c33Matrix		Gr	= Idem_c33Matrix ();
+   c33Matrix		Gs	= Idem_c33Matrix ();
    c3Vector			Eh, Ev;
    Complex			Shh, Shv, Svh, Svv;
    Complex			zhhvv;
-   double				cyl_x, cyl_y, cyl_height;
-   double				focus_x, focus_y, focus_grange, focus_srange, focus_height, focus_angle;
-   double				weight_average	= 0.0;
+   double			cyl_x, cyl_y, cyl_height;
+   double			focus_x, focus_y, focus_grange, focus_srange, focus_height, focus_angle;
+   double			weight_average	= 0.0;
    Plane				Pg;
    d3Vector			g;
    d3Vector			nm	= d3Vector_double_multiply (pSG->n, -1.0);
    Ray				Rb;
    d3Vector			eff_bounce_centre;
-   double				bounce_distance;
+   double			bounce_distance;
    d3Vector			specular_point;
-   double				specular_distance;
-   double				eff_grange, eff_srange;
+   double			specular_distance;
+   double			eff_grange, eff_srange;
    d3Vector			a;
-   c33Matrix			Scyl1, Scyl2, ScylT;
+   c33Matrix		Scyl1, Scyl2, ScylT;
    int				rtn_value;
    d3Vector			tip;
    d3Vector			hil,  vil,  hsl,  vsl;
@@ -685,7 +749,7 @@ double		Image_Cylinder_Bounce	(Cylinder *pC, SarGeometry *pSG, PolSARproSim_Reco
    /************************/
    cyl_x				= cyl_centre.x[0];
    cyl_y				= cyl_centre.x[1];
-   cyl_height			= cyl_centre.x[2];
+   cyl_height		= cyl_centre.x[2];
    /***************************************/
    /* Equivalent upward pointing cylinder */
    /***************************************/
@@ -718,85 +782,95 @@ double		Image_Cylinder_Bounce	(Cylinder *pC, SarGeometry *pSG, PolSARproSim_Reco
             focus_height	= 0.0;
             focus_srange	= sqrt ((pSG->p_height-focus_height)*(pSG->p_height-focus_height) + (pSG->p_grange+focus_y)*(pSG->p_grange+focus_y));
             focus_angle    = atan2 (focus_grange, pSG->p_height);
-            /***********************************************************/
-            /* Additional wave and cylinder local polarisation vectors */
-            /***********************************************************/
-            rtn_value		= Polarisation_Vectors (pSG->ki,  pC->axis, &hil,   &vil);
-            rtn_value		= Polarisation_Vectors (pSG->ks,  pC->axis, &hsl,   &vsl);
-            rtn_value		= Polarisation_Vectors (pSG->kr,  pC->axis, &hrpl,  &vrpl);
-            rtn_value		= Polarisation_Vectors (pSG->krm, pC->axis, &hrml,  &vrml);
-            chil			= d3V2c3V (hil);
-            cvil			= d3V2c3V (vil);
-            chsl			= d3V2c3V (hsl);
-            cvsl			= d3V2c3V (vsl);
-            chrpl			= d3V2c3V (hrpl);
-            cvrpl			= d3V2c3V (vrpl);
-            chrml			= d3V2c3V (hrml);
-            cvrml			= d3V2c3V (vrml);
-            /******************************************/
-            /* Calculate the stem scattering matrices */
-            /******************************************/
-            if (flag == POLSARPROSIM_SAR_INF_TERTIARY_BRANCHES) {
-               Scyl2			= InfCylSav3	(pC, &(pSG->krm), &(pSG->ki), &(pSG->Ytable), &(pSG->Jtable), &fhhml, &fhvml, &fvhml, &fvvml);
-               fhhpl			= Copy_Complex (&fhhml);
-               fhvpl			= complex_rmul (fvhml, -1.0);
-               fvhpl			= complex_rmul (fhvml, -1.0);
-               fvvpl			= Copy_Complex (&fvvml);
-               Scyl1			= c33Matrix_Complex_product (c3Vector_dyadic_product (chsl, chrpl), fhhpl);
-               Scyl1			= c33Matrix_sum  (Scyl1, c33Matrix_Complex_product (c3Vector_dyadic_product (chsl, cvrpl), fhvpl));
-               Scyl1			= c33Matrix_sum  (Scyl1, c33Matrix_Complex_product (c3Vector_dyadic_product (cvsl, chrpl), fvhpl));
-               Scyl1			= c33Matrix_sum  (Scyl1, c33Matrix_Complex_product (c3Vector_dyadic_product (cvsl, cvrpl), fvvpl));
-            } else {
-               Scyl1			= GrgCylSa		(pC, &(pSG->ks),  &(pSG->kr));
-               Scyl2			= GrgCylSa		(pC, &(pSG->krm), &(pSG->ki));
-            }
-            /**********************************/
-            /* Calculate attenuation matrices */
-            /**********************************/
+            if(pPR->ForestFastMode[pSG->track] == FOREST_FAST_MODE_OFF){
+               /***********************************************************/
+               /* Additional wave and cylinder local polarisation vectors */
+               /***********************************************************/
+               rtn_value		= Polarisation_Vectors (pSG->ki,  pC->axis, &hil,   &vil);
+               rtn_value		= Polarisation_Vectors (pSG->ks,  pC->axis, &hsl,   &vsl);
+               rtn_value		= Polarisation_Vectors (pSG->kr,  pC->axis, &hrpl,  &vrpl);
+               rtn_value		= Polarisation_Vectors (pSG->krm, pC->axis, &hrml,  &vrml);
+               chil           = d3V2c3V (hil);
+               cvil           = d3V2c3V (vil);
+               chsl           = d3V2c3V (hsl);
+               cvsl           = d3V2c3V (vsl);
+               chrpl          = d3V2c3V (hrpl);
+               cvrpl          = d3V2c3V (vrpl);
+               chrml          = d3V2c3V (hrml);
+               cvrml          = d3V2c3V (vrml);
+               /******************************************/
+               /* Calculate the stem scattering matrices */
+               /******************************************/
+               if (flag == POLSARPROSIM_SAR_INF_TERTIARY_BRANCHES) {
+                  Scyl2			= InfCylSav3	(pC, &(pSG->krm), &(pSG->ki), &(pSG->Ytable), &(pSG->Jtable), &fhhml, &fhvml, &fvhml, &fvvml);
+                  fhhpl			= Copy_Complex (&fhhml);
+                  fhvpl			= complex_rmul (fvhml, -1.0);
+                  fvhpl			= complex_rmul (fhvml, -1.0);
+                  fvvpl			= Copy_Complex (&fvvml);
+                  Scyl1			= c33Matrix_Complex_product (c3Vector_dyadic_product (chsl, chrpl), fhhpl);
+                  Scyl1			= c33Matrix_sum  (Scyl1, c33Matrix_Complex_product (c3Vector_dyadic_product (chsl, cvrpl), fhvpl));
+                  Scyl1			= c33Matrix_sum  (Scyl1, c33Matrix_Complex_product (c3Vector_dyadic_product (cvsl, chrpl), fvhpl));
+                  Scyl1			= c33Matrix_sum  (Scyl1, c33Matrix_Complex_product (c3Vector_dyadic_product (cvsl, cvrpl), fvvpl));
+               } else {
+                  Scyl1			= GrgCylSa		(pC, &(pSG->ks),  &(pSG->kr));
+                  Scyl2			= GrgCylSa		(pC, &(pSG->krm), &(pSG->ki));
+               }
+               /**********************************/
+               /* Calculate attenuation matrices */
+               /**********************************/
 #ifdef SWITCH_ATTENUATION_ON
-            rtn_lookup		= Lookup_Direct_Attenuation (specular_point, pPR, &gHi, &gVi);
-            rtn_lookup		= Lookup_Bounce_Attenuation (cyl_centre,     pPR, &gHr, &gVr);
-            rtn_lookup		= Lookup_Direct_Attenuation (cyl_centre,     pPR, &gHs, &gVs);
-            Gi				= c33Matrix_Complex_product (c3Vector_dyadic_product (pSG->chi, pSG->chi), xy_complex (gHi, 0.0));
-            Gi				= c33Matrix_sum (Gi, c33Matrix_Complex_product (c3Vector_dyadic_product (pSG->cvi, pSG->cvi), xy_complex (gVi, 0.0)));
-            Gr				= c33Matrix_Complex_product (c3Vector_dyadic_product (pSG->chr, pSG->chr), xy_complex (gHr, 0.0));
-            Gr				= c33Matrix_sum (Gr, c33Matrix_Complex_product (c3Vector_dyadic_product (pSG->cvr, pSG->cvr), xy_complex (gVr, 0.0)));
-            Gs				= c33Matrix_Complex_product (c3Vector_dyadic_product (pSG->chs, pSG->chs), xy_complex (gHs, 0.0));
-            Gs				= c33Matrix_sum (Gs, c33Matrix_Complex_product (c3Vector_dyadic_product (pSG->cvs, pSG->cvs), xy_complex (gVs, 0.0)));
+               rtn_lookup		= Lookup_Direct_Attenuation (specular_point, pPR, &gHi, &gVi);
+               rtn_lookup		= Lookup_Bounce_Attenuation (cyl_centre,     pPR, &gHr, &gVr);
+               rtn_lookup		= Lookup_Direct_Attenuation (cyl_centre,     pPR, &gHs, &gVs);
+               Gi             = c33Matrix_Complex_product (c3Vector_dyadic_product (pSG->chi, pSG->chi), xy_complex (gHi, 0.0));
+               Gi             = c33Matrix_sum (Gi, c33Matrix_Complex_product (c3Vector_dyadic_product (pSG->cvi, pSG->cvi), xy_complex (gVi, 0.0)));
+               Gr             = c33Matrix_Complex_product (c3Vector_dyadic_product (pSG->chr, pSG->chr), xy_complex (gHr, 0.0));
+               Gr             = c33Matrix_sum (Gr, c33Matrix_Complex_product (c3Vector_dyadic_product (pSG->cvr, pSG->cvr), xy_complex (gVr, 0.0)));
+               Gs             = c33Matrix_Complex_product (c3Vector_dyadic_product (pSG->chs, pSG->chs), xy_complex (gHs, 0.0));
+               Gs             = c33Matrix_sum (Gs, c33Matrix_Complex_product (c3Vector_dyadic_product (pSG->cvs, pSG->cvs), xy_complex (gVs, 0.0)));
 #endif
-            /*******************************************************************/
-            /* Incorporate reflection and attenuation into scattering matrices */
-            /*******************************************************************/
-            Scyl1			= c33Matrix_product (Gs, Scyl1);
-            Scyl1			= c33Matrix_product (Scyl1, Gr);
-            Scyl1			= c33Matrix_product (Scyl1, pSG->R1);
-            Scyl1			= c33Matrix_product (Scyl1, Gi);
-            Scyl2			= c33Matrix_product (Scyl2, Gs);
-            Scyl2			= c33Matrix_product (Gr, Scyl2);
-            Scyl2			= c33Matrix_product (pSG->R2, Scyl2);
-            Scyl2			= c33Matrix_product (Gi, Scyl2);
-            ScylT			= c33Matrix_sum     (Scyl1, Scyl2);
-            /**************************************************/
-            /* Calculate the scatterimg amplitudes in the FSA */
-            /**************************************************/
-            Eh				= c33Matrix_c3Vector_product (ScylT, pSG->chi);
-            Ev				= c33Matrix_c3Vector_product (ScylT, pSG->cvi);
-            Shh				= c3Vector_scalar_product (pSG->chs, Eh);
-            Shv				= c3Vector_scalar_product (pSG->chs, Ev);
-            Svh				= c3Vector_scalar_product (pSG->cvs, Eh);
-            Svv				= c3Vector_scalar_product (pSG->cvs, Ev);
-            /*****************************************/
-            /* Incorporate stochastic scaling factor */
-            /*****************************************/
-            Shh				= complex_rmul (Shh, Sa_scaling);
-            Shv				= complex_rmul (Shv, Sa_scaling);
-            Svh				= complex_rmul (Svh, Sa_scaling);
-            Svv				= complex_rmul (Svv, Sa_scaling);
-            /************************************************/
-            /* Convert the scattering amplitudes to the BSA */
-            /************************************************/
-            Shh				= complex_rmul (Shh, -1.0);
-            Shv				= complex_rmul (Shv, -1.0);
+               /*******************************************************************/
+               /* Incorporate reflection and attenuation into scattering matrices */
+               /*******************************************************************/
+               Scyl1          = c33Matrix_product (Gs, Scyl1);
+               Scyl1          = c33Matrix_product (Scyl1, Gr);
+               Scyl1          = c33Matrix_product (Scyl1, pSG->R1);
+               Scyl1          = c33Matrix_product (Scyl1, Gi);
+               Scyl2          = c33Matrix_product (Scyl2, Gs);
+               Scyl2          = c33Matrix_product (Gr, Scyl2);
+               Scyl2          = c33Matrix_product (pSG->R2, Scyl2);
+               Scyl2          = c33Matrix_product (Gi, Scyl2);
+               ScylT          = c33Matrix_sum     (Scyl1, Scyl2);
+               /**************************************************/
+               /* Calculate the scatterimg amplitudes in the FSA */
+               /**************************************************/
+               Eh             = c33Matrix_c3Vector_product (ScylT, pSG->chi);
+               Ev             = c33Matrix_c3Vector_product (ScylT, pSG->cvi);
+               Shh				= c3Vector_scalar_product (pSG->chs, Eh);
+               Shv				= c3Vector_scalar_product (pSG->chs, Ev);
+               Svh				= c3Vector_scalar_product (pSG->cvs, Eh);
+               Svv				= c3Vector_scalar_product (pSG->cvs, Ev);
+               /*****************************************/
+               /* Incorporate stochastic scaling factor */
+               /*****************************************/
+               Shh				= complex_rmul (Shh, Sa_scaling);
+               Shv				= complex_rmul (Shv, Sa_scaling);
+               Svh				= complex_rmul (Svh, Sa_scaling);
+               Svv				= complex_rmul (Svv, Sa_scaling);
+               /************************************************/
+               /* Convert the scattering amplitudes to the BSA */
+               /************************************************/
+               Shh				= complex_rmul (Shh, -1.0);
+               Shv				= complex_rmul (Shv, -1.0);
+               if(pSG->track == 0){
+                  *pSVec      = Assign_c4Vector (Shh, Shv, Svh, Svv);
+               }
+            }else{
+               Shh            = pSVec->z[0];
+               Shv            = pSVec->z[1];
+               Svh            = pSVec->z[2];
+               Svv            = pSVec->z[3];
+            }
             /**************************************/
             /* Monitor backscattering coefficient */
             /**************************************/
@@ -844,7 +918,9 @@ int		Image_Tree_Bounce		(Tree *pT, SarGeometry *pSG, PolSARproSim_Record *pPR)
    double            flg_scaling;
    long              iLeaf;
    Leaf              *pL;
-   double            leafL1, leafL2, leafL3; //to calculate leaf depolarization factors
+   double            leafL1, leafL2, leafL3;       //to calculate leaf depolarization factors
+   d3Vector          Ldvec;
+   c4Vector          Sbounce;             //bounce scattering vectors S = [Shh, Shv, Svh, Svv]
    /************************************
     ** This part edited out along with **
     ** the Tertiary imaging section    **
@@ -875,6 +951,8 @@ int		Image_Tree_Bounce		(Tree *pT, SarGeometry *pSG, PolSARproSim_Record *pPR)
    /* Initialise variables */
    /************************/
    Create_Cylinder (&cyl1);
+   Create_d3Vector (&Ldvec);
+   Create_c4Vector (&Sbounce);
 #ifndef FORCE_GRG_CYLINDERS
    Cscatt_Flag	= POLSARPROSIM_SAR_INF_TERTIARY_BRANCHES;
 #else
@@ -894,7 +972,7 @@ int		Image_Tree_Bounce		(Tree *pT, SarGeometry *pSG, PolSARproSim_Record *pPR)
          deltar		= (pB->start_radius - pB->end_radius) / (double) Nsections;
          for (i_section = 0; i_section < Nsections; i_section++) {
             rtn_value		= Cylinder_from_Branch (&cyl1, pB, i_section, Nsections);
-            weight_sum		+= Image_Cylinder_Bounce (&cyl1, pSG, pPR, 1.0, Cscatt_Flag);
+            weight_sum		+= Image_Cylinder_Bounce (&cyl1, pSG, pPR, 1.0, Cscatt_Flag, &Sbounce);
             weight_count	+= 1.0;
          }
          pB			= pB->next;
@@ -917,7 +995,7 @@ int		Image_Tree_Bounce		(Tree *pT, SarGeometry *pSG, PolSARproSim_Record *pPR)
          deltar		= (pB->start_radius - pB->end_radius) / (double) Nsections;
          for (i_section = 0; i_section < Nsections; i_section++) {
             rtn_value		= Cylinder_from_Branch (&cyl1, pB, i_section, Nsections);
-            weight_sum		+= Image_Cylinder_Bounce (&cyl1, pSG, pPR, 1.0, Cscatt_Flag);
+            weight_sum		+= Image_Cylinder_Bounce (&cyl1, pSG, pPR, 1.0, Cscatt_Flag, &Sbounce);
             weight_count	+= 1.0;
          }
          pB			= pB->next;
@@ -935,7 +1013,7 @@ int		Image_Tree_Bounce		(Tree *pT, SarGeometry *pSG, PolSARproSim_Record *pPR)
          deltar		= (pB->start_radius - pB->end_radius) / (double) Nsections;
          for (i_section = 0; i_section < Nsections; i_section++) {
             rtn_value		= Cylinder_from_Branch (&cyl1, pB, i_section, Nsections);
-            weight_sum		+= Image_Cylinder_Bounce (&cyl1, pSG, pPR, 1.0, Cscatt_Flag);
+            weight_sum		+= Image_Cylinder_Bounce (&cyl1, pSG, pPR, 1.0, Cscatt_Flag, &Sbounce);
             weight_count	+= 1.0;
          }
          pB			= pB->next;
@@ -957,7 +1035,7 @@ int		Image_Tree_Bounce		(Tree *pT, SarGeometry *pSG, PolSARproSim_Record *pPR)
          deltar		= (pB->start_radius - pB->end_radius) / (double) Nsections;
          for (i_section = 0; i_section < Nsections; i_section++) {
             rtn_value		= Cylinder_from_Branch (&cyl1, pB, i_section, Nsections);
-            weight_sum		+= Image_Cylinder_Bounce (&cyl1, pSG, pPR, 1.0, Cscatt_Flag);
+            weight_sum		+= Image_Cylinder_Bounce (&cyl1, pSG, pPR, 1.0, Cscatt_Flag, &Sbounce);
             weight_count	+= 1.0;
          }
          pB			= pB->next;
@@ -1027,7 +1105,7 @@ int		Image_Tree_Bounce		(Tree *pT, SarGeometry *pSG, PolSARproSim_Record *pPR)
          deltar          = (pB->start_radius - pB->end_radius) / (double) Nsections;
          for (i_section = 0; i_section < Nsections; i_section++) {
             rtn_value			= Cylinder_from_Branch (&cyl1, pB, i_section, Nsections);
-            weight_sum			+= Image_Cylinder_Bounce (&cyl1, pSG, pPR, tb_scaling, Cscatt_Flag);
+            weight_sum			+= Image_Cylinder_Bounce (&cyl1, pSG, pPR, tb_scaling, Cscatt_Flag, &Sbounce);
             weight_count		+= 1.0;
          }
          pB = pB->next;
@@ -1082,10 +1160,11 @@ int		Image_Tree_Bounce		(Tree *pT, SarGeometry *pSG, PolSARproSim_Record *pPR)
       flg_scaling  = pT->Foliage.scale_factor;
       for (iLeaf=0L; iLeaf < pT->Foliage.n; iLeaf++) {
          Leaf_Depolarization_Factors (pL, &leafL1, &leafL2, &leafL3);
-         pPR->Tertiary_leafL1	= leafL1;
-         pPR->Tertiary_leafL2	= leafL2;
-         pPR->Tertiary_leafL3	= leafL3;
-         weight_sum          += Image_Foliage_Bounce (pL, pSG, pPR, flg_scaling);
+//         pPR->Tertiary_leafL1	= leafL1;
+//         pPR->Tertiary_leafL2	= leafL2;
+//         pPR->Tertiary_leafL3	= leafL3;
+         Ldvec = Cartesian_Assign_d3Vector(leafL1, leafL2, leafL3);
+         weight_sum          += Image_Foliage_Bounce (pL, pSG, pPR, flg_scaling, &Ldvec, &Sbounce);
          weight_count        += 1.0;
          pL                   = pL->next;
       }
@@ -1201,7 +1280,8 @@ int		Image_Tree_Direct		(Tree *pT, SarGeometry *pSG, PolSARproSim_Record *pPR)
    Leaf             *pL;
    int              Cscatt_Flag;
    double           leafL1, leafL2, leafL3; //to calculate leaf depolarization factors
-   
+   d3Vector         Ldvec;
+   c4Vector         Sdirect;             // direct scattering vector S = [Shh, Shv, Svh, Svv]
    /************************************
     ** This part edited out along with **
     ** the Tertiary imaging section    **
@@ -1233,6 +1313,9 @@ int		Image_Tree_Direct		(Tree *pT, SarGeometry *pSG, PolSARproSim_Record *pPR)
    /* Initialise variables */
    /************************/
    Create_Cylinder (&cyl1);
+   Create_d3Vector (&Ldvec);
+   Create_c4Vector(&Sdirect);
+
 #ifndef FORCE_GRG_CYLINDERS
    Cscatt_Flag	= POLSARPROSIM_SAR_INF_TERTIARY_BRANCHES;
 #else
@@ -1252,7 +1335,7 @@ int		Image_Tree_Direct		(Tree *pT, SarGeometry *pSG, PolSARproSim_Record *pPR)
          deltar		= (pB->start_radius - pB->end_radius) / (double) Nsections;
          for (i_section = 0; i_section < Nsections; i_section++) {
             rtn_value	= Cylinder_from_Branch (&cyl1, pB, i_section, Nsections);
-            weight_sum	+= Image_Cylinder_Direct (&cyl1, pSG, pPR, 1.0, Cscatt_Flag);
+            weight_sum	+= Image_Cylinder_Direct (&cyl1, pSG, pPR, 1.0, Cscatt_Flag, &Sdirect);
             weight_count	+= 1.0;
          }
          pB			= pB->next;
@@ -1274,7 +1357,7 @@ int		Image_Tree_Direct		(Tree *pT, SarGeometry *pSG, PolSARproSim_Record *pPR)
          deltar		= (pB->start_radius - pB->end_radius) / (double) Nsections;
          for (i_section = 0; i_section < Nsections; i_section++) {
             rtn_value	= Cylinder_from_Branch (&cyl1, pB, i_section, Nsections);
-            weight_sum	+= Image_Cylinder_Direct (&cyl1, pSG, pPR, 1.0, Cscatt_Flag);
+            weight_sum	+= Image_Cylinder_Direct (&cyl1, pSG, pPR, 1.0, Cscatt_Flag, &Sdirect);
             weight_count	+= 1.0;
          }
          pB			= pB->next;
@@ -1291,7 +1374,7 @@ int		Image_Tree_Direct		(Tree *pT, SarGeometry *pSG, PolSARproSim_Record *pPR)
          deltar		= (pB->start_radius - pB->end_radius) / (double) Nsections;
          for (i_section = 0; i_section < Nsections; i_section++) {
             rtn_value	= Cylinder_from_Branch (&cyl1, pB, i_section, Nsections);
-            weight_sum	+= Image_Cylinder_Direct (&cyl1, pSG, pPR, 1.0, Cscatt_Flag);
+            weight_sum	+= Image_Cylinder_Direct (&cyl1, pSG, pPR, 1.0, Cscatt_Flag, &Sdirect);
             weight_count	+= 1.0;
          }
          pB			= pB->next;
@@ -1313,7 +1396,7 @@ int		Image_Tree_Direct		(Tree *pT, SarGeometry *pSG, PolSARproSim_Record *pPR)
          deltar		= (pB->start_radius - pB->end_radius) / (double) Nsections;
          for (i_section = 0; i_section < Nsections; i_section++) {
             rtn_value	= Cylinder_from_Branch (&cyl1, pB, i_section, Nsections);
-            weight_sum	+= Image_Cylinder_Direct (&cyl1, pSG, pPR, 1.0, Cscatt_Flag);
+            weight_sum	+= Image_Cylinder_Direct (&cyl1, pSG, pPR, 1.0, Cscatt_Flag, &Sdirect);
             weight_count	+= 1.0;
          }
          pB			= pB->next;
@@ -1380,7 +1463,7 @@ int		Image_Tree_Direct		(Tree *pT, SarGeometry *pSG, PolSARproSim_Record *pPR)
          deltar          = (pB->start_radius - pB->end_radius) / (double) Nsections;
          for (i_section = 0; i_section < Nsections; i_section++) {
             rtn_value     = Cylinder_from_Branch (&cyl1, pB, i_section, Nsections);
-            weight_sum		+= Image_Cylinder_Direct (&cyl1, pSG, pPR, tb_scaling, Cscatt_Flag);
+            weight_sum		+= Image_Cylinder_Direct (&cyl1, pSG, pPR, tb_scaling, Cscatt_Flag, &Sdirect);
             weight_count	+= 1.0;
          }
          pB              = pB->next;
@@ -1431,13 +1514,13 @@ int		Image_Tree_Direct		(Tree *pT, SarGeometry *pSG, PolSARproSim_Record *pPR)
       weight_count	= 0.0;
       pL             = pT->Foliage.head;
       flg_scaling    = pT->Foliage.scale_factor;
-      
       for (iLeaf=0L; iLeaf < pT->Foliage.n; iLeaf++) {
          Leaf_Depolarization_Factors (pL, &leafL1, &leafL2, &leafL3);
-         pPR->Tertiary_leafL1	= leafL1;
-         pPR->Tertiary_leafL2	= leafL2;
-         pPR->Tertiary_leafL3	= leafL3;
-         weight_sum           += Image_Foliage_Direct (pL, pSG, pPR, flg_scaling);
+         Ldvec = Cartesian_Assign_d3Vector(leafL1, leafL2, leafL3);
+//         pPR->Tertiary_leafL1	= leafL1;
+//         pPR->Tertiary_leafL2	= leafL2;
+//         pPR->Tertiary_leafL3	= leafL3;
+         weight_sum           += Image_Foliage_Direct (pL, pSG, pPR, flg_scaling, &Ldvec, &Sdirect);
          weight_count         += 1.0;
          pL = pL->next;
       }
@@ -1567,11 +1650,13 @@ void		*Image_Tree_SMP		(void *threadarg)
    Leaf              *pL;
    int               Cscatt_Flag;
    double            leafL1, leafL2, leafL3;       //to calculate leaf depolarization factors
+   d3Vector          Ldvec;   // leaf depolarization vector
    double            weight_sum2;
    int               track;                        // to loop over tracks
    d3Vector          motion_offset;                // offset for adding motion to a cylinder/leaf 
    double            moisture_offset;              // offset for adding moisture to a cylinder/leaf
    double            change_start_height;          // to allow re-computation of offsets to preserve vertical profiles
+   c4Vector          Sdirect, Sbounce;             // direct and bounce scattering vectors S = [Shh, Shv, Svh, Svv]
    /************************/
    /* Initialise variables */
    /************************/
@@ -1582,7 +1667,9 @@ void		*Image_Tree_SMP		(void *threadarg)
    Cscatt_Flag	= POLSARPROSIM_SAR_GRG_TERTIARY_BRANCHES;
 #endif
    Create_d3Vector(&motion_offset);
-   
+   Create_d3Vector(&Ldvec);
+   Create_c4Vector(&Sdirect);
+   Create_c4Vector(&Sbounce);
    /*******************/
    /* Image the stems */
    /*******************/
@@ -1599,19 +1686,19 @@ void		*Image_Tree_SMP		(void *threadarg)
          change_start_height  = pB->b0.x[2];
          for (track=0;track<pPR->Tracks;track++){
             /* compute initial change in branch properties (position and moisture) */
-            Model_Branch_Change (pT, pB, pPR, track, &motion_offset, &moisture_offset, change_start_height);
+            Model_Change (pT, pPR, track, &motion_offset, &moisture_offset, change_start_height);
             for (i_section = 0; i_section < Nsections; i_section++) {
                rtn_value	= Cylinder_from_Branch (&cyl1, pB, i_section, Nsections);
                /* recompute changed properties if branch exceed a height level */
                if(cyl1.base.x[2] > change_start_height + pPR->change_height_delta) {
-                  Model_Branch_Change (pT, pB, pPR, track, &motion_offset, &moisture_offset, cyl1.base.x[2]);
+                  Model_Change (pT, pPR, track, &motion_offset, &moisture_offset, cyl1.base.x[2]);
                   change_start_height = cyl1.base.x[2];
                }
                /* change the cylinder properties */
                Change_Cylinder (&cyl1, pB, pPR, motion_offset, moisture_offset, track);
                /* image cylinders */
-               weight_sum	+= Image_Cylinder_Direct (&cyl1, &(pSGdirect[track]), pPR, 1.0, Cscatt_Flag);
-               weight_sum2	+= Image_Cylinder_Bounce (&cyl1, &(pSGbounce[track]), pPR, 1.0, Cscatt_Flag);                  
+               weight_sum	+= Image_Cylinder_Direct (&cyl1, &(pSGdirect[track]), pPR, 1.0, Cscatt_Flag, &Sdirect);
+               weight_sum2	+= Image_Cylinder_Bounce (&cyl1, &(pSGbounce[track]), pPR, 1.0, Cscatt_Flag, &Sbounce);                  
                weight_count	+= 1.0;
             }
          }
@@ -1634,19 +1721,19 @@ void		*Image_Tree_SMP		(void *threadarg)
          change_start_height  = pB->b0.x[2];
          for (track=0;track<pPR->Tracks;track++){
             /* compute initial change in branch properties (position and moisture) */
-            Model_Branch_Change (pT, pB, pPR, track, &motion_offset, &moisture_offset, change_start_height);
+            Model_Change (pT, pPR, track, &motion_offset, &moisture_offset, change_start_height);
             for (i_section = 0; i_section < Nsections; i_section++) {
                rtn_value	= Cylinder_from_Branch (&cyl1, pB, i_section, Nsections);
                /* recompute changed properties if branch exceed a height level */
                if(cyl1.base.x[2] > change_start_height + pPR->change_height_delta) {
-                  Model_Branch_Change (pT, pB, pPR, track, &motion_offset, &moisture_offset, cyl1.base.x[2]);
+                  Model_Change (pT, pPR, track, &motion_offset, &moisture_offset, cyl1.base.x[2]);
                   change_start_height = cyl1.base.x[2];
                }
                /* change the cylinder properties */
                Change_Cylinder (&cyl1, pB, pPR, motion_offset, moisture_offset, track); 
                /* image cylinders */
-               weight_sum	+= Image_Cylinder_Direct (&cyl1, &(pSGdirect[track]), pPR, 1.0, Cscatt_Flag);
-               weight_sum2	+= Image_Cylinder_Bounce (&cyl1, &(pSGbounce[track]), pPR, 1.0, Cscatt_Flag);
+               weight_sum	+= Image_Cylinder_Direct (&cyl1, &(pSGdirect[track]), pPR, 1.0, Cscatt_Flag, &Sdirect);
+               weight_sum2	+= Image_Cylinder_Bounce (&cyl1, &(pSGbounce[track]), pPR, 1.0, Cscatt_Flag, &Sbounce);
                weight_count	+= 1.0;
             }
          }
@@ -1664,19 +1751,19 @@ void		*Image_Tree_SMP		(void *threadarg)
          change_start_height  = pB->b0.x[2];
          for (track=0;track<pPR->Tracks;track++){
             /* compute initial change in branch properties (position and moisture) */
-            Model_Branch_Change (pT, pB, pPR, track, &motion_offset, &moisture_offset, change_start_height);
+            Model_Change (pT, pPR, track, &motion_offset, &moisture_offset, change_start_height);
             for (i_section = 0; i_section < Nsections; i_section++) {
                rtn_value	= Cylinder_from_Branch (&cyl1, pB, i_section, Nsections);
                /* recompute changed properties if branch exceed a height level */
                if(cyl1.base.x[2] > change_start_height + pPR->change_height_delta) {
-                  Model_Branch_Change (pT, pB, pPR, track, &motion_offset, &moisture_offset, cyl1.base.x[2]);
+                  Model_Change (pT, pPR, track, &motion_offset, &moisture_offset, cyl1.base.x[2]);
                   change_start_height = cyl1.base.x[2];
                }
                /* change the cylinder properties */
                Change_Cylinder (&cyl1, pB, pPR, motion_offset, moisture_offset, track); 
                /* image cylinders */
-               weight_sum	+= Image_Cylinder_Direct (&cyl1, &(pSGdirect[track]), pPR, 1.0, Cscatt_Flag);
-               weight_sum2	+= Image_Cylinder_Bounce (&cyl1, &(pSGbounce[track]), pPR, 1.0, Cscatt_Flag);
+               weight_sum	+= Image_Cylinder_Direct (&cyl1, &(pSGdirect[track]), pPR, 1.0, Cscatt_Flag, &Sdirect);
+               weight_sum2	+= Image_Cylinder_Bounce (&cyl1, &(pSGbounce[track]), pPR, 1.0, Cscatt_Flag, &Sbounce);
                weight_count	+= 1.0;
             }
          }
@@ -1699,19 +1786,19 @@ void		*Image_Tree_SMP		(void *threadarg)
          change_start_height  = pB->b0.x[2];
          for (track=0;track<pPR->Tracks;track++){
             /* compute initial change in branch properties (position and moisture) */
-            Model_Branch_Change (pT, pB, pPR, track, &motion_offset, &moisture_offset, change_start_height);
+            Model_Change (pT, pPR, track, &motion_offset, &moisture_offset, change_start_height);
             for (i_section = 0; i_section < Nsections; i_section++) {
                rtn_value	= Cylinder_from_Branch (&cyl1, pB, i_section, Nsections);
                /* recompute changed properties if branch exceed a height level */
                if(cyl1.base.x[2] > change_start_height + pPR->change_height_delta) {
-                  Model_Branch_Change (pT, pB, pPR, track, &motion_offset, &moisture_offset, cyl1.base.x[2]);
+                  Model_Change (pT, pPR, track, &motion_offset, &moisture_offset, cyl1.base.x[2]);
                   change_start_height = cyl1.base.x[2];
                }
                /* change the cylinder properties */
                Change_Cylinder (&cyl1, pB, pPR, motion_offset, moisture_offset, track); 
                /* image cylinders */
-               weight_sum	+= Image_Cylinder_Direct (&cyl1, &(pSGdirect[track]), pPR, 1.0, Cscatt_Flag);
-               weight_sum2	+= Image_Cylinder_Bounce (&cyl1, &(pSGbounce[track]), pPR, 1.0, Cscatt_Flag);
+               weight_sum	+= Image_Cylinder_Direct (&cyl1, &(pSGdirect[track]), pPR, 1.0, Cscatt_Flag, &Sdirect);
+               weight_sum2	+= Image_Cylinder_Bounce (&cyl1, &(pSGbounce[track]), pPR, 1.0, Cscatt_Flag, &Sbounce);
                weight_count	+= 1.0;
             }
          }
@@ -1742,19 +1829,19 @@ void		*Image_Tree_SMP		(void *threadarg)
          change_start_height  = pB->b0.x[2];
          for (track=0;track<pPR->Tracks;track++){
             /* compute initial change in branch properties (position and moisture) */
-            Model_Branch_Change (pT, pB, pPR, track, &motion_offset, &moisture_offset, change_start_height);
+            Model_Change (pT, pPR, track, &motion_offset, &moisture_offset, change_start_height);
             for (i_section = 0; i_section < Nsections; i_section++) {
                rtn_value     = Cylinder_from_Branch (&cyl1, pB, i_section, Nsections);
                /* recompute changed properties if branch exceed a height level */
                if(cyl1.base.x[2] > change_start_height + pPR->change_height_delta) {
-                  Model_Branch_Change (pT, pB, pPR, track, &motion_offset, &moisture_offset, cyl1.base.x[2]);
+                  Model_Change (pT, pPR, track, &motion_offset, &moisture_offset, cyl1.base.x[2]);
                   change_start_height = cyl1.base.x[2];
                }
                /* change the cylinder properties */
                Change_Cylinder (&cyl1, pB, pPR, motion_offset, moisture_offset, track); 
                /* image cylinders */
-               weight_sum		+= Image_Cylinder_Direct (&cyl1, &(pSGdirect[track]), pPR, tb_scaling, Cscatt_Flag);
-               weight_sum2		+= Image_Cylinder_Bounce (&cyl1, &(pSGbounce[track]), pPR, tb_scaling, Cscatt_Flag);
+               weight_sum		+= Image_Cylinder_Direct (&cyl1, &(pSGdirect[track]), pPR, tb_scaling, Cscatt_Flag, &Sdirect);
+               weight_sum2		+= Image_Cylinder_Bounce (&cyl1, &(pSGbounce[track]), pPR, tb_scaling, Cscatt_Flag, &Sbounce);
                weight_count	+= 1.0;
             }
          }
@@ -1772,14 +1859,17 @@ void		*Image_Tree_SMP		(void *threadarg)
       weight_count	= 0.0;
       pL             = pT->Foliage.head;
       flg_scaling    = pT->Foliage.scale_factor;
+      Leaf_Depolarization_Factors (pL, &leafL1, &leafL2, &leafL3);
+      Ldvec = Cartesian_Assign_d3Vector(leafL1, leafL2, leafL3);
+//            pPR->Tertiary_leafL1	= leafL1;
+//            pPR->Tertiary_leafL2	= leafL2;
+//            pPR->Tertiary_leafL3	= leafL3;
       for (iLeaf=0L; iLeaf < pT->Foliage.n; iLeaf++) {
-         Leaf_Depolarization_Factors (pL, &leafL1, &leafL2, &leafL3);
-         pPR->Tertiary_leafL1	= leafL1;
-         pPR->Tertiary_leafL2	= leafL2;
-         pPR->Tertiary_leafL3	= leafL3;
          for (track=0;track<pPR->Tracks;track++){
-            weight_sum           += Image_Foliage_Direct (pL, &(pSGdirect[track]), pPR, flg_scaling);
-            weight_sum2          += Image_Foliage_Bounce (pL, &(pSGbounce[track]), pPR, flg_scaling);
+            Model_Change (pT, pPR, track, &motion_offset, &moisture_offset, pL->cl.x[2]);
+            Change_Leaf  (pL, pPR, motion_offset, moisture_offset, track); 
+            weight_sum           += Image_Foliage_Direct (pL, &(pSGdirect[track]), pPR, flg_scaling, &Ldvec, &Sdirect);
+            weight_sum2          += Image_Foliage_Bounce (pL, &(pSGbounce[track]), pPR, flg_scaling, &Ldvec, &Sbounce);
             weight_count         += 1.0;
          }
          pL = pL->next;

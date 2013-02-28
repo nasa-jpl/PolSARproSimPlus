@@ -277,7 +277,7 @@
 /* Acceptance testing controls */
 /*******************************/
 
-//#define	SWITCH_ATTENUATION_ON
+#define	SWITCH_ATTENUATION_ON
 /* No attenuation effects if undefined							*/
 /*#define	RAYLEIGH_LEAF										*/
 /* Rayleigh scattering for short vegi and foliage if defined	*/
@@ -401,5 +401,102 @@
 #define  CHANGE_HEIGHT_DELTA                 2.0
 /* whether to write out statistics of change profiles */
 //#define  OUTPUT_CHANGE_STATS_ON
+
+/**********************************************/
+/* PARAMETER FILE MIN/MAX/DEFAULTS            */
+/**********************************************/
+
+#define  TRACK_NUMBER_MIN              1
+#define  TRACK_NUMBER_MAX              INT_MAX
+#define  TRACK_NUMBER_DEFAULT          1
+
+#define  SLANT_RANGE_MIN               0.0
+#define  SLANT_RANGE_MAX               DBL_MAX
+#define  SLANT_RANGE_DEFAULT           14000.0        /* for a default height of 12km */
+
+#define  INC_ANGLE_MIN                 0.0
+#define  INC_ANGLE_MAX                 90.0           /* Maximum Incidence angle */
+#define  INC_ANGLE_DEFAULT             40.0           /* Default Incidence angle */
+
+#define  RADAR_FREQUENCY_MIN           0.03           /* Minimum Radar frequency */
+#define  RADAR_FREQUENCY_MAX           10.0           /* Maximum Radar frequency */
+#define  RADAR_FREQUENCY_DEFAULT       1.25           /* Default at L-band       */
+
+#define  AZIMUTH_RESOLUTION_MIN        0.01           
+#define  AZIMUTH_RESOLUTION_MAX        DBL_MAX
+#define  AZIMUTH_RESOLUTION_DEFAULT    1.0            /* 1m default resolution   */
+
+#define  RANGE_RESOLUTION_MIN          0.01           
+#define  RANGE_RESOLUTION_MAX          DBL_MAX
+#define  RANGE_RESOLUTION_DEFAULT      1.0            /* 1m default resolution   */
+
+#define  DEM_MODEL_MIN                 0              /* smoothest               */
+#define  DEM_MODEL_MAX                 10             /* roughest                */
+#define  DEM_MODEL_DEFAULT             5              /* medium roughness        */
+
+#define  SLOPE_MIN                     0.0
+#define  SLOPE_MAX                     1.0
+#define  SLOPE_DEFAULT                 0.01
+
+#define  SEED_MIN                      0
+#define  SEED_MAX                      INT_MAX
+#define  SEED_DEFAULT                  42             /* answer to life, Adams et al. 1980  */
+
+#define  GLOBAL_SPECIES_MIN            0
+#define  GLOBAL_SPECIES_MAX            INT_MAX        /* ideally one can have a lot of species defined */
+#define  GLOBAL_SPECIES_DEFAULT        2
+
+#define  GLOBAL_TREE_HEIGHT_MIN        1.0
+#define  GLOBAL_TREE_HEIGHT_MAX        115.72         /* Hyperion, circa 2006, a Sequoia sempervirens */
+#define  GLOBAL_TREE_HEIGHT_DEFAULT    30.0
+
+#define  STAND_AREA_MIN                0.0
+#define  STAND_AREA_MAX                DBL_MAX
+#define  STAND_AREA_DEFAULT            10000          /* one hectare */
+
+#define  STEM_DENSITY_MIN              0
+#define  STEM_DENSITY_MAX              INT_MAX
+#define  STEM_DENSITY_DEFAULT          100           
+
+#define  PSF_ETA_MIN                   0.0            /* Hann */
+#define  PSF_ETA_MAX                   1.0            /* Uniform */
+#define  PSF_ETA_DEFAULT               1.0            /* Uniform weight as default */
+
+#define  SAMPLING_FACTOR_MIN           0.1            /* posting should be no finer than a tenth of the resolution */
+#define  SAMPLING_FACTOR_MAX           1.0            /* posting should be finer than resolution */
+
+#define  GROUND_MOISTURE_MIN           0
+#define  GROUND_MOISTURE_MAX           10
+#define  GROUND_MOISTURE_DEFAULT       5              /* moderately moist */
+
+#define  INPUT_FOREST_MIN              0              /* make my own forest */
+#define  INPUT_FOREST_MAX              1              /* read forest from XML file */
+#define  INPUT_FOREST_DEFAULT          1              /* read forest from XML file by default */
+
+#define  DRAW_FOREST_MIN               0              /* don't draw forest */
+#define  DRAW_FOREST_MAX               1              /* draw forest and save to output file */
+#define  DRAW_FOREST_DEFAULT           0              /* don't draw forest by default */
+
+#define  CHANGE_MODEL_TYPE_MIN         0              /* no change */
+#define  CHANGE_MODEL_TYPE_MAX         2              /* 1 = polynomial, 2 = exponential etc... */
+#define  CHANGE_MODEL_TYPE_DEFAULT     0              /* no change by default */
+
+#define  ENABLE_FAST_MODE_MIN          0              
+#define  ENABLE_FAST_MODE_MAX          1              
+#define  ENABLE_FAST_MODE_DEFAULT      0              /* Fast mode off by default */
+
+/****************************************/
+/* CORNER REFLECTOR CONTROLS            */
+/****************************************/
+#define  ENABLE_CORNER_REFLECTORS
+#define  NUMBER_OF_CORNER_REFLECTORS   5
+#define  CORNER_REFLECTOR_LENGTH       4             /* length of one side of the corner reflector (in meters)    */
+
+/****************************************/
+/* FAST FOREST SCATTERING MODE CONTROLS */
+/****************************************/
+/* in this mode scattering matrix isnt recomputed for each track, just the geometries, saving some time */
+#define  FOREST_FAST_MODE_OFF          0              /* turn fast compute mode off */
+#define  FOREST_FAST_MODE_ON           1              /* turn fast compute mode on */
 
 #endif

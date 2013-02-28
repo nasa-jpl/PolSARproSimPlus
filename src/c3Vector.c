@@ -428,3 +428,29 @@ c3Vector	c3Vector_sum					(c3Vector c3v1, c3Vector c3v2)
  s.prev	= NULL_PTR2C3VECTOR;
  return (s);
 }
+
+
+void		Create_c4Vector		(c4Vector *p_c4v)
+{
+ int i;
+ for (i=0;i<4;i++) {
+  p_c4v->z[i]	= xy_complex (0.0,0.0);
+ }
+ p_c4v->next	= NULL_PTR2C4VECTOR;
+ p_c4v->prev	= NULL_PTR2C4VECTOR;
+ return;
+}
+
+c4Vector	Assign_c4Vector	(Complex x0, Complex x1, Complex x2, Complex x3)
+{
+ c4Vector	c4v;
+ c4v.z[0]	= x0;
+ c4v.z[1]	= x1;
+ c4v.z[2]	= x2;
+ c4v.z[3]	= x3;
+ c4v.next	= NULL_PTR2C4VECTOR;
+ c4v.prev	= NULL_PTR2C4VECTOR;
+ return (c4v);
+}
+
+

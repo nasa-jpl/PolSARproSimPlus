@@ -38,13 +38,13 @@
 #define MAX(a,b)  ( ( (a) > (b) ) ? (a) : (b) )
 #define MAX_STR  256
 
-int read_cflag  (FILE *pinF, char *key, char *str1);
-int read_string (FILE *pinF, char *key, char *str);
-int read_integer(FILE *pinF, char *key, int *);
-int read_double (FILE *pinF, char *key, double *);
-int read_float  (FILE *pinF, char *key, float *);
-int read_fvector (FILE *pinF, char *key, float *flt, int nv);
-int read_dvector (FILE *pinF, char *key, double *dbl, int nv);
+int read_cflag       (FILE *pinF, char *key, char *str1);
+int read_string      (FILE *pinF, char *key, char *str);
+int read_integer     (FILE *pinF, char *key, int *val, int min, int max, int Default);
+int read_double      (FILE *pinF, char *key, double *dbl_val, double min, double max, double Default);
+int read_float       (FILE *pinF, char *key, float *);
+int read_fvector     (FILE *pinF, char *key, float *flt, int nv);
+int read_dvector     (FILE *pinF, char *key, double *dbl, int nv);
 
 
 

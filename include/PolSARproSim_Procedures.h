@@ -75,6 +75,8 @@
 #include "read_forest.h"
 #include "read_allometry.h"
 #include "PolSARproSim.h"
+#include "limits.h"
+#include "float.h"
 
 /****************/
 /* Housekeeping */
@@ -124,19 +126,12 @@ int			Lookup_Direct_Attenuation		(d3Vector r, PolSARproSim_Record *pPR, double *
 int			Lookup_Bounce_Attenuation		(d3Vector r, PolSARproSim_Record *pPR, double *gH, double *gV);
 int			Polarisation_Vectors          (d3Vector k, d3Vector n, d3Vector *ph, d3Vector *pv);
 c3Vector    d3V2c3V                       (d3Vector v);
-//#ifndef POLSARPRO_CONVENTION
 void        Create_SAR_Filenames          (PolSARproSim_Record *pPR, int track);
-//#else
-//void        Create_SAR_Filenames          (PolSARproSim_Record *pPR, const char *master_directory, const char *slave_directory);
-//#endif
-//void        Clean_SAR_Images              (PolSARproSim_Record *pPR);
 int			Cylinder_from_Branch          (Cylinder *pC, Branch *pB, int i_seg, int n_segments);
 double		Estimate_SAR_Tertiaries			(Tree *pT, PolSARproSim_Record *pPR, long *nt, double *tbl, double *tbr);
 double		Realise_SAR_Tertiaries			(Tree *pT, PolSARproSim_Record *pPR);
 double		Estimate_SAR_Foliage          (Tree *pT, PolSARproSim_Record *pPR, long *nf);
 double		Realise_SAR_Foliage				(Tree *pT, PolSARproSim_Record *pPR);
-//void        Write_SAR_Images              (PolSARproSim_Record *pPR);
-//void        Destroy_SAR_Images				(PolSARproSim_Record *pPR);
 int			Realise_Tertiary_Branch			(Tree *pT, PolSARproSim_Record *pPR, Branch *pB, 
                                            double tertiary_branch_length, double tertiary_branch_radius,
                                            double moisture, Complex permittivity);
@@ -150,6 +145,7 @@ void        Destroy_SAR_Stack             (PolSARproSim_Record *pPR);
 void        Write_Stack_LookVectors			(PolSARproSim_Record *pPR);
 int         Write_SIM_Record_As_POLSARPRO_BINARY	(SIM_Record *pSIMR);
 void        Max_Height_Generation         (double  focus_x, double focus_y, double height, PolSARproSim_Record *pPR);
+int         Image_Corner_Reflectors_Direct	(PolSARproSim_Record *pPR);
 /************************/
 /* TCLTK string parsing */
 /************************/

@@ -37,23 +37,32 @@
 #include	"Complex.h"
 
 typedef struct c3vector_tag {
- Complex	z[3];
+ Complex    z[3];
  struct		c3vector_tag *next;
  struct		c3vector_tag *prev;
 } c3Vector;
+
+typedef struct c4vector_tag {
+ Complex    z[4];
+ struct		c3vector_tag *next;
+ struct		c3vector_tag *prev;
+} c4Vector;
+
 
 /************************/
 /* Fundamental routines */
 /************************/
 
-void		Create_c3Vector						(c3Vector *p_c3v);
+void		Create_c3Vector					(c3Vector *p_c3v);
 void		Destroy_c3Vector					(c3Vector *p_c3v);
 void		Read_c3Vector						(FILE *pF, c3Vector *p_c3v);
 void		Write_c3Vector						(FILE *pF, c3Vector *p_c3v);
 void		Print_c3Vector						(c3Vector *p_c3v);
 void		Copy_c3Vector						(c3Vector *p_c3vCopy, c3Vector *p_c3vOriginal);
-c3Vector	Assign_c3Vector						(Complex x, Complex y, Complex z);
+c3Vector	Assign_c3Vector					(Complex x, Complex y, Complex z);
 c3Vector	Zero_c3Vector						(void);
+void		Create_c4Vector					(c4Vector *p_c4v);
+c4Vector	Assign_c4Vector					(Complex x0, Complex x1, Complex x2, Complex x3);
 
 /*************************************/
 /* Doubly linked list implementation */
@@ -62,30 +71,32 @@ c3Vector	Zero_c3Vector						(void);
 typedef struct c3vector_list_tag {
  struct		c3vector_tag *head;
  struct		c3vector_tag *tail;
- long		n;
+ long       n;
 } c3Vector_List;
 
-void		c3Vector_init_list			(c3Vector_List *p_c3vl);
-int			c3Vector_head_add			(c3Vector_List *p_c3vl, c3Vector *p_c3v);
-int			c3Vector_head_sub			(c3Vector_List *p_c3vl, c3Vector *p_c3v);
-void		c3Vector_head_print			(c3Vector_List *p_c3vl);
-int			c3Vector_tail_add			(c3Vector_List *p_c3vl, c3Vector *p_c3v);
-int			c3Vector_tail_sub			(c3Vector_List *p_c3vl, c3Vector *p_c3v);
-void		c3Vector_tail_print			(c3Vector_List *p_c3vl);
-long		c3Vector_List_length		(c3Vector_List *p_c3vl);
+void        c3Vector_init_list			(c3Vector_List *p_c3vl);
+int         c3Vector_head_add          (c3Vector_List *p_c3vl, c3Vector *p_c3v);
+int         c3Vector_head_sub          (c3Vector_List *p_c3vl, c3Vector *p_c3v);
+void        c3Vector_head_print			(c3Vector_List *p_c3vl);
+int         c3Vector_tail_add          (c3Vector_List *p_c3vl, c3Vector *p_c3v);
+int         c3Vector_tail_sub          (c3Vector_List *p_c3vl, c3Vector *p_c3v);
+void        c3Vector_tail_print			(c3Vector_List *p_c3vl);
+long        c3Vector_List_length       (c3Vector_List *p_c3vl);
 c3Vector*	c3Vector_List_head			(c3Vector_List *p_c3vl);
 c3Vector*	c3Vector_List_tail			(c3Vector_List *p_c3vl);
 int			c3Vector_insert				(c3Vector_List *p_c3vl, c3Vector *p_c3v, long m);
 int			c3Vector_delete				(c3Vector_List *p_c3vl, c3Vector *p_c3v, long m);
-void		c3Vector_empty_list			(c3Vector_List *p_c3vl);
+void        c3Vector_empty_list			(c3Vector_List *p_c3vl);
 
 /************************/
 /* c3Vector definitions */
 /************************/
 
 #define		NO_C3VECTOR_ERRORS		0
-#define		NULL_PTR2C3VECTOR		0
+#define		NULL_PTR2C3VECTOR       0
 #define		NULL_PTR2C3VECTOR_LIST	0
+#define		NULL_PTR2C4VECTOR       0
+#define		NULL_PTR2C4VECTOR_LIST	0
 
 #define		C3VECTOR_SUPPRESS_ERROR_MESSAGES
 
@@ -96,9 +107,9 @@ void		c3Vector_empty_list			(c3Vector_List *p_c3vl);
 c3Vector	c3Vector_scalar_multiply			(c3Vector c3v, Complex z);
 c3Vector	c3Vector_scalar_divide				(c3Vector c3v, Complex z);
 c3Vector	c3Vector_normalise					(c3Vector c3v);
-Complex		c3Vector_scalar_product				(c3Vector c3v1, c3Vector c3v2);
+Complex	c3Vector_scalar_product				(c3Vector c3v1, c3Vector c3v2);
 c3Vector	c3Vector_difference					(c3Vector c3v1, c3Vector c3v2);
 c3Vector	c3Vector_cross_product				(c3Vector c3v1, c3Vector c3v2);
-c3Vector	c3Vector_sum						(c3Vector c3v1, c3Vector c3v2);
+c3Vector	c3Vector_sum                     (c3Vector c3v1, c3Vector c3v2);
 
 #endif

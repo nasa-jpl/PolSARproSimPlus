@@ -321,8 +321,8 @@ int main(int argv, char *argc[])
       /* Calculate the short vegetation contribution */
       /***********************************************/
 #ifdef ENABLE_THREADS
-      PolSARproSim_Short_Vegetation_Direct_SMP  (&Master_Record);
-      PolSARproSim_Short_Vegetation_Bounce_SMP  (&Master_Record);
+//      PolSARproSim_Short_Vegetation_Direct_SMP  (&Master_Record);
+//      PolSARproSim_Short_Vegetation_Bounce_SMP  (&Master_Record);
 #else
       PolSARproSim_Short_Vegetation_Direct      (&Master_Record);
       PolSARproSim_Short_Vegetation_Bounce      (&Master_Record);
@@ -335,6 +335,13 @@ int main(int argv, char *argc[])
 #ifndef ENABLE_THREADS
       PolSARproSim_Forest_Direct                (&Master_Record);
       PolSARproSim_Forest_Bounce                (&Master_Record);
+#endif
+      
+      /*****************************************/
+      /* Put a corner reflector or two for fun */
+      /*****************************************/
+#ifdef   ENABLE_CORNER_REFLECTORS
+      Image_Corner_Reflectors_Direct            (&Master_Record);
 #endif
       
       /***********/
@@ -350,7 +357,7 @@ int main(int argv, char *argc[])
    /*************************************/
 #ifdef ENABLE_THREADS
    time(&startforest);
- //  PolSARproSim_Forest_SMP                   (&Master_Record);
+   PolSARproSim_Forest_SMP                   (&Master_Record);
    time(&stopforest);
    printf("Finished Imaging forest about %f seconds. \n",difftime(stopforest, startforest));
 #endif

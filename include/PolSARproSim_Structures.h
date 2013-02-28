@@ -242,7 +242,6 @@ typedef struct polsarprosim_record_tag {
    Allometry      *CategoryDataBase;      /* Database of default species attributes, read in from input  */
    int            Nspecies;               /* Number of species in the species database file      --RAedit*/
    int            Ncategories;            /* Number of categories in the species database file   --RAedit*/
-   
    /**********************************************/
    /* Variables governing short vegetation layer */
    /**********************************************/
@@ -272,9 +271,9 @@ typedef struct polsarprosim_record_tag {
 //   double			Tertiary_branchL1;      /* Tertiary branch depolarization factors (unused after edits) */
 //   double			Tertiary_branchL2;
 //   double			Tertiary_branchL3;
-   double			Tertiary_leafL1;        /* Tertiary leaf depolarization factors                        */
-   double			Tertiary_leafL2;
-   double			Tertiary_leafL3;
+//   double			Tertiary_leafL1;        /* Tertiary leaf depolarization factors                        */
+//   double			Tertiary_leafL2;
+//   double			Tertiary_leafL3;
    /****************************/
    /* Effective permittivities */
    /****************************/
@@ -359,13 +358,19 @@ typedef struct polsarprosim_record_tag {
    /**********************/
    int            progress;             /* Indicates progress of simulation on stdout                     */
    /*******************************************************************************************/
-   /* Forest input flag: 0 = generate forest, 1 = input forest from Forest Data File --RAedit */
+   /* Forest input flag: 0 = generate forest, 1 = input forest from Forest Data File          */
    /*******************************************************************************************/
    int            ForestInput_Flag;     /* If set to 1 forest parameters will be read from input file     */
    /*******************************************************************************************/
-   /* Forest input flag: 0 = skip forest drawing, 1 = draw forest image              --RAedit */
+   /* Forest drawing flag: 0 = skip forest drawing, 1 = draw forest image                     */
    /*******************************************************************************************/
    int            ForestDraw_Flag;      
+   /*******************************************************************************************/
+   /* Fast Mode Computation Flag                                                              */
+   /*******************************************************************************************/
+   int            ForestFastMode_Flag;
+   int            *ForestFastMode;     
+
    /**************************/
    /* Temporal Decorrelation */
    /**************************/

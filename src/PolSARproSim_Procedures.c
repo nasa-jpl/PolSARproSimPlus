@@ -614,6 +614,8 @@ void	Generate_PSF_Lookup_Tables	(PolSARproSim_Record *pPR)
    int            PSFx_length, PSFy_length, PSFt_length, ipix, i, j, k, t, ulim, llim;
    double         *PSFazvec, *PSFsrvec;
    double         thetamin, thetamax, grmax, grmin, tmin, tmax, p_height, inc_angle;
+   double         azimuth_resolution      = pPR->azimuth_resolution;
+   double         slant_range_resolution  = pPR->slant_range_resolution;
    
    /* compute the minimum and maximum incidence angles for all tracks */ 
    p_height       = pPR->slant_range[0]*cos(pPR->incidence_angle[0]);
@@ -631,7 +633,7 @@ void	Generate_PSF_Lookup_Tables	(PolSARproSim_Record *pPR)
          tmax     = thetamax;
       }
    }
-   PSFt_length    = (int)rint((tmax-tmin)*RAD_TO_DEG)+1; 
+   PSFt_length             = (int)rint((tmax-tmin)*RAD_TO_DEG)+1; 
    pPR->min_inc_angle      = tmin;
    pPR->deltax_OS          = pPR->deltax/PSF_OVERSAMPLING_FACTOR;
    pPR->deltay_OS          = pPR->deltay/PSF_OVERSAMPLING_FACTOR;
@@ -640,55 +642,28 @@ void	Generate_PSF_Lookup_Tables	(PolSARproSim_Record *pPR)
    /* allocate memory for PSF vectors and lookup tables */
    PSFazvec                = (double*) calloc (PSFx_length, sizeof (double));
    PSFsrvec                = (double*) calloc (PSFy_length, sizeof (double));
-   pPR->PSFazmat           = (double*) calloc ((2*pPR->PSFnx + 1)*(PSF_OVERSAMPLING_FACTOR +1), sizeof (double));//
+   pPR->PSFazmat           = (double*) calloc ((2*pPR->PSFnx + 1)*(PSF_OVERSAMPLING_FACTOR +1), sizeof (double));
+   //pPR->PSFsrmat           = (double*) calloc ((2*pPR->PSFny + 1)*(PSF_OVERSAMPLING_FACTOR +1), sizeof (double));
    pPR->PSFgrmat           = (double**) calloc ((2*pPR->PSFny + 1)*(PSF_OVERSAMPLING_FACTOR +1), sizeof (double));
    for(i =0;i<(2*pPR->PSFny + 1)*(PSF_OVERSAMPLING_FACTOR +1);i++){
       pPR->PSFgrmat[i]  = (double*) calloc (PSFt_length, sizeof (double));
    }
    
    /************************************************/
-   /* Azimuth PSF calculation                      */
-   /************************************************/
-   /* populate the azimuth spread function vector */
-   for (i = 0; i<PSFx_length; i++){
-      psfx           = - (pPR->PSFnx + PSF_SHOULDER) * pPR->deltax + i*pPR->deltax_OS;
-      if(fabs(1-(psfx/pPR->deltax)*(psfx/pPR->deltax)) < DBL_EPSILON){
-         PSFazvec[i] = 0.0;
-      }else{
-         PSFazvec[i]    = Sinc(DPI_RAD * psfx/pPR->deltax) + 1/DPI_RAD*(1-pPR->PSFeta)/(1+pPR->PSFeta)*sin(DPI_RAD*psfx/pPR->deltax)*(psfx/pPR->deltax)/(1-(psfx/pPR->deltax)*(psfx/pPR->deltax));
-      }
-   }
-   /* integrate the azimuth point spread function and store it in the Azimuth PSF lookup table */
-   for (i = 0; i < (2*pPR->PSFnx + 1); i++) {
-      ipix    = i - pPR->PSFnx;
-      for (j = 0; j < (PSF_OVERSAMPLING_FACTOR + 1); j++) {
-         offset   = j * pPR->deltax_OS - pPR->deltax/2;
-         /* determine integration limits */
-         llim     = (int)(PSFx_length/2) + (int)(offset/pPR->deltax_OS) - (int)(PSF_OVERSAMPLING_FACTOR/2) + (int)(ipix*PSF_OVERSAMPLING_FACTOR)-1;
-         ulim     = (int)(PSFx_length/2) + (int)(offset/pPR->deltax_OS) + (int)(PSF_OVERSAMPLING_FACTOR/2) + (int)(ipix*PSF_OVERSAMPLING_FACTOR)-1;
-         psfsum   = 0;
-         /* integrate the Point Spread Function */
-         for (k = llim; k <= ulim; k++) {
-            psfsum  +=PSFazvec[k];
-         }
-         pPR->PSFazmat[i*(PSF_OVERSAMPLING_FACTOR + 1) + j] = psfsum;
-      }
-   }
-
-   /************************************************/
    /* Ground range PSF calculation                 */
    /************************************************/
    /* compute a PSF lookup table for each incidence angle */
    for (t = 0; t< PSFt_length; t ++){
-      inc_angle  = tmin + PSF_INCIDENCE_ANGLE_RESOLUTION * DEG_TO_RAD * t;
+      inc_angle  = (double)(((int)(tmin*RAD_TO_DEG) + PSF_INCIDENCE_ANGLE_RESOLUTION * t)*DEG_TO_RAD);
       /* populate the ground-range point spread function vector */
       for (i = 0; i<PSFy_length; i++){
          psfy           = - (pPR->PSFny + PSF_SHOULDER) * pPR->deltay + i*pPR->deltay_OS;
-         psfy           = psfy / sin(inc_angle);
-         if(fabs(1-(psfy/pPR->deltay)*(psfy/pPR->deltay)) < DBL_EPSILON){
+         psfy           = psfy * sin(inc_angle);
+         if(fabs(1-(psfy/slant_range_resolution)*(psfy/slant_range_resolution)) < DBL_EPSILON){
             PSFsrvec[i] = 0.0;
          }else{
-            PSFsrvec[i] = Sinc(DPI_RAD * psfy/pPR->deltay) + 1/DPI_RAD*(1-pPR->PSFeta)/(1+pPR->PSFeta)*sin(DPI_RAD*psfy/pPR->deltay)*(psfy/pPR->deltay)/(1-(psfy/pPR->deltay)*(psfy/pPR->deltay));
+            PSFsrvec[i] = Sinc(DPI_RAD * psfy/slant_range_resolution) + 
+                           1/DPI_RAD*(1-pPR->PSFeta)/(1+pPR->PSFeta)*sin(DPI_RAD*psfy/slant_range_resolution)*(psfy/slant_range_resolution)/(1-(psfy/slant_range_resolution)*(psfy/slant_range_resolution));
          }
       }
       /* integrate the slant range point spread function and store it in array */
@@ -707,6 +682,36 @@ void	Generate_PSF_Lookup_Tables	(PolSARproSim_Record *pPR)
             //pPR->PSFsrmat[i*(PSF_OVERSAMPLING_FACTOR + 1) + j] = psfsum;
             pPR->PSFgrmat[i*(PSF_OVERSAMPLING_FACTOR + 1) + j][t] = psfsum;
          }
+      }
+   }
+   
+   /************************************************/
+   /* Azimuth PSF calculation                      */
+   /************************************************/
+   /* populate the azimuth spread function vector */
+   for (i = 0; i<PSFx_length; i++){
+      psfx           = - (pPR->PSFnx + PSF_SHOULDER) * pPR->deltax + i*pPR->deltax_OS;
+      if(fabs(1-(psfx/azimuth_resolution)*(psfx/azimuth_resolution)) < DBL_EPSILON){
+         PSFazvec[i] = 0.0;
+      }else{
+         PSFazvec[i] = Sinc(DPI_RAD * psfx/azimuth_resolution) + 
+                              1/DPI_RAD*(1-pPR->PSFeta)/(1+pPR->PSFeta)*sin(DPI_RAD*psfx/azimuth_resolution)*(psfx/azimuth_resolution)/(1-(psfx/azimuth_resolution)*(psfx/azimuth_resolution));
+      }
+   }
+   /* integrate the azimuth point spread vector and store it in the Azimuth PSF lookup table */
+   for (i = 0; i < (2*pPR->PSFnx + 1); i++) {
+      ipix    = i - pPR->PSFnx;
+      for (j = 0; j < (PSF_OVERSAMPLING_FACTOR + 1); j++) {
+         offset   = j * pPR->deltax_OS - pPR->deltax/2;
+         /* determine integration limits */
+         llim     = (int)(PSFx_length/2) + (int)(offset/pPR->deltax_OS) - (int)(PSF_OVERSAMPLING_FACTOR/2) + (int)(ipix*PSF_OVERSAMPLING_FACTOR)-1;
+         ulim     = (int)(PSFx_length/2) + (int)(offset/pPR->deltax_OS) + (int)(PSF_OVERSAMPLING_FACTOR/2) + (int)(ipix*PSF_OVERSAMPLING_FACTOR)-1;
+         psfsum   = 0;
+         /* integrate the Point Spread Function */
+         for (k = llim; k <= ulim; k++) {
+            psfsum  +=PSFazvec[k];
+         }
+         pPR->PSFazmat[i*(PSF_OVERSAMPLING_FACTOR + 1) + j] = psfsum;
       }
    }
 
@@ -753,25 +758,32 @@ int		Input_PolSARproSim_Record		(const char *filename, PolSARproSim_Record *pPR)
    /**********************************/
    
    if ((pInputFile = fopen(filename, "r")) == NULL) {
-      fprintf (pPR->pLogFile, "Unable to open input file %s.\n", filename);
-      fprintf (pPR->pOutputFile, "Unable to open input file %s.\n", filename);
+      fprintf (pPR->pLogFile, "ERROR: Unable to open input file %s.\n", filename);
+      fprintf (pPR->pOutputFile, "ERROR: Unable to open input file %s.\n", filename);
+      printf ("ERROR: Unable to open input file %s.\n", filename);
       fflush (pPR->pLogFile);
       fflush (pPR->pOutputFile);
-      return (!NO_POLSARPROSIM_ERRORS);
+      //return (!NO_POLSARPROSIM_ERRORS);
+      exit(0);
    }
+   
+   /* initialize some text buffers for input */
+   pPR->ForestData   = (char *)calloc(MAX_STR, sizeof(char));     /* Initialize the string containing the path & filename of forest input */
+   pPR->SpeciesData  = (char *)calloc(MAX_STR, sizeof(char));     /* Initialize the string containing the path & filename of species database */
+   pPR->ForestOutput = (char *)calloc(MAX_STR, sizeof(char));     /* Initialize the string containing the path & filename of forest output */
    
    /********************/
    /* Input parameters */
    /********************/
    
    fprintf (pPR->pLogFile, "\nInputs using keyword driven searches in parameter file ...\n\n");
-   read_integer   (pInputFile,    "tracks",                   &(pPR->Tracks));
+   read_integer   (pInputFile,    "tracks",                   &(pPR->Tracks), TRACK_NUMBER_MIN, TRACK_NUMBER_MAX, TRACK_NUMBER_DEFAULT);
    /* Initialize Track dependent inputs */
    pPR->slant_range                 = (double *)calloc (pPR->Tracks, sizeof (double));
    pPR->incidence_angle             = (double *)calloc (pPR->Tracks, sizeof (double));
    /* read in the geometry */
-   read_double   (pInputFile,    "center_slant_range_master",  &(pPR->slant_range[0]));
-   read_double   (pInputFile,    "incidence_angle_master",     &(pPR->incidence_angle[0]));
+   read_double   (pInputFile,    "center_slant_range_master",  &(pPR->slant_range[0]), SLANT_RANGE_MIN, SLANT_RANGE_MAX, SLANT_RANGE_DEFAULT);
+   read_double   (pInputFile,    "incidence_angle_master",     &(pPR->incidence_angle[0]), INC_ANGLE_MIN, INC_ANGLE_MAX, INC_ANGLE_DEFAULT);
    pPR->incidence_angle[0] *=DEG_TO_RAD; /* convert to radians */
    master_track_height        = pPR->slant_range[0]*cos(pPR->incidence_angle[0]);
    master_track_ground_range  = pPR->slant_range[0]*sin(pPR->incidence_angle[0]);
@@ -784,35 +796,35 @@ int		Input_PolSARproSim_Record		(const char *filename, PolSARproSim_Record *pPR)
       pPR->incidence_angle[i] = atan2(slave_ground_range, slave_height);
       printf("%d)\tSlant Range %f\tIncidence Angle: %f, Bperp with 0: %f\n", i, pPR->slant_range[i], pPR->incidence_angle[i]*RAD_TO_DEG, sqrt(baseline[0]*baseline[0]+baseline[1]*baseline[1])*cos(pPR->incidence_angle[0]));
    }
-   read_double    (pInputFile,   "radar_frequency",            &(pPR->frequency));
-   read_double    (pInputFile,   "azimuth_resolution",         &(pPR->azimuth_resolution));
-   read_double    (pInputFile,   "slant_range_resolution",     &(pPR->slant_range_resolution));
-   read_integer   (pInputFile,   "DEM_model",                  &(DEM_model));
-   read_double    (pInputFile,   "ground_slope_azimuth",       &(pPR->slope_x));   
-   read_double    (pInputFile,   "ground_slope_range",         &(pPR->slope_y));
-   read_integer   (pInputFile,   "randn_seed",                 &(pPR->seed));             
-   read_integer   (pInputFile,   "global_tree_species",        &(pPR->species));              
-   read_double    (pInputFile,   "global_tree_height",         &(pPR->mean_tree_height));
-   read_double    (pInputFile,   "forest_stand_area",          &(pPR->Stand_Area)); 
-   read_integer   (pInputFile,   "stem_density",               &(pPR->req_trees_per_hectare));   
-   read_double    (pInputFile,   "PSF_broadening_factor",      &(pPR->PSFeta));
+   read_double    (pInputFile,   "radar_frequency",            &(pPR->frequency), RADAR_FREQUENCY_MIN, RADAR_FREQUENCY_MAX, RADAR_FREQUENCY_DEFAULT);
+   read_double    (pInputFile,   "azimuth_resolution",         &(pPR->azimuth_resolution), AZIMUTH_RESOLUTION_MIN, AZIMUTH_RESOLUTION_MAX, AZIMUTH_RESOLUTION_DEFAULT);
+   read_double    (pInputFile,   "slant_range_resolution",     &(pPR->slant_range_resolution), RANGE_RESOLUTION_MIN, RANGE_RESOLUTION_MAX, RANGE_RESOLUTION_DEFAULT);
+   read_integer   (pInputFile,   "DEM_model",                  &(DEM_model), DEM_MODEL_MIN, DEM_MODEL_MAX, DEM_MODEL_DEFAULT);
+   read_double    (pInputFile,   "ground_slope_azimuth",       &(pPR->slope_x), SLOPE_MIN, SLOPE_MAX, SLOPE_DEFAULT);   
+   read_double    (pInputFile,   "ground_slope_range",         &(pPR->slope_y), SLOPE_MIN, SLOPE_MAX, SLOPE_DEFAULT);
+   read_integer   (pInputFile,   "randn_seed",                 &(pPR->seed), SEED_MIN, SEED_MAX, SEED_DEFAULT);             
+   read_integer   (pInputFile,   "global_tree_species",        &(pPR->species), GLOBAL_SPECIES_MIN, GLOBAL_SPECIES_MAX, GLOBAL_SPECIES_DEFAULT);              
+   read_double    (pInputFile,   "global_tree_height",         &(pPR->mean_tree_height), GLOBAL_TREE_HEIGHT_MIN, GLOBAL_TREE_HEIGHT_MAX, GLOBAL_TREE_HEIGHT_DEFAULT);
+   read_double    (pInputFile,   "forest_stand_area",          &(pPR->Stand_Area), STAND_AREA_MIN, STAND_AREA_MAX, STAND_AREA_DEFAULT); 
+   read_integer   (pInputFile,   "stem_density",               &(pPR->req_trees_per_hectare), STEM_DENSITY_MIN, STEM_DENSITY_MAX, STEM_DENSITY_DEFAULT);   
+   read_double    (pInputFile,   "PSF_broadening_factor",      &(pPR->PSFeta), PSF_ETA_MIN, PSF_ETA_MAX, PSF_ETA_DEFAULT);
+   read_double    (pInputFile,   "azimuth_sampling_factor",    &(pPR->f_azimuth), SAMPLING_FACTOR_MIN, SAMPLING_FACTOR_MAX, DEFAULT_RESOLUTION_SAMPLING_FACTOR);
+   read_double    (pInputFile,   "gnd_range_sampling_factor",  &(pPR->f_ground_range), SAMPLING_FACTOR_MIN, SAMPLING_FACTOR_MAX, DEFAULT_RESOLUTION_SAMPLING_FACTOR);
 #ifdef INPUT_GROUND_MV
-   read_integer   (pInputFile,    "ground_moisture",           &GMV_model);
+   read_integer   (pInputFile,    "ground_moisture",           &GMV_model, GROUND_MOISTURE_MIN, GROUND_MOISTURE_MAX, GROUND_MOISTURE_DEFAULT);
 #endif
-   read_integer   (pInputFile,    "input_forest",              &(pPR->ForestInput_Flag)); /* whether to input forest primitives --RAedit */
-   if(pPR->ForestInput_Flag!=EXTERNAL_FOREST_DEFINITION){pPR->ForestInput_Flag=0;}        /* set flag to 0 by default           --RAedit */
-   read_integer   (pInputFile,    "draw_forest",              &(pPR->ForestDraw_Flag));   /* whether to draw forest             --RAedit */
-   if(pPR->ForestDraw_Flag!=DRAW_FOREST_IMAGE){pPR->ForestDraw_Flag=0;}                   /* set flag to 0 by default           --RAedit */
-   pPR->ForestData = (char *)calloc(MAX_STR, sizeof(char));                               /* Initialize the string containing the path & filename of forest input */
+   read_integer   (pInputFile,    "input_forest",              &(pPR->ForestInput_Flag), INPUT_FOREST_MIN, INPUT_FOREST_MAX, INPUT_FOREST_DEFAULT); /* whether to input forest primitives --RAedit */
+   read_integer   (pInputFile,    "draw_forest",               &(pPR->ForestDraw_Flag), DRAW_FOREST_MIN, DRAW_FOREST_MAX, DRAW_FOREST_DEFAULT);   /* whether to draw forest             --RAedit */
    read_string    (pInputFile,    "forest_file",               pPR->ForestData);          /* Read the filename from parameter file */
-   pPR->SpeciesData = (char *)calloc(MAX_STR, sizeof(char));                              /* Initialize the string containing the path & filename of species database */
    read_string    (pInputFile,    "allometry_file",            pPR->SpeciesData);         /* Read the fileanme form parameter file */
    if(pPR->ForestInput_Flag != EXTERNAL_FOREST_DEFINITION){
-      pPR->ForestOutput = (char *)calloc(MAX_STR, sizeof(char));                          /* Initialize the string containing the path & filename of forest output */
       read_string    (pInputFile, "forest_output",             pPR->ForestOutput);        /* Read the filename from parameter file */
-      printf("READ FOREST OUTPUT STRING: --%s--\n", pPR->ForestOutput);  
    }
+   read_integer   (pInputFile,    "fast_mode",                 &(pPR->ForestFastMode_Flag), ENABLE_FAST_MODE_MIN, ENABLE_FAST_MODE_MAX, ENABLE_FAST_MODE_DEFAULT); /* whether to run in fast mode or not */
+
+   /******************************************************************************************/
    /* Read in track dependent temporal change parameters for modeling temporal decorrelation */
+   /******************************************************************************************/
    /* Allocate Memory and initialzie all to zero */
    pPR->Position_Change_Model       = (int *)calloc(pPR->Tracks, sizeof(int));   
    pPR->Moisture_Change_Model       = (int *)calloc(pPR->Tracks, sizeof(int)); 
@@ -836,36 +848,44 @@ int		Input_PolSARproSim_Record		(const char *filename, PolSARproSim_Record *pPR)
    for (i = 1; i < pPR->Tracks; i++) {
       /* position change e.g. due to wind */
       sprintf(buff,                 "position_change_model_track_%d", i);
-      if(read_integer   (pInputFile,   buff,     &change_model_type)!= -1){
+      if(read_integer   (pInputFile,   buff,     &change_model_type, CHANGE_MODEL_TYPE_MIN, CHANGE_MODEL_TYPE_MAX, CHANGE_MODEL_TYPE_DEFAULT)!= -1){
          pPR->Position_Change_Model[i] = change_model_type;
          sprintf(buff,                 "position_change_coeff_track_%d", i);
          read_dvector   (pInputFile,   buff, (double *)&model_coeffs,3); 
          pPR->motion_coeff_A[i]        = model_coeffs[0];
          pPR->motion_coeff_B[i]        = model_coeffs[1];
          pPR->motion_coeff_C[i]        = model_coeffs[2];
-      }else{
-         printf("(Default) No position changes to track %d\n", i);
       }
       /* moisture change, e.g. due to rain */
       sprintf(buff,                 "moisture_change_model_track_%d", i);
-      if(read_integer   (pInputFile,   buff,     &change_model_type)!= -1){
+      if(read_integer   (pInputFile,   buff,     &change_model_type, CHANGE_MODEL_TYPE_MIN, CHANGE_MODEL_TYPE_MAX, CHANGE_MODEL_TYPE_DEFAULT)!= -1){
          pPR->Moisture_Change_Model[i] = change_model_type;
          sprintf(buff,                 "moisture_change_coeff_track_%d", i);
          read_dvector   (pInputFile,   buff, (double *)&model_coeffs,3); 
          pPR->moisture_coeff_A[i]      = model_coeffs[0];
          pPR->moisture_coeff_B[i]      = model_coeffs[1];
          pPR->moisture_coeff_C[i]      = model_coeffs[2];
-      }else{
-         printf("(Default) No moisture changes to track %d\n", i);
       }
    }
+   
+   /****************************/
+   /* Set Fast/Slow mode flags */
+   /****************************/
+   pPR->ForestFastMode              = (int *)calloc(pPR->Tracks, sizeof(int));
+   /* initially set fast mode off for each track */
    for (i = 0; i < pPR->Tracks; i++) {
-      printf ("%d\t\t\t/* Position Change Model Type for track %d\t*/\n", pPR->Position_Change_Model[i],i);
-      printf ("%.3f,%.3f,%.3f\t/* Position Change Model Coefficients for track %d\t*/\n", pPR->motion_coeff_A[i], pPR->motion_coeff_B[i], pPR->motion_coeff_C[i], i);
-      printf ("%d\t\t\t/* Moisture Change Model Type for track %d\t*/\n", pPR->Moisture_Change_Model[i],i);
-      printf ("%.3f,%.3f,%.3f\t/* Moisture Change Model Coefficients for track %d\t*/\n", pPR->moisture_coeff_A[i], pPR->moisture_coeff_B[i], pPR->moisture_coeff_C[i], i);
+      pPR->ForestFastMode[i]  = FOREST_FAST_MODE_OFF;
    }
-
+#ifdef ENABLE_THREADS
+   for (i = 1; i < pPR->Tracks; i++) {
+      if(pPR->ForestFastMode_Flag == FOREST_FAST_MODE_ON){
+         if(pPR->Moisture_Change_Model[i] == CHANGE_MODEL_NONE){
+            /* set this flag only if user asks for it, track > 0 and no moisture changes needed */ 
+            pPR->ForestFastMode[i]  = FOREST_FAST_MODE_ON;
+         }
+      }
+   }
+#endif
    
    /************************/
    /* Close the input file */
@@ -886,7 +906,7 @@ int		Input_PolSARproSim_Record		(const char *filename, PolSARproSim_Record *pPR)
    fprintf (pPR->pLogFile, "%lf\t\t/* Centre frequency in GHz \t*/\n", pPR->frequency);
    fprintf (pPR->pLogFile, "%lf\t\t/* Azimuth resolution (width at half-height power) in metres \t*/\n", pPR->azimuth_resolution);
    fprintf (pPR->pLogFile, "%lf\t\t/* Slant range resolution (width at half-height power) in metres \t*/\n", pPR->slant_range_resolution);
-   fprintf (pPR->pLogFile, "%d\t\t\t/* Ground model: 0 = smoothest … 10 = roughest \t*/\n",  DEM_model);
+   fprintf (pPR->pLogFile, "%d\t\t\t/* Ground model: 0 = smoothest  10 = roughest \t*/\n",  DEM_model);
    fprintf (pPR->pLogFile, "%lf\t\t/* Ground slope in azimuth direction (dimensionless) \t*/\n", pPR->slope_x);
    fprintf (pPR->pLogFile, "%lf\t\t/* Ground slope in ground range direction (dimensionless) \t*/\n", pPR->slope_y);
    fprintf (pPR->pLogFile, "%d\t\t\t/* Random number generator seed \t*/\n",  pPR->seed);
@@ -897,15 +917,19 @@ int		Input_PolSARproSim_Record		(const char *filename, PolSARproSim_Record *pPR)
 #ifdef INPUT_GROUND_MV
    fprintf (pPR->pLogFile, "%d\t\t\t/* Ground moisture content model: 0 = dry ... 10  = wet \t*/\n", GMV_model);
 #endif
+   fprintf (pPR->pLogFile, "%f\t\t\t/* Point Spread Function Broadening Factor (eta) \t*/\n",  pPR->PSFeta);
+   fprintf (pPR->pLogFile, "%f\t\t\t/* Azimuth Resolution Sampling Factor \t*/\n",  pPR->f_azimuth);
+   fprintf (pPR->pLogFile, "%f\t\t\t/* Ground Range Resolution Sampling Factor \t*/\n",  pPR->f_ground_range);
    fprintf (pPR->pLogFile, "%s\t\t\t/* Forest input File \t*/\n", pPR->ForestData);
    fprintf (pPR->pLogFile, "%s\t\t\t/* Species input File \t*/\n\n", pPR->SpeciesData);
+   fprintf (pPR->pLogFile, "\nPosition and Moisture changes applied to each track:\n");
    for (i = 0; i < pPR->Tracks; i++) {
       fprintf (pPR->pLogFile, "%d\t\t\t/* Position Change Model Type for track %d\t*/\n", pPR->Position_Change_Model[i],i);
       fprintf (pPR->pLogFile, "%.3f,%.3f,%.3f\t/* Position Change Model Coefficients for track %d\t*/\n", pPR->motion_coeff_A[i], pPR->motion_coeff_B[i], pPR->motion_coeff_C[i], i);
       fprintf (pPR->pLogFile, "%d\t\t\t/* Moisture Change Model Type for track %d\t*/\n", pPR->Moisture_Change_Model[i],i);
       fprintf (pPR->pLogFile, "%.3f,%.3f,%.3f\t/* Moisture Change Model Coefficients for track %d\t*/\n", pPR->moisture_coeff_A[i], pPR->moisture_coeff_B[i], pPR->moisture_coeff_C[i], i);
    }
-
+   fprintf (pPR->pLogFile ,"\n\n");
    
    fflush (pPR->pLogFile);
    
@@ -929,6 +953,9 @@ int		Input_PolSARproSim_Record		(const char *filename, PolSARproSim_Record *pPR)
 #ifdef INPUT_GROUND_MV
    fprintf (pPR->pOutputFile, "%d\t\t\t/* Ground moisture content model: 0 = dry ... 10  = wet \t*/\n\n", GMV_model);
 #endif
+   fprintf (pPR->pOutputFile, "%f\t\t\t/* Point Spread Function Broadening Factor (eta) \t*/\n",  pPR->PSFeta);
+   fprintf (pPR->pOutputFile, "%f\t\t\t/* Azimuth Resolution Sampling Factor \t*/\n",  pPR->f_azimuth);
+   fprintf (pPR->pOutputFile, "%f\t\t\t/* Ground Range Resolution Sampling Factor \t*/\n",  pPR->f_ground_range);
    fprintf (pPR->pOutputFile, "%s\t\t\t/* Forest input File \t*/\n", pPR->ForestData);
    fprintf (pPR->pOutputFile, "%s\t\t\t/* Species input File \t*/\n\n", pPR->SpeciesData);
    if(pPR->ForestInput_Flag != EXTERNAL_FOREST_DEFINITION){
@@ -940,7 +967,7 @@ int		Input_PolSARproSim_Record		(const char *filename, PolSARproSim_Record *pPR)
       fprintf (pPR->pOutputFile, "%d\t\t\t/* Moisture Change Model Type for track %d\t*/\n", pPR->Moisture_Change_Model[i],i);
       fprintf (pPR->pOutputFile, "%.3f,%.3f,%.3f\t/* Moisture Change Model Coefficients for track %d\t*/\n", pPR->moisture_coeff_A[i], pPR->moisture_coeff_B[i], pPR->moisture_coeff_C[i], i);
    }
-
+   fprintf (pPR->pOutputFile ,"\n\n");
    fflush (pPR->pOutputFile);
    
    /**************************************/
@@ -960,13 +987,13 @@ int		Input_PolSARproSim_Record		(const char *filename, PolSARproSim_Record *pPR)
    /* Resolution, sampling and impulse response function */
    /******************************************************/
    
-   pPR->f_azimuth                   = DEFAULT_RESOLUTION_SAMPLING_FACTOR;
+//   pPR->f_azimuth                   = DEFAULT_RESOLUTION_SAMPLING_FACTOR;
    pPR->deltax                      = pPR->azimuth_resolution*pPR->f_azimuth;
    pPR->ground_range_resolution		= (double*) calloc (pPR->Tracks, sizeof (double));
    for (pPR->current_track  = 0; pPR->current_track < pPR->Tracks; pPR->current_track++) {
       pPR->ground_range_resolution[pPR->current_track]	= pPR->slant_range_resolution/sin(pPR->incidence_angle[pPR->current_track]);
    }
-   pPR->f_ground_range              = DEFAULT_RESOLUTION_SAMPLING_FACTOR;
+//   pPR->f_ground_range              = DEFAULT_RESOLUTION_SAMPLING_FACTOR;
    pPR->deltay                      = pPR->ground_range_resolution[0]*pPR->f_ground_range;
    
    /******************************************************/
@@ -1196,8 +1223,8 @@ int		Input_PolSARproSim_Record		(const char *filename, PolSARproSim_Record *pPR)
    psf_azextent	= sqrt(-log(sqrt(POWER_AT_PSF_EDGE))/pPR->psfaaz);
    psf_srextent	= sqrt(-log(sqrt(POWER_AT_PSF_EDGE))/pPR->psfasr);
 
-//   psf_azextent   = 3 * pPR->deltax;
-//   psf_srextent   = 3 * pPR->deltay * sin(pPR->incidence_angle[0]);
+   psf_azextent   = 5 * pPR->deltax;
+   psf_srextent   = 5 * pPR->deltay * sin(pPR->incidence_angle[0]);
 
    pPR->PSFnx		= (int) (psf_azextent/pPR->deltax) + 1;
    pPR->PSFnx		= 2*(pPR->PSFnx/2)+1;
@@ -5487,7 +5514,6 @@ Complex Bvv (double theta, Complex epsilon)
 /*************************/
 /* SAR image calculation */
 /*************************/
-
 double		Point_Spread_Function			(double dx, double dy, PolSARproSim_Record *pPR, int track, double inc_angle)
 {
    /****************************************************************************/
@@ -5501,17 +5527,16 @@ double		Point_Spread_Function			(double dx, double dy, PolSARproSim_Record *pPR,
    return (psf);
 }
 
+/****************************************************************************/
+/* Look up the PSF value from the precomputed Lookup Tables                 */
+/****************************************************************************/
 double		Lookup_PSF_value              (int ioffx, int ioffy, int inx, int iny, int itheta, PolSARproSim_Record *pPR)
 {
-   /****************************************************************************/
-   /* Note that dx is azimuth displacement and dy is ground range displacement */
-   /****************************************************************************/
    double		psf, psfaz, psfgr;
 
    psfaz       = pPR->PSFazmat[inx*(PSF_OVERSAMPLING_FACTOR + 1) + ioffx];
    psfgr       = pPR->PSFgrmat[iny*(PSF_OVERSAMPLING_FACTOR + 1) + ioffy][itheta];
 
-   
    psf         = pPR->PSFamp* psfgr * psfaz;
    
    return (psf);
@@ -5529,14 +5554,15 @@ double		Accumulate_SAR_Contribution		(double focus_x, double focus_y, double foc
    /**************************************************************/
    /* Find pixel coordinates for pixel closest to point of focus */
    /**************************************************************/
-//   int         ix		= (int) ((xmid+focus_x)/dx);
-//   int         jy		= (int) ((ymid-focus_y)/dy);
    int         ix		= (int)rint ((xmid+focus_x)/dx);
    int         jy		= (int)rint ((ymid-focus_y)/dy);
+   /* offset, in meters, from pixel center to scatterer location in ground range and azimuth */
    double      off_x = focus_x - (ix * dx - xmid);
    double      off_y = focus_y - (ymid - jy * dy);
+   /* the index of the above offsets in the PSF lookup tables */
    int         ioffx = (int)((off_x+pPR->deltax/2)/pPR->deltax_OS);
    int         ioffy = (int)((off_y+pPR->deltay/2)/pPR->deltay_OS);
+   /* the index of the incidence angle for this scatterer */
    int         itheta = (int)((focus_angle - pPR->min_inc_angle)*RAD_TO_DEG);
    /***********************************************/
    /* Find extent of loop for pixel contributions */
@@ -5709,93 +5735,6 @@ c3Vector	d3V2c3V	(d3Vector v)
    return (c);
 }
 
-//#ifndef POLSARPRO_CONVENTION
-//void		Create_SAR_Filenames			(PolSARproSim_Record *pPR, const char *master_directory, const char *slave_directory, const char *prefix)
-//#else
-//void		Create_SAR_Filenames			(PolSARproSim_Record *pPR, const char *master_directory, const char *slave_directory)
-//#endif
-//{
-//#ifndef POLSARPRO_CONVENTION
-//   if (pPR->current_track == 0) {
-//      pPR->HH_string	= (char*) calloc (strlen(master_directory)+strlen(prefix)+8, sizeof(char));
-//      strcpy  (pPR->HH_string, master_directory);
-//   } else {
-//      free (pPR->HH_string);
-//      pPR->HH_string	= (char*) calloc (strlen(slave_directory)+strlen(prefix)+8, sizeof(char));
-//      strcpy  (pPR->HH_string, slave_directory);
-//   }
-//   strncat (pPR->HH_string, prefix, strlen(prefix));
-//   strncat (pPR->HH_string, "HH.sim", 6);
-//   if (pPR->current_track == 0) {
-//      pPR->HV_string	= (char*) calloc (strlen(master_directory)+strlen(prefix)+8, sizeof(char));
-//      strcpy  (pPR->HV_string, master_directory);
-//   } else {
-//      free (pPR->HV_string);
-//      pPR->HV_string	= (char*) calloc (strlen(slave_directory)+strlen(prefix)+8, sizeof(char));
-//      strcpy  (pPR->HV_string, slave_directory);
-//   }
-//   strncat (pPR->HV_string, prefix, strlen(prefix));
-//   strncat (pPR->HV_string, "HV.sim", 6);
-//   if (pPR->current_track == 0) {
-//      pPR->VV_string	= (char*) calloc (strlen(master_directory)+strlen(prefix)+8, sizeof(char));
-//      strcpy  (pPR->VV_string, master_directory);
-//   } else {
-//      free (pPR->VV_string);
-//      pPR->VV_string	= (char*) calloc (strlen(slave_directory)+strlen(prefix)+8, sizeof(char));
-//      strcpy  (pPR->VV_string, slave_directory);
-//   }
-//   strncat (pPR->VV_string, prefix, strlen(prefix));
-//   strncat (pPR->VV_string, "VV.sim", 6);
-//   if (pPR->current_track == 0) {
-//      pPR->VH_string	= (char*) calloc (strlen(master_directory)+strlen(prefix)+8, sizeof(char));
-//      strcpy  (pPR->VH_string, master_directory);
-//   } else {
-//      free (pPR->VH_string);
-//      pPR->VH_string	= (char*) calloc (strlen(slave_directory)+strlen(prefix)+8, sizeof(char));
-//      strcpy  (pPR->VH_string, slave_directory);
-//   }
-//   strncat (pPR->VH_string, prefix, strlen(prefix));
-//   strncat (pPR->VH_string, "VH.sim", 6);
-//#else
-//   if (pPR->current_track == 0) {
-//      pPR->HH_string	= (char*) calloc (strlen(master_directory)+9, sizeof(char));
-//      strcpy  (pPR->HH_string, master_directory);
-//   } else {
-//      free (pPR->HH_string);
-//      pPR->HH_string	= (char*) calloc (strlen(slave_directory)+9, sizeof(char));
-//      strcpy  (pPR->HH_string, slave_directory);
-//   }
-//   strncat (pPR->HH_string, "s11.bin", 7);
-//   if (pPR->current_track == 0) {
-//      pPR->HV_string	= (char*) calloc (strlen(master_directory)+9, sizeof(char));
-//      strcpy  (pPR->HV_string, master_directory);
-//   } else {
-//      free (pPR->HV_string);
-//      pPR->HV_string	= (char*) calloc (strlen(slave_directory)+9, sizeof(char));
-//      strcpy  (pPR->HV_string, slave_directory);
-//   }
-//   strncat (pPR->HV_string, "s12.bin", 7);
-//   if (pPR->current_track == 0) {
-//      pPR->VV_string	= (char*) calloc (strlen(master_directory)+9, sizeof(char));
-//      strcpy  (pPR->VV_string, master_directory);
-//   } else {
-//      free (pPR->VV_string);
-//      pPR->VV_string	= (char*) calloc (strlen(slave_directory)+9, sizeof(char));
-//      strcpy  (pPR->VV_string, slave_directory);
-//   }
-//   strncat (pPR->VV_string, "s22.bin", 7);
-//   if (pPR->current_track == 0) {
-//      pPR->VH_string	= (char*) calloc (strlen(master_directory)+9, sizeof(char));
-//      strcpy  (pPR->VH_string, master_directory);
-//   } else {
-//      free (pPR->VH_string);
-//      pPR->VH_string	= (char*) calloc (strlen(slave_directory)+9, sizeof(char));
-//      strcpy  (pPR->VH_string, slave_directory);
-//   }
-//   strncat (pPR->VH_string, "s21.bin", 7);
-//#endif
-//   return;
-//}
 
 void		Create_SAR_Filenames			(PolSARproSim_Record *pPR, int track)
 {      
@@ -5842,21 +5781,6 @@ void		Create_SAR_Filenames			(PolSARproSim_Record *pPR, int track)
 
    return;
 }
-
-//void		Clean_SAR_Images				(PolSARproSim_Record *pPR)
-//{
-//   Destroy_SIM_Record (&(pPR->HHimage));
-//   Destroy_SIM_Record (&(pPR->HVimage));
-//   Destroy_SIM_Record (&(pPR->VVimage));
-//   Initialise_SIM_Record	(&(pPR->HHimage), pPR->HH_string, pPR->nx, pPR->ny, SIM_COMPLEX_FLOAT_TYPE,
-//                            pPR->Lx, pPR->Ly, "PolSARproSim HH image file");
-//   Initialise_SIM_Record	(&(pPR->HVimage), pPR->HV_string, pPR->nx, pPR->ny, SIM_COMPLEX_FLOAT_TYPE,
-//                            pPR->Lx, pPR->Ly, "PolSARproSim HV image file");
-//   Initialise_SIM_Record	(&(pPR->VVimage), pPR->VV_string, pPR->nx, pPR->ny, SIM_COMPLEX_FLOAT_TYPE,
-//                            pPR->Lx, pPR->Ly, "PolSARproSim VV image file");
-//   return;
-//}
-
 
 void		Initialise_SAR_Stack				(PolSARproSim_Record *pPR)
 {
@@ -6524,47 +6448,6 @@ int		Write_SIM_Record_As_POLSARPRO_BINARY	(SIM_Record *pSIMR)
    return (NO_SIMPRIMITIVE_ERRORS);
 }
 
-
-
-
-/***************************************************************/
-/* SAR image output with optional choice of SIM format imagery */
-/***************************************************************/
-
-//void		Write_SAR_Images				(PolSARproSim_Record *pPR)
-//{
-//#ifndef POLSARPRO_CONVENTION
-//#ifdef POLSARPROSIM_ROTATED_IMAGES
-//   SIM_Record			RotImage;
-//   Create_SIM_Record	(&RotImage);
-//   Rotate_SIM_Record	(&(pPR->HHimage), &RotImage);
-//   Write_SIM_Record	(&RotImage);
-//   Rotate_SIM_Record	(&(pPR->HVimage), &RotImage);
-//   Write_SIM_Record	(&RotImage);
-//   Rename_SIM_Record	(&RotImage, pPR->VH_string);
-//   Write_SIM_Record	(&RotImage);
-//   Rotate_SIM_Record	(&(pPR->VVimage), &RotImage);
-//   Write_SIM_Record	(&RotImage);
-//   Destroy_SIM_Record	(&RotImage);
-//#else
-//   Write_SIM_Record	(&(pPR->HHimage));
-//   Write_SIM_Record	(&(pPR->HVimage));
-//   Write_SIM_Record	(&(pPR->VVimage));
-//   Rename_SIM_Record	(&(pPR->HVimage), pPR->VH_string);
-//   Write_SIM_Record	(&(pPR->HVimage));
-//   Rename_SIM_Record	(&(pPR->HVimage), pPR->HV_string);
-//#endif
-//#else
-//   Write_SIM_Record_As_POLSARPRO_BINARY (&(pPR->HHimage));
-//   Write_SIM_Record_As_POLSARPRO_BINARY (&(pPR->HVimage));
-//   Write_SIM_Record_As_POLSARPRO_BINARY (&(pPR->VVimage));
-//   Rename_SIM_Record (&(pPR->HVimage), pPR->VH_string);
-//   Write_SIM_Record_As_POLSARPRO_BINARY (&(pPR->HVimage));
-//   Rename_SIM_Record (&(pPR->HVimage), pPR->HV_string);
-//#endif
-//   return;
-//}
-
 void		Write_SAR_Stack				(PolSARproSim_Record *pPR)
 {
    int itrack;
@@ -6824,5 +6707,72 @@ void		Write_Stack_LookVectors				(PolSARproSim_Record *pPR)
       fclose(pLOSfile);
    }   
    return;
+}
+
+
+/******************************************/
+/* Image an Array of Corner Reflectors    */
+/******************************************/
+
+int		Image_Corner_Reflectors_Direct	(PolSARproSim_Record *pPR)
+{
+   Complex           Shh, Shv, Svh, Svv;
+   d3Vector          cr_center;
+#ifdef SWITCH_ATTENUATION_ON
+   double				gH, gV;
+   int               rtn_lookup;
+#endif
+   double				cr_x, cr_y, cr_grange, cr_srange, cr_height;
+   double				focus_x, focus_y, focus_grange, focus_srange, focus_height, focus_angle;
+   double				weight_average;
+   double				p_srange		= pPR->slant_range[pPR->current_track];
+   double				p_thetai		= pPR->incidence_angle[pPR->current_track];
+   double				p_height		= p_srange*cos(p_thetai);
+   double				p_grange		= p_srange*sin(p_thetai);
+   int               i;
+   double            cr_amp      = pPR->k0*CORNER_REFLECTOR_LENGTH*CORNER_REFLECTOR_LENGTH/sqrt(12)/DPI_RAD;
+
+   /* fix the ground-range of the corner reflectors */
+   cr_y              = - pPR->Ly/2 + pPR->Gap_Distance;
+   /* Add an array of corner reflectors along azimuth */
+   for(i = 0; i < NUMBER_OF_CORNER_REFLECTORS; i++){
+      cr_x           = pPR->Lx/2 - 2*(i+1)*pPR->Gap_Distance; // spaced twice the gap distance apart
+      cr_height      = ground_height (pPR, cr_x, cr_y);
+      cr_center      = Cartesian_Assign_d3Vector(cr_x, cr_y, cr_height);      
+      /* Simple scattering matrix for a dihedral corner reflector */
+      Shh				= xy_complex (1.0, 0.0);
+      Shv				= xy_complex (0.0, 0.0);
+      Svh				= xy_complex (0.0, 0.0);
+      Svv				= xy_complex (1.0, 0.0);
+      /* radiometric scaling */
+      Shh				= complex_rmul (Shh, cr_amp);
+      Shv				= complex_rmul (Shv, cr_amp);
+      Svh				= complex_rmul (Svh, cr_amp);
+      Svv				= complex_rmul (Svv, cr_amp);
+      /* Attenuate said fields*/
+#ifdef SWITCH_ATTENUATION_ON
+      rtn_lookup		= Lookup_Direct_Attenuation (cr_center, pPR, &gH, &gV);
+      Shh				= complex_rmul (Shh, gH*gH);
+      Shv				= complex_rmul (Shv, gH*gV);
+      Svh				= complex_rmul (Svh, gV*gH);
+      Svv				= complex_rmul (Svv, gV*gV);
+#endif
+      /******************************************/
+      /* Calculate the cylinder centre of focus */
+      /******************************************/
+      cr_grange			= p_grange + cr_y;
+      cr_srange			= sqrt ((p_height-cr_height)*(p_height-cr_height) + cr_grange*cr_grange);
+      focus_grange		= sqrt (cr_srange*cr_srange - p_height*p_height);
+      focus_x           = cr_x;
+      focus_y           = focus_grange - p_grange;
+      focus_height		= 0.0;
+      focus_srange		= sqrt ((p_height-focus_height)*(p_height-focus_height) + (p_grange+focus_y)*(p_grange+focus_y));
+      focus_angle       = atan2 (focus_grange, p_height);
+      /***************************************************/
+      /* Combine contribution into SAR image accumulator */
+      /***************************************************/
+      weight_average	= Accumulate_SAR_Contribution (focus_x, focus_y, focus_srange, Shh, Shv, Svv, pPR, pPR->current_track, focus_angle);
+   }
+   return (NO_POLSARPROSIM_ERRORS);
 }
 
