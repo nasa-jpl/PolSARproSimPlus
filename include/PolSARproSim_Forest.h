@@ -114,6 +114,45 @@ typedef struct sargeometry_tag {
  double			Sigma0_count;
 } SarGeometry;
 
+typedef struct localgeometry_tag {
+ int           track;
+/*********************************/
+/* Direct backscatter quantities */
+/*********************************/
+ double			Pi;
+ double			thetai;
+ double			cos_thetai;
+ double			sin_thetai;
+ double			p_srange;
+ double			p_thetai;
+ double			p_height;
+ double			p_grange;
+// Yn_Lookup		Ytable;
+// Jn_Lookup		Jtable;
+ d3Vector		ki, ks;
+ c3Vector		ch, cv;
+/*********************************/
+/* Bounce backscatter quantities */
+/*********************************/
+ d3Vector		n, z;
+ d3Vector		kr, krm;
+ d3Vector		hi,  vi,  hs,  vs,  hr,  vr,  hrm,  vrm;
+ d3Vector		hil, vil, hsl, vsl, hrl, vrl, hrlm, vrlm;
+ c3Vector		chi,  cvi,  chs,  cvs,  chr,  cvr,  chrm,  cvrm;
+ c3Vector		chil, cvil, chsl, cvsl, chrl, cvrl, chrlm, cvrlm;
+ c33Matrix		R1, R2;
+///************************/
+///* Performance monitors */
+///************************/
+// double			Sigma0HH;
+// double			Sigma0HV;
+// double			Sigma0VH;
+// double			Sigma0VV;
+// Complex       AvgShhvv, zhhvv;
+// double			Sigma0_count;
+} LocalGeometry;
+
+
 /*************************/
 /* SAR geometry routines */
 /*************************/

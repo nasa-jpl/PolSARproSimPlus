@@ -926,6 +926,8 @@ int		Input_PolSARproSim_Record		(const char *filename, PolSARproSim_Record *pPR)
    for (i = 0; i < pPR->Tracks; i++) {
       fprintf (pPR->pLogFile, "%d\t\t\t/* Position Change Model Type for track %d\t*/\n", pPR->Position_Change_Model[i],i);
       fprintf (pPR->pLogFile, "%.3f,%.3f,%.3f\t/* Position Change Model Coefficients for track %d\t*/\n", pPR->motion_coeff_A[i], pPR->motion_coeff_B[i], pPR->motion_coeff_C[i], i);
+   }
+   for (i = 0; i < pPR->Tracks; i++) {
       fprintf (pPR->pLogFile, "%d\t\t\t/* Moisture Change Model Type for track %d\t*/\n", pPR->Moisture_Change_Model[i],i);
       fprintf (pPR->pLogFile, "%.3f,%.3f,%.3f\t/* Moisture Change Model Coefficients for track %d\t*/\n", pPR->moisture_coeff_A[i], pPR->moisture_coeff_B[i], pPR->moisture_coeff_C[i], i);
    }
@@ -963,7 +965,8 @@ int		Input_PolSARproSim_Record		(const char *filename, PolSARproSim_Record *pPR)
    }
    for (i = 0; i < pPR->Tracks; i++) {
       fprintf (pPR->pOutputFile, "%d\t\t\t/* Position Change Model Type for track %d\t*/\n", pPR->Position_Change_Model[i],i);
-      fprintf (pPR->pOutputFile, "%.3f,%.3f,%.3f\t/* Position Change Model Coefficients for track %d\t*/\n", pPR->motion_coeff_A[i], pPR->motion_coeff_B[i], pPR->motion_coeff_C[i], i);
+      fprintf (pPR->pOutputFile, "%.3f,%.3f,%.3f\t/* Position Change Model Coefficients for track %d\t*/\n", pPR->motion_coeff_A[i], pPR->motion_coeff_B[i], pPR->motion_coeff_C[i], i);   }
+   for (i = 0; i < pPR->Tracks; i++) {
       fprintf (pPR->pOutputFile, "%d\t\t\t/* Moisture Change Model Type for track %d\t*/\n", pPR->Moisture_Change_Model[i],i);
       fprintf (pPR->pOutputFile, "%.3f,%.3f,%.3f\t/* Moisture Change Model Coefficients for track %d\t*/\n", pPR->moisture_coeff_A[i], pPR->moisture_coeff_B[i], pPR->moisture_coeff_C[i], i);
    }
@@ -1223,8 +1226,8 @@ int		Input_PolSARproSim_Record		(const char *filename, PolSARproSim_Record *pPR)
    psf_azextent	= sqrt(-log(sqrt(POWER_AT_PSF_EDGE))/pPR->psfaaz);
    psf_srextent	= sqrt(-log(sqrt(POWER_AT_PSF_EDGE))/pPR->psfasr);
 
-   psf_azextent   = 5 * pPR->deltax;
-   psf_srextent   = 5 * pPR->deltay * sin(pPR->incidence_angle[0]);
+   psf_azextent   = 3 * pPR->deltax;
+   psf_srextent   = 3 * pPR->deltay * sin(pPR->incidence_angle[0]);
 
    pPR->PSFnx		= (int) (psf_azextent/pPR->deltax) + 1;
    pPR->PSFnx		= 2*(pPR->PSFnx/2)+1;
@@ -1285,6 +1288,20 @@ int		Input_PolSARproSim_Record		(const char *filename, PolSARproSim_Record *pPR)
       pPR->moisture_profile_var[i]     = 0.0;
    }
 #endif
+
+   /****************************************/
+   /* Report Fast/Slow Mode Implementation */
+   /****************************************/
+   for (i = 0; i < pPR->Tracks; i++) {
+      if(pPR->ForestFastMode[i]  == FOREST_FAST_MODE_OFF){
+         fprintf (pPR->pLogFile, "Track %d will be run in slow-mode\n", i);
+      }else{
+         fprintf (pPR->pLogFile, "Track %d will be run in fast-mode\n", i);
+      }
+   }
+
+
+
    /*********************************/
    /* Initialise progress indicator */
    /*********************************/
@@ -1377,18 +1394,6 @@ void	Ground_Surface_Generation	(PolSARproSim_Record *pPR)
                           Lx, Ly, "PolSARproSim ground height map");
    p.simpixeltype	= pSR->pixel_type;
    free (ground_height_filename);
-   
-   ground_height_filename	= (char*) calloc (strlen(pPR->pMasterDirectory)+strlen("max_height.bin")+1, sizeof(char));
-   strcpy  (ground_height_filename, pPR->pMasterDirectory);
-   strcat  (ground_height_filename, "max_height.bin");
-   
-   Destroy_SIM_Record (pSRHgt);
-   Create_SIM_Record (pSRHgt);
-   Initialise_SIM_Record (pSRHgt, ground_height_filename, nx, ny, SIM_FLOAT_TYPE, 
-                          Lx, Ly, "PolSARproSim maximum height map");
-   p.simpixeltype	= pSRHgt->pixel_type;
-   free (ground_height_filename);
-   
    
 #ifndef FLAT_DEM
    
@@ -5674,6 +5679,25 @@ double		Accumulate_SAR_Contribution		(double focus_x, double focus_y, double foc
    return (weight_sum);
 }
 
+void        Initialize_Max_Height_Map (PolSARproSim_Record *pPR)
+{
+   char                 *max_height_filename;
+   SIM_Record           *pSRHgt  = &(pPR->Max_Height);
+   
+   
+   /* create file nam */ 
+   max_height_filename	= (char*) calloc (strlen(pPR->pMasterDirectory)+strlen("max_height.bin")+1, sizeof(char));
+   strcpy  (max_height_filename, pPR->pMasterDirectory);
+   strcat  (max_height_filename, "max_height.bin");
+   
+   /* create the simulation record */
+   //Destroy_SIM_Record (pSRHgt);
+   Create_SIM_Record (pSRHgt);
+   Initialise_SIM_Record (pSRHgt, max_height_filename, pPR->nx, pPR->ny, SIM_FLOAT_TYPE, 
+                          pPR->Lx, pPR->Ly, "PolSARproSim maximum height map");
+   free (max_height_filename);
+}
+
 void        Max_Height_Generation     (double  focus_x, double focus_y, double height, PolSARproSim_Record *pPR)
 {
    double         dx    = pPR->deltax;
@@ -5701,6 +5725,106 @@ void        Max_Height_Generation     (double  focus_x, double focus_y, double h
 
 }
 
+void        Initialize_Surface_Normal_Layers (PolSARproSim_Record *pPR)
+{
+   char           *filename;
+   SIM_Record     *pSNX  = &(pPR->Surface_Normal_X);
+   SIM_Record     *pSNY  = &(pPR->Surface_Normal_Y);
+   SIM_Record     *pSNZ  = &(pPR->Surface_Normal_Z);
+   
+   /* create filename */ 
+   filename             = (char*) calloc (strlen(pPR->pMasterDirectory)+strlen("surface_normal_x.bin")+1, sizeof(char));
+   strcpy  (filename, pPR->pMasterDirectory);
+   strcat  (filename, "surface_normal_x.bin");
+   /* create the simulation record */
+   Create_SIM_Record  (pSNX);
+   Initialise_SIM_Record (pSNX, filename, pPR->nx, pPR->ny, SIM_FLOAT_TYPE, 
+                          pPR->Lx, pPR->Ly, "PolSARproSim surface normal x-component map");
+   free (filename);
+
+   /* create filename */ 
+   filename             = (char*) calloc (strlen(pPR->pMasterDirectory)+strlen("surface_normal_y.bin")+1, sizeof(char));
+   strcpy  (filename, pPR->pMasterDirectory);
+   strcat  (filename, "surface_normal_y.bin");
+   /* create the simulation record */
+   Create_SIM_Record  (pSNY);
+   Initialise_SIM_Record (pSNY, filename, pPR->nx, pPR->ny, SIM_FLOAT_TYPE, 
+                          pPR->Lx, pPR->Ly, "PolSARproSim surface normal y-component map");
+   free (filename);
+
+   /* create filename */ 
+   filename             = (char*) calloc (strlen(pPR->pMasterDirectory)+strlen("surface_normal_z.bin")+1, sizeof(char));
+   strcpy  (filename, pPR->pMasterDirectory);
+   strcat  (filename, "surface_normal_z.bin");
+   /* create the simulation record */
+   Create_SIM_Record  (pSNZ);
+   Initialise_SIM_Record (pSNZ, filename, pPR->nx, pPR->ny, SIM_FLOAT_TYPE, 
+                          pPR->Lx, pPR->Ly, "PolSARproSim surface normal z-component map");
+   free (filename);
+
+}
+
+void        Fill_Surface_Normal_Layers    (double  focus_x, double focus_y, d3Vector norm, PolSARproSim_Record *pPR)
+{
+   double         dx    = pPR->deltax;
+   double         dy		= pPR->deltay;
+   double         xmid	= pPR->xmid;
+   double         ymid	= pPR->ymid;
+   /**************************************************************/
+   /* Find pixel coordinates for pixel closest to point of focus */
+   /**************************************************************/
+   int         ix       = (int) ((xmid+focus_x)/dx);
+   int         jy       = (int) ((ymid-focus_y)/dy);
+   sim_pixel	spix;
+      
+   spix.simpixeltype    = pPR->Surface_Normal_X.pixel_type;
+   spix.data.f          = norm.x[0];
+   putSIMpixel          (&(pPR->Surface_Normal_X), spix, ix, jy);
+   spix.data.f          = norm.x[1];
+   putSIMpixel          (&(pPR->Surface_Normal_Y), spix, ix, jy);
+   spix.data.f          = norm.x[2];
+   putSIMpixel          (&(pPR->Surface_Normal_Z), spix, ix, jy);
+
+}
+
+d3Vector	Lookup_Surface_Normal	(PolSARproSim_Record *pPR, double x, double y)
+{
+ double		Lx			=  pPR->Lx;
+ double		Ly			=  pPR->Ly;
+ int        nx			=  pPR->nx;
+ int        ny			=  pPR->ny;
+// double		sx			=  pPR->slope_x;
+// double		sy			=  pPR->slope_y;
+ double		deltax		=  Lx/(double)nx;
+ double		deltay		=  Ly/(double)ny;
+ int        ix			=  (int)(( x+(Lx-deltax)/2.0)/deltax);
+ int        iy			=  (int)((-y+(Ly-deltay)/2.0)/deltay);
+// double		x0			=  ix*deltax - (Lx - deltax)/2.0;
+// double		y0			= -(iy*deltay - (Ly - deltay)/2.0);
+ sim_pixel	pz;
+// double		z,z0,z1,z2,z3;
+// double		a0,a1,a2,a3;
+// double		dx,dy;
+// int		kx,ky;
+// double		xi,yi,xk,yk;
+ d3Vector   normal;
+ double     Xn, Yn, Zn;
+
+ pz			= getSIMpixel_periodic (&(pPR->Surface_Normal_X), ix, iy);
+ Xn			= (double) pz.data.f;
+
+ pz			= getSIMpixel_periodic (&(pPR->Surface_Normal_Y), ix, iy);
+ Yn			= (double) pz.data.f;
+
+ pz			= getSIMpixel_periodic (&(pPR->Surface_Normal_Z), ix, iy);
+ Zn			= (double) pz.data.f;
+
+ normal     = Cartesian_Assign_d3Vector(Xn, Yn, Zn);
+ d3Vector_insitu_normalise(&normal); 
+ 
+ return(normal);
+ 
+}
 
 int			Polarisation_Vectors			(d3Vector k, d3Vector n, d3Vector *ph, d3Vector *pv)
 {

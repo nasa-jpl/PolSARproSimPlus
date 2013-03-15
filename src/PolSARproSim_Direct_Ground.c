@@ -107,7 +107,7 @@ int		PolSARproSim_Direct_Ground		(PolSARproSim_Record *pPR)
    int               rtn_lookup;
    double				gH, gV;
 #endif
-   
+   d3Vector          pixel_normal;
    /******************************************/
    /* Report call if running in VERBOSE mode */
    /******************************************/
@@ -221,6 +221,11 @@ int		PolSARproSim_Direct_Ground		(PolSARproSim_Record *pPR)
          vertex[2]	= Cartesian_Assign_d3Vector (x+deltax, y-deltay, ground_height (pPR, x+deltax, y-deltay));
          vertex[3]	= Cartesian_Assign_d3Vector (x, y-deltay, ground_height (pPR, x, y-deltay));
          vertex[4]	= Cartesian_Assign_d3Vector (x+(deltax/2.0), y-(deltay/2.0), ground_height (pPR, x+(deltax/2.0), y-(deltay/2.0)));
+         /* use average facet normal as pixel normal */
+         pixel_normal = Cartesian_Assign_d3Vector((ground_facet[0].n.x[0]+ground_facet[1].n.x[0]+ground_facet[2].n.x[0]+ground_facet[3].n.x[0])/4, 
+                                                  (ground_facet[0].n.x[1]+ground_facet[1].n.x[1]+ground_facet[2].n.x[1]+ground_facet[3].n.x[1])/4, 
+                                                  (ground_facet[0].n.x[2]+ground_facet[1].n.x[2]+ground_facet[2].n.x[2]+ground_facet[3].n.x[2])/4);
+         Fill_Surface_Normal_Layers    (x, y, pixel_normal, pPR);
          /*************************************/
          /* Turn ground grid into four facets */
          /*************************************/
@@ -514,7 +519,7 @@ void  *Direct_Ground_RangeLine   (void *threadarg)
 #endif
 
    double            rand1, rand2, rand3;
-
+   d3Vector          pixel_normal;
    /******************/
    /* Initialisation */
    /******************/
@@ -544,6 +549,11 @@ void  *Direct_Ground_RangeLine   (void *threadarg)
       Assign_Facet	(&(ground_facet[1]), &(vertex[4]), &(vertex[2]), &(vertex[1]));
       Assign_Facet	(&(ground_facet[2]), &(vertex[4]), &(vertex[3]), &(vertex[2]));
       Assign_Facet	(&(ground_facet[3]), &(vertex[4]), &(vertex[0]), &(vertex[3]));
+      /* use average facet normal as pixel normal */
+      pixel_normal = Cartesian_Assign_d3Vector((ground_facet[0].n.x[0]+ground_facet[1].n.x[0]+ground_facet[2].n.x[0]+ground_facet[3].n.x[0])/4, 
+                                               (ground_facet[0].n.x[1]+ground_facet[1].n.x[1]+ground_facet[2].n.x[1]+ground_facet[3].n.x[1])/4, 
+                                               (ground_facet[0].n.x[2]+ground_facet[1].n.x[2]+ground_facet[2].n.x[2]+ground_facet[3].n.x[2])/4);
+      Fill_Surface_Normal_Layers    (x, y, pixel_normal, pPR);
       /****************************************************/
       /* Add facets to facet list : tail is at near range */
       /****************************************************/

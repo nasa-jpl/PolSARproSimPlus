@@ -176,7 +176,7 @@ int main(int argv, char *argc[])
    printf ("\nWriting log to      %s\n", logfile_string);
    
 #endif
-   
+      
    /********************************/
    /* Attempt to open output files */
    /********************************/
@@ -232,12 +232,17 @@ int main(int argv, char *argc[])
    /* Generate ground height map on ground range - azimuth grid */
    /*************************************************************/
    Create_SIM_Record                (&(Master_Record.Ground_Height));
-   Create_SIM_Record                (&(Master_Record.Max_Height));
    Ground_Surface_Generation        (&Master_Record);
-   
 #ifndef POLSARPROSIM_NOSIMOUTPUT
    Write_SIM_Record_As_POLSARPRO_BINARY        (&(Master_Record.Ground_Height));
 #endif
+   
+   /****************************************************/
+   /* Initialize Max Height and Surface Normal Layers  */
+   /****************************************************/
+   Initialize_Max_Height_Map        (&Master_Record);
+   Initialize_Surface_Normal_Layers (&Master_Record);
+   
    
    /****************************************************/
    /* Generate tree stem position and height database. */
@@ -321,8 +326,8 @@ int main(int argv, char *argc[])
       /* Calculate the short vegetation contribution */
       /***********************************************/
 #ifdef ENABLE_THREADS
-//      PolSARproSim_Short_Vegetation_Direct_SMP  (&Master_Record);
-//      PolSARproSim_Short_Vegetation_Bounce_SMP  (&Master_Record);
+      PolSARproSim_Short_Vegetation_Direct_SMP  (&Master_Record);
+      PolSARproSim_Short_Vegetation_Bounce_SMP  (&Master_Record);
 #else
       PolSARproSim_Short_Vegetation_Direct      (&Master_Record);
       PolSARproSim_Short_Vegetation_Bounce      (&Master_Record);
@@ -341,7 +346,7 @@ int main(int argv, char *argc[])
       /* Put a corner reflector or two for fun */
       /*****************************************/
 #ifdef   ENABLE_CORNER_REFLECTORS
-      Image_Corner_Reflectors_Direct            (&Master_Record);
+//      Image_Corner_Reflectors_Direct            (&Master_Record);
 #endif
       
       /***********/
@@ -375,6 +380,9 @@ int main(int argv, char *argc[])
    Write_SAR_Stack                              (&Master_Record);
    Write_Stack_LookVectors                      (&Master_Record);
    Write_SIM_Record_As_POLSARPRO_BINARY         (&(Master_Record.Max_Height));
+   Write_SIM_Record_As_POLSARPRO_BINARY         (&(Master_Record.Surface_Normal_X));
+   Write_SIM_Record_As_POLSARPRO_BINARY         (&(Master_Record.Surface_Normal_Y));
+   Write_SIM_Record_As_POLSARPRO_BINARY         (&(Master_Record.Surface_Normal_Z));
    /******************************/
    /* Tidy up before leaving     */
    /******************************/

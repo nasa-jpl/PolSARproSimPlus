@@ -213,6 +213,9 @@ typedef struct polsarprosim_record_tag {
    double			slope_y;                /* Underlying mean terrain slope in ground range (ratio)       */
    SIM_Record     Ground_Height;          /* Float image of ground heights in the SAR frame in metres    */
    SIM_Record     Max_Height;             /* Float image of maximum heights in SAR frame in meters       */
+   SIM_Record     Surface_Normal_X;       /* X-component of the surface normal                           */
+   SIM_Record     Surface_Normal_Y;       /* X-component of the surface normal                           */
+   SIM_Record     Surface_Normal_Z;       /* X-component of the surface normal                           */
    /**************************************************/
    /* Variables governing small-scale ground surface */
    /**************************************************/

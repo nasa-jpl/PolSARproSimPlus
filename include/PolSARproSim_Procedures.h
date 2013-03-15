@@ -144,8 +144,12 @@ void        Write_SAR_Stack               (PolSARproSim_Record *pPR);
 void        Destroy_SAR_Stack             (PolSARproSim_Record *pPR);
 void        Write_Stack_LookVectors			(PolSARproSim_Record *pPR);
 int         Write_SIM_Record_As_POLSARPRO_BINARY	(SIM_Record *pSIMR);
+void        Initialize_Max_Height_Map     (PolSARproSim_Record *pPR);
 void        Max_Height_Generation         (double  focus_x, double focus_y, double height, PolSARproSim_Record *pPR);
 int         Image_Corner_Reflectors_Direct	(PolSARproSim_Record *pPR);
+void        Initialize_Surface_Normal_Layers (PolSARproSim_Record *pPR);
+void        Fill_Surface_Normal_Layers    (double  focus_x, double focus_y, d3Vector norm, PolSARproSim_Record *pPR);
+d3Vector    Lookup_Surface_Normal         (PolSARproSim_Record *pPR, double x, double y);
 /************************/
 /* TCLTK string parsing */
 /************************/

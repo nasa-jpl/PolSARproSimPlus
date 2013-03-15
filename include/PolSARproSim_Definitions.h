@@ -249,9 +249,9 @@
 /**********************************************/
 
 //#define	POLSARPROSIM_DIRECTGROUND_SPECKLE_FACTOR	2            /* Controls how many facets there are per resolution cell: n = 4f^2, f=2, n=16	*/
-#define	POLSARPROSIM_DIRECTGROUND_SPECKLE_FACTOR     2                /* Controls how many facets there are per resolution cell: n = 4f^2, f=2, n=16	*/ /* RAedit 05/02/2012 */
+#define	POLSARPROSIM_DIRECTGROUND_SPECKLE_FACTOR     2                /* Controls how many facets there are per resolution cell: n = 4f^2, f=2, n=16	*/ 
 //#define	POLSARPROSIM_DIRECTGROUND_DELTAB_FACTOR		15.0         /* Beta rotation angle factor for increased entropy	(range 0-100, default 33.0)	*/
-#define	POLSARPROSIM_DIRECTGROUND_DELTAB_FACTOR		0.1              /* Beta rotation angle factor for increased entropy	(range 0-100, default 33.0)	*/ /* RAedit 07/10/2012 */
+#define	POLSARPROSIM_DIRECTGROUND_DELTAB_FACTOR		0.1              /* Beta rotation angle factor for increased entropy	(range 0-100, default 33.0)	*/ 
 
 /*****************************/
 /* Short vegetation controls */
@@ -400,7 +400,7 @@
 #define  CHANGE_PROFILE_BINS                 100
 #define  CHANGE_HEIGHT_DELTA                 2.0
 /* whether to write out statistics of change profiles */
-//#define  OUTPUT_CHANGE_STATS_ON
+#define  OUTPUT_CHANGE_STATS_ON
 
 /**********************************************/
 /* PARAMETER FILE MIN/MAX/DEFAULTS            */
