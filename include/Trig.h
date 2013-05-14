@@ -45,5 +45,8 @@
 #define  RAD_TO_DEG     57.295779513082
 #define  DEG_TO_RAD     0.017453292520
 
+#define MAX(a,b)  ( ( (a) > (b) ) ? (a) : (b) )
+#define MIN(a,b)  ( ( (a) < (b) ) ? (a) : (b) )
+
 
 #endif

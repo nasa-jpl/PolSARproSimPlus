@@ -231,7 +231,7 @@
 #define	AMAP_VERTICAL_RESOLUTION               1.0         /* Determines the vertical resolution of the attenuation map grid				*/
 #define	AMAP_SHORT_VEGI_NZ                     10          /* Length of short vegi attenuation depth look-up table			*/
 #define	NO_DIRECT_ATTENUATION_LOOKUP_ERRORS    0           /* Good return value when looking up direct attenuation values	*/
-#define  ENABLE_ATTENUATION_FROM_STEMS                       /* To enable attenuation from stems, this will slow it down   */
+//#define  ENABLE_ATTENUATION_FROM_STEMS                       /* To enable attenuation from stems, this will slow it down   */
 
 /*************************/
 /* SAR image calculation */
@@ -355,20 +355,35 @@
 /*#define		POLSARPROSIM_STAGE3								*/
 /* Required when setting up tree parameters						*/
 
-#define		POLSARPROSIM_CROWN_OVERLAP_FACTOR		0.892489		
+#define	POLSARPROSIM_CROWN_OVERLAP_FACTOR		0.892489		
 /* Increases the maximum permissible number of trees and permits crowns to overlap					*/
 /* Note there is a link between this parameter and POLSARPROSIM_PINE001_TCRSCALE in Allometrics.h	*/
 
-//#define		POLSARPROSIM_NOGRIOUTPUT
+/*************************************/
+/* Control for writing output layers */
+/*************************************/
 /* Will turn off the facility to ouput GRI format images if defined */
-//#define		POLSARPROSIM_NOSIMOUTPUT
+//#define		POLSARPROSIM_NOGRIOUTPUT
 /* Will turn off the facility to ouput SIM format images if defined */
+//#define		POLSARPROSIM_NOSIMOUTPUT
+/* Will turn on the facility to compute and output statistics of temporal change profiles */
+#define  OUTPUT_CHANGE_STATS_ON
+/* Will turn on the output of DEM surface normals  */
+#define  OUTPUT_SURFACE_NORMALS_ON
+/* Will turn on the output of lookvectors */
+#define  OUTPUT_LOOKVECTORS_ON
+/* Will turn on the output of DEM */
+#define  OUTPUT_DEM_ON
+/* Will turn on the output of Max Heights */
+#define  OUTPUT_MAX_HEIGHTS_ON
+/* Will turn on the output of Shadow Map */
+#define  OUTPUT_SHADOW_MAP_ON
 
 /****************************************/
 /* Optional flat earth phase correction */
 /****************************************/
 
-#define		POLSARPROSIM_FLATEARTH							
+#define  POLSARPROSIM_FLATEARTH							
 /* Will scale images by exp (-j 2kr) if defined						*/
 
 /***********************************************/
@@ -383,6 +398,12 @@
 
 #define EXTERNAL_FOREST_DEFINITION                 1 /* Forest primitives read from file */
 
+/****************************************************/
+/* External DEM Control                            */
+/****************************************************/
+
+#define READ_EXTERNAL_DEM                          1 /* DEM is read from file */
+
 /***************************************************/
 /* Multi-processor support                         */
 /***************************************************/
@@ -392,16 +413,14 @@
 /***************************************************/
 /* Temporal Decorrelation Model                    */
 /***************************************************/
-/* model type */
-#define  CHANGE_MODEL_NONE                   0
-#define  CHANGE_MODEL_POLYNOMIAL             1
-#define  CHANGE_MODEL_EXPONENTIAL            2
-/* no. of bins in height profile */
-#define  CHANGE_PROFILE_BINS                 100
-#define  CHANGE_HEIGHT_DELTA                 2.0
-/* whether to write out statistics of change profiles */
-#define  OUTPUT_CHANGE_STATS_ON
-
+#define  CHANGE_MODEL_NONE                   0        /* model type none - no changes */
+#define  CHANGE_MODEL_POLYNOMIAL             1        /* polynomial, i.e change = A * h.^2 + B * h + C */
+#define  CHANGE_MODEL_EXPONENTIAL            2        /* exponential, i.e. change = A * exp(B * h) + C */
+#define  CHANGE_PROFILE_BINS                 100      /* no. of bins in height profile */
+#define  CHANGE_HEIGHT_DELTA                 2.0      /* if branch grows taller than this delta, recompute change parameters */
+#define  CHANGE_MOISTURE_MIN                 0.0      /* minimum value of the gravimetric moisture content */
+#define  CHANGE_MOISTURE_MAX                 0.7      /* maximum value of the gravimetric moisture content, (see Ulaby, El-Rayes 1987) */
+#define  CHANGE_MOISTURE_STDEV_FACTOR        0.1     /* stdev of applied moisture change = (mean applied offset ) * this factor */
 /**********************************************/
 /* PARAMETER FILE MIN/MAX/DEFAULTS            */
 /**********************************************/
@@ -485,6 +504,14 @@
 #define  ENABLE_FAST_MODE_MAX          1              
 #define  ENABLE_FAST_MODE_DEFAULT      0              /* Fast mode off by default */
 
+#define  EXTERNAL_DEM_MIN              0
+#define  EXTERNAL_DEM_MAX              1
+#define  EXTERNAL_DEM_DEFAULT          0              /* No external dem by default */
+
+#define  NOISE_POWER_MIN               -65.0          /* Minimum allowable Noise equivalent sigma nought */
+#define  NOISE_POWER_MAX               0.0            /* Maximum allowable NESZ  */
+#define  NOISE_POWER_DEFAULT           -30.0          /* default NESZ */
+
 /****************************************/
 /* CORNER REFLECTOR CONTROLS            */
 /****************************************/
@@ -498,5 +525,13 @@
 /* in this mode scattering matrix isnt recomputed for each track, just the geometries, saving some time */
 #define  FOREST_FAST_MODE_OFF          0              /* turn fast compute mode off */
 #define  FOREST_FAST_MODE_ON           1              /* turn fast compute mode on */
+
+/****************/
+/* DEM CONTROLS */
+/****************/
+//#define  DEM_RESAMPLE_NEAREST_NEIGHBOR
+#define  DEM_RESAMPLE_BILINEAR
+#define  DEFAULT_DEM_HEIGHT            0.0
+
 
 #endif

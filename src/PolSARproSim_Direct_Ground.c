@@ -130,7 +130,7 @@ int		PolSARproSim_Direct_Ground		(PolSARproSim_Record *pPR)
    fprintf (pPR->pLogFile, "Azimth slope\t\t\t\t\t\t%lf\n", pPR->slope_x);
    fprintf (pPR->pLogFile, "Range  slope\t\t\t\t\t\t%lf\n", pPR->slope_y);
    fprintf (pPR->pLogFile, "XBragg beta1 value\t\t\t\t\t%lf rads.\n", beta1);
-   fprintf (pPR->pLogFile, "Ground dielectric value\t\t\t\t\t%lf \t%lf\n", pPR->ground_eps.x, pPR->ground_eps.y);
+   fprintf (pPR->pLogFile, "Ground dielectric value\t\t\t\t\t%lf \t%lf\n", pPR->ground_eps[pPR->current_track].x, pPR->ground_eps[pPR->current_track].y);
    fflush  (pPR->pLogFile);
    /******************/
    /* Initialisation */
@@ -155,8 +155,8 @@ int		PolSARproSim_Direct_Ground		(PolSARproSim_Record *pPR)
    thetail        = acos (ndotp);
    cos_thetail    = ndotp;
    sin_thetail    = sqrt(1.0-ndotp*ndotp);
-   SigHH          = monostatic_soil_sigma0HH (thetail, pPR->ground_eps, pPR->k0, pPR->small_scale_height_stdev, pPR->small_scale_length);
-   SigVV          = monostatic_soil_sigma0VV (thetail, pPR->ground_eps, pPR->k0, pPR->small_scale_height_stdev, pPR->small_scale_length);
+   SigHH          = monostatic_soil_sigma0HH (thetail, pPR->ground_eps[pPR->current_track], pPR->k0, pPR->small_scale_height_stdev, pPR->small_scale_length);
+   SigVV          = monostatic_soil_sigma0VV (thetail, pPR->ground_eps[pPR->current_track], pPR->k0, pPR->small_scale_height_stdev, pPR->small_scale_length);
    fprintf (pPR->pLogFile, "\nLocal Sigma0HH\t= %lf dB\n", 10.0*log10(SigHH));
    fprintf (pPR->pLogFile, "Local Sigma0VV\t= %lf dB\n", 10.0*log10(SigVV));
    fflush  (pPR->pLogFile);
@@ -279,8 +279,8 @@ int		PolSARproSim_Direct_Ground		(PolSARproSim_Record *pPR)
             /********************************************/
             /* calculate the facet scattering amplitude */
             /********************************************/
-            SigHH         = monostatic_soil_sigma0HH (thetail, pPR->ground_eps, pPR->k0, pPR->small_scale_height_stdev, pPR->small_scale_length);
-            SigVV         = monostatic_soil_sigma0VV (thetail, pPR->ground_eps, pPR->k0, pPR->small_scale_height_stdev, pPR->small_scale_length);
+            SigHH         = monostatic_soil_sigma0HH (thetail, pPR->ground_eps[pPR->current_track], pPR->k0, pPR->small_scale_height_stdev, pPR->small_scale_length);
+            SigVV         = monostatic_soil_sigma0VV (thetail, pPR->ground_eps[pPR->current_track], pPR->k0, pPR->small_scale_height_stdev, pPR->small_scale_length);
             fArea         = facet_area (&f1);
             RootSigHH     = sqrt (fArea*SigHH);
             RootSigVV		= sqrt (fArea*SigVV);
@@ -603,8 +603,8 @@ void  *Direct_Ground_RangeLine   (void *threadarg)
          /********************************************/
          /* calculate the facet scattering amplitude */
          /********************************************/
-         SigHH         = monostatic_soil_sigma0HH (thetail, pPR->ground_eps, pPR->k0, pPR->small_scale_height_stdev, pPR->small_scale_length);
-         SigVV         = monostatic_soil_sigma0VV (thetail, pPR->ground_eps, pPR->k0, pPR->small_scale_height_stdev, pPR->small_scale_length);
+         SigHH         = monostatic_soil_sigma0HH (thetail, pPR->ground_eps[pPR->current_track], pPR->k0, pPR->small_scale_height_stdev, pPR->small_scale_length);
+         SigVV         = monostatic_soil_sigma0VV (thetail, pPR->ground_eps[pPR->current_track], pPR->k0, pPR->small_scale_height_stdev, pPR->small_scale_length);
          fArea         = facet_area (&f1);
          RootSigHH     = sqrt (fArea*SigHH);
          RootSigVV     = sqrt (fArea*SigVV);
@@ -782,7 +782,7 @@ int		PolSARproSim_Direct_Ground_SMP		(PolSARproSim_Record        *pPR)
    fprintf (pPR->pLogFile, "Azimth slope\t\t\t\t\t\t%lf\n", pPR->slope_x);
    fprintf (pPR->pLogFile, "Range  slope\t\t\t\t\t\t%lf\n", pPR->slope_y);
    fprintf (pPR->pLogFile, "XBragg beta1 value\t\t\t\t\t%lf rads.\n", beta1);
-   fprintf (pPR->pLogFile, "Ground dielectric value\t\t\t\t\t%lf \t%lf\n", pPR->ground_eps.x, pPR->ground_eps.y);
+   fprintf (pPR->pLogFile, "Ground dielectric value\t\t\t\t\t%lf \t%lf\n", pPR->ground_eps[pPR->current_track].x, pPR->ground_eps[pPR->current_track].y);
    fflush  (pPR->pLogFile);
    /******************/
    /* Initialisation */
@@ -814,8 +814,8 @@ int		PolSARproSim_Direct_Ground_SMP		(PolSARproSim_Record        *pPR)
    thetail       = acos (ndotp);
    cos_thetail	= ndotp;
    sin_thetail	= sqrt(1.0-ndotp*ndotp);
-   SigHH			= monostatic_soil_sigma0HH (thetail, pPR->ground_eps, pPR->k0, pPR->small_scale_height_stdev, pPR->small_scale_length);
-   SigVV			= monostatic_soil_sigma0VV (thetail, pPR->ground_eps, pPR->k0, pPR->small_scale_height_stdev, pPR->small_scale_length);
+   SigHH			= monostatic_soil_sigma0HH (thetail, pPR->ground_eps[pPR->current_track], pPR->k0, pPR->small_scale_height_stdev, pPR->small_scale_length);
+   SigVV			= monostatic_soil_sigma0VV (thetail, pPR->ground_eps[pPR->current_track], pPR->k0, pPR->small_scale_height_stdev, pPR->small_scale_length);
    fprintf (pPR->pLogFile, "\nLocal Sigma0HH\t= %lf dB\n", 10.0*log10(SigHH));
    fprintf (pPR->pLogFile, "Local Sigma0VV\t= %lf dB\n", 10.0*log10(SigVV));
    fflush  (pPR->pLogFile);

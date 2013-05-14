@@ -539,3 +539,118 @@ int		Rotate_SIM_Record			(SIM_Record *pOrg, SIM_Record *pRot)
    }
    return (NO_SIMPRIMITIVE_ERRORS);
 }
+
+/*********************************************************/
+/* Image rotation for POLSARPRO range-azimuth convention */
+/*********************************************************/
+
+int		Copy_SIM_Record			(SIM_Record *pOrg, SIM_Record *pCpy)
+{
+   int               i,j;
+   sim_pixel			sp;
+   Destroy_SIM_Record (pCpy);
+   Initialise_SIM_Record (pCpy, pOrg->filename, pOrg->nx, pOrg->ny, pOrg->pixel_type, pOrg->Lx, pOrg->Ly, pOrg->pInfo);
+   for (i=0; i<pOrg->nx; i++) {
+      for (j=0; j<pOrg->ny; j++) {
+         sp	= getSIMpixel (pOrg, i, j);
+         putSIMpixel (pCpy, sp, i, j);
+      }
+   }
+   return (NO_SIMPRIMITIVE_ERRORS);
+}
+
+
+/*********************************************************/
+/* Trim Image to the given extent in range and azimuth   */
+/*********************************************************/
+
+int		Trim_SIM_Record			(SIM_Record *pSIMR, double Lx, double Ly)
+{
+   SIM_Record  Copy;
+   sim_pixel	sp;
+   int         nxtrim, nytrim, i, j, ix, jy;
+   double      xmid, ymid, xmidt, ymidt, dx, dy,x, y;
+   
+   if(pSIMR->Lx < Lx){
+      printf("Trim_SIM_Record: No trimming in X-direction\n");
+      return(!NO_SIMPRIMITIVE_ERRORS);
+   }
+   if(pSIMR->Ly < Ly){
+      printf("Trim_SIM_Record: No trimming in Y-direction\n");
+      return(!NO_SIMPRIMITIVE_ERRORS);
+   }
+   
+   xmid        = pSIMR->Lx/2;
+   ymid        = pSIMR->Ly/2;
+   dx          = pSIMR->dx;
+   dy          = pSIMR->dy;
+   nxtrim      = rint(Lx/pSIMR->dx);
+   nytrim      = rint(Ly/pSIMR->dy);
+   xmidt       = Lx/2;
+   ymidt       = Ly/2;
+   
+   Create_SIM_Record          (&Copy);
+   Copy_SIM_Record            (pSIMR, &Copy); 
+   Destroy_SIM_Record         (pSIMR);
+   Initialise_SIM_Record		(pSIMR, Copy.filename, nxtrim, nytrim, Copy.pixel_type, Lx, Ly, Copy.pInfo);
+   for (i=0; i<nxtrim; i++) {
+      for (j=0; j<nytrim; j++) {
+         x     = i * dx - xmidt;
+         y     = ymidt - j * dy;
+         ix    = rint((x + xmid)/dx);
+         jy    = rint((ymid - y)/dy);
+         sp    = getSIMpixel(&Copy, ix, jy);
+         putSIMpixel(pSIMR, sp, i,j);
+      }
+   }
+   Destroy_SIM_Record(&Copy);
+   return (NO_SIMPRIMITIVE_ERRORS);
+}
+
+/*********************************************************/
+/* Add two Images and put the result in the first one    */
+/*********************************************************/
+
+int		Add_SIM_Records			(SIM_Record *pIMG1, SIM_Record *pIMG2)
+{
+   int               i,j;
+   sim_pixel			res, sp1, sp2;
+   
+   if(pIMG1->nx != pIMG2->nx){
+      printf("ERROR: Add_SIM_Records, azimuth image dimensions do not match\n");
+      return(!NO_SIMPRIMITIVE_ERRORS);
+   }
+   if(pIMG1->ny != pIMG2->ny){
+      printf("ERROR: Add_SIM_Records, range image dimensions do not match\n");
+      
+      return(!NO_SIMPRIMITIVE_ERRORS);
+   }
+   if(pIMG1->pixel_type != pIMG2->pixel_type){
+      printf("ERROR: Add_SIM_Records, pixel types do not match\n\n");
+      return(!NO_SIMPRIMITIVE_ERRORS);
+   }
+   
+   for (i=0; i<pIMG1->nx; i++) {
+      for (j=0; j<pIMG1->ny; j++) {
+         sp1	= getSIMpixel (pIMG1, i, j);
+         sp2	= getSIMpixel (pIMG2, i, j);
+         res   = getSIMpixel (pIMG2, i, j);
+         switch (pIMG1->pixel_type) {
+            case SIM_BYTE_TYPE:				res.data.b		= (sim_byte)   (sp1.data.b    + sp2.data.b);		break;
+            case SIM_WORD_TYPE:				res.data.w		= (sim_word)   (sp1.data.w    + sp2.data.w);		break;
+            case SIM_DWORD_TYPE:          res.data.dw		= (sim_dword)  (sp1.data.dw   + sp2.data.dw);	break;
+            case SIM_FLOAT_TYPE:          res.data.f		= (sim_float)  (sp1.data.f    + sp2.data.f);    break;
+            case SIM_DOUBLE_TYPE:			res.data.d		= (sim_double) (sp1.data.d    + sp2.data.d);		break;
+            case SIM_COMPLEX_FLOAT_TYPE:	res.data.cf.x	= (sim_float)  (sp1.data.cf.x + sp2.data.cf.x);
+                                          res.data.cf.y	= (sim_float)  (sp1.data.cf.y + sp2.data.cf.y); break;
+            case SIM_COMPLEX_DOUBLE_TYPE:	res.data.cd.x	= (sim_double) (sp1.data.cd.x + sp2.data.cd.x);
+                                          res.data.cd.y	= (sim_double) (sp1.data.cd.y + sp2.data.cd.y); break;
+         }
+         putSIMpixel (pIMG1, res, i, j);
+      }
+   }
+   return (NO_SIMPRIMITIVE_ERRORS);
+}
+
+
+

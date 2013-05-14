@@ -58,7 +58,6 @@
 #define TREE_SPECIES_XMLTAG       "species"
 
 
-#define MAX(a,b)  ( ( (a) > (b) ) ? (a) : (b) )
 #define FOREST_READLINE_BUFFER 256
 
 

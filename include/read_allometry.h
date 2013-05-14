@@ -188,7 +188,7 @@
 #define MIN_STEM_GAMMA_MEAN               0.0
 #define MAX_STEM_GAMMA_MEAN               1.0
 #define MIN_STEM_MOISTURE                 0.0
-#define MAX_STEM_MOISTURE                 10.
+#define MAX_STEM_MOISTURE                 0.7
 #define MIN_STEM_TROPISM_THETA            0.0
 #define MAX_STEM_TROPISM_THETA            180.0
 #define MIN_STEM_TROPISM_PHI              0.0
@@ -228,9 +228,9 @@
 #define MIN_PRIMARY_GAMMA_MEAN            0.0
 #define MAX_PRIMARY_GAMMA_MEAN            1.0
 #define MIN_PRIMARY_LIVE_MOISTURE         0.0
-#define MAX_PRIMARY_LIVE_MOISTURE         1.0
+#define MAX_PRIMARY_LIVE_MOISTURE         0.7
 #define MIN_PRIMARY_DRY_MOISTURE          0.0
-#define MAX_PRIMARY_DRY_MOISTURE          1.0
+#define MAX_PRIMARY_DRY_MOISTURE          0.7
 #define MIN_PRIMARY_DRY_LAYER_DENSITY     0.0
 #define MAX_PRIMARY_DRY_LAYER_DENSITY     10.0
 #define MIN_PRIMARY_DRY_SECTIONS          0.0
@@ -274,7 +274,7 @@
 #define MIN_TERTIARY_NUMBER_FACTOR        0.0
 #define MAX_TERTIARY_NUMBER_FACTOR        200.0
 #define MIN_TERTIARY_MOISTURE             0.0
-#define MAX_TERTIARY_MOISTURE             1.0
+#define MAX_TERTIARY_MOISTURE             0.7
 #define MIN_LEAF_WIDTH_MEAN               0.0
 #define MAX_LEAF_WIDTH_MEAN               10.0
 #define MIN_LEAF_WIDTH_STDEV              0.0
@@ -292,7 +292,7 @@
 #define MIN_LEAF_NUMBER_FACTOR            0.0
 #define MAX_LEAF_NUMBER_FACTOR            200.0
 #define MIN_LEAF_MOISTURE                 0.0
-#define MAX_LEAF_MOISTURE                 1.0
+#define MAX_LEAF_MOISTURE                 0.7
 
 
 

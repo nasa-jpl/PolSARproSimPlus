@@ -510,7 +510,7 @@ void		Surface_Parameters (PolSARproSim_Record *pPR, int DEM_model)
    double	sin_thetai	= sin(thetai);
    double	k           = 2.0*pi/wavelength;
    double	sigma_s		= alpha/(k*cos_thetai);
-   double	er          = pPR->ground_eps.r;
+   double	er          = pPR->ground_eps[0].r;
    double	Bhh			= (cos_thetai-sqrt(er-sin_thetai*sin_thetai))/(cos_thetai+sqrt(er-sin_thetai*sin_thetai));
    double	lamda_s_max	= 1.0/(k*sin_thetai);
    double	gamma       = 4.0*cos_thetai*cos_thetai*cos_thetai*cos_thetai*Bhh*Bhh;
@@ -747,9 +747,11 @@ int		Input_PolSARproSim_Record		(const char *filename, PolSARproSim_Record *pPR)
    const double	ground_pf		= 0.50;
    int            DEM_model;
 #ifdef INPUT_GROUND_MV
-   int            GMV_model;
+   double         *GMV_model;//[12];
 #endif
-   double			ground_mv		= DEFAULT_GROUND_MV;
+//   double			ground_mv		= DEFAULT_GROUND_MV;
+   double			*ground_mv;//		= DEFAULT_GROUND_MV;
+
    double			psf_azextent;
    double			psf_srextent;
    
@@ -763,14 +765,14 @@ int		Input_PolSARproSim_Record		(const char *filename, PolSARproSim_Record *pPR)
       printf ("ERROR: Unable to open input file %s.\n", filename);
       fflush (pPR->pLogFile);
       fflush (pPR->pOutputFile);
-      //return (!NO_POLSARPROSIM_ERRORS);
       exit(0);
    }
    
    /* initialize some text buffers for input */
-   pPR->ForestData   = (char *)calloc(MAX_STR, sizeof(char));     /* Initialize the string containing the path & filename of forest input */
-   pPR->SpeciesData  = (char *)calloc(MAX_STR, sizeof(char));     /* Initialize the string containing the path & filename of species database */
-   pPR->ForestOutput = (char *)calloc(MAX_STR, sizeof(char));     /* Initialize the string containing the path & filename of forest output */
+   pPR->ForestData         = (char *)calloc(MAX_STR, sizeof(char));     /* Initialize the string containing the path & filename of forest input */
+   pPR->SpeciesData        = (char *)calloc(MAX_STR, sizeof(char));     /* Initialize the string containing the path & filename of species database */
+   pPR->ForestOutput       = (char *)calloc(MAX_STR, sizeof(char));     /* Initialize the string containing the path & filename of forest output */
+   pPR->ExternalDEM_fname  = (char *)calloc(MAX_STR, sizeof(char));     /* Initialize the string containing the path & filename of external DEM */
    
    /********************/
    /* Input parameters */
@@ -781,6 +783,7 @@ int		Input_PolSARproSim_Record		(const char *filename, PolSARproSim_Record *pPR)
    /* Initialize Track dependent inputs */
    pPR->slant_range                 = (double *)calloc (pPR->Tracks, sizeof (double));
    pPR->incidence_angle             = (double *)calloc (pPR->Tracks, sizeof (double));
+   GMV_model                        = (double *)calloc(pPR->Tracks, sizeof(double));
    /* read in the geometry */
    read_double   (pInputFile,    "center_slant_range_master",  &(pPR->slant_range[0]), SLANT_RANGE_MIN, SLANT_RANGE_MAX, SLANT_RANGE_DEFAULT);
    read_double   (pInputFile,    "incidence_angle_master",     &(pPR->incidence_angle[0]), INC_ANGLE_MIN, INC_ANGLE_MAX, INC_ANGLE_DEFAULT);
@@ -811,14 +814,27 @@ int		Input_PolSARproSim_Record		(const char *filename, PolSARproSim_Record *pPR)
    read_double    (pInputFile,   "azimuth_sampling_factor",    &(pPR->f_azimuth), SAMPLING_FACTOR_MIN, SAMPLING_FACTOR_MAX, DEFAULT_RESOLUTION_SAMPLING_FACTOR);
    read_double    (pInputFile,   "gnd_range_sampling_factor",  &(pPR->f_ground_range), SAMPLING_FACTOR_MIN, SAMPLING_FACTOR_MAX, DEFAULT_RESOLUTION_SAMPLING_FACTOR);
 #ifdef INPUT_GROUND_MV
-   read_integer   (pInputFile,    "ground_moisture",           &GMV_model, GROUND_MOISTURE_MIN, GROUND_MOISTURE_MAX, GROUND_MOISTURE_DEFAULT);
+   for (i = 0; i < pPR->Tracks; i++) {
+      GMV_model[i]            = GROUND_MOISTURE_DEFAULT;
+   }
+   read_dvector   (pInputFile,    "ground_moisture",           &(GMV_model[0]), pPR->Tracks);
 #endif
-   read_integer   (pInputFile,    "input_forest",              &(pPR->ForestInput_Flag), INPUT_FOREST_MIN, INPUT_FOREST_MAX, INPUT_FOREST_DEFAULT); /* whether to input forest primitives --RAedit */
-   read_integer   (pInputFile,    "draw_forest",               &(pPR->ForestDraw_Flag), DRAW_FOREST_MIN, DRAW_FOREST_MAX, DRAW_FOREST_DEFAULT);   /* whether to draw forest             --RAedit */
-   read_string    (pInputFile,    "forest_file",               pPR->ForestData);          /* Read the filename from parameter file */
-   read_string    (pInputFile,    "allometry_file",            pPR->SpeciesData);         /* Read the fileanme form parameter file */
+   read_integer   (pInputFile,    "input_forest",              &(pPR->ForestInput_Flag), INPUT_FOREST_MIN, INPUT_FOREST_MAX, INPUT_FOREST_DEFAULT);   /* whether to input forest primitives */
+   read_integer   (pInputFile,    "draw_forest",               &(pPR->ForestDraw_Flag), DRAW_FOREST_MIN, DRAW_FOREST_MAX, DRAW_FOREST_DEFAULT);       /* whether to draw forest             */
+   read_integer   (pInputFile,    "input_dem",                 &(pPR->ExternalDEM_Flag), EXTERNAL_DEM_MIN, EXTERNAL_DEM_MAX, EXTERNAL_DEM_DEFAULT);   /* whether to read external dem       */
+   read_dvector   (pInputFile,    "NESZ",                      &(pPR->noise_power[0]), 4);                                                            /* noise equivalent power in dB -- for simulating thermal noise */
+   for(i=0;i<4;i++){
+      if(pPR->noise_power[i] < NOISE_POWER_MIN) pPR->noise_power[i] = NOISE_POWER_DEFAULT;
+      if(pPR->noise_power[i] > NOISE_POWER_MAX) pPR->noise_power[i] = NOISE_POWER_DEFAULT;
+      printf("NESZ: %f\n", pPR->noise_power[i]);
+   }
+   read_string    (pInputFile,    "forest_file",               pPR->ForestData);                                                                      /* Read the forest input fileanme form parameter file, mandatory */
+   read_string    (pInputFile,    "allometry_file",            pPR->SpeciesData);                                                                     /* Read the allometry input fileanme form parameter file, mandatory */
+   if(pPR->ExternalDEM_Flag == READ_EXTERNAL_DEM){
+      read_string (pInputFile,    "external_DEM_file",         pPR->ExternalDEM_fname);                                                               /* Read the fileanme form parameter file */
+   }
    if(pPR->ForestInput_Flag != EXTERNAL_FOREST_DEFINITION){
-      read_string    (pInputFile, "forest_output",             pPR->ForestOutput);        /* Read the filename from parameter file */
+      read_string (pInputFile,    "forest_output",             pPR->ForestOutput);                                                                    /* Read the filename from parameter file */
    }
    read_integer   (pInputFile,    "fast_mode",                 &(pPR->ForestFastMode_Flag), ENABLE_FAST_MODE_MIN, ENABLE_FAST_MODE_MAX, ENABLE_FAST_MODE_DEFAULT); /* whether to run in fast mode or not */
 
@@ -896,7 +912,7 @@ int		Input_PolSARproSim_Record		(const char *filename, PolSARproSim_Record *pPR)
    /***************************/
    /* Report input parameters */
    /***************************/
-   
+      
    fprintf (pPR->pLogFile, "\nInput parameter report ...\n\n");
    fprintf (pPR->pLogFile, "%d\t\t\t/* The number of requested tracks \t*/\n", pPR->Tracks);
    for (i = 0; i < pPR->Tracks; i++) {
@@ -915,7 +931,9 @@ int		Input_PolSARproSim_Record		(const char *filename, PolSARproSim_Record *pPR)
    fprintf (pPR->pLogFile, "%lf\t\t/* Area of the forest stand in square metres \t*/\n", pPR->Stand_Area);
    fprintf (pPR->pLogFile, "%d\t\t\t/* Desired stand density in stems per hectare \t*/\n",  pPR->req_trees_per_hectare);
 #ifdef INPUT_GROUND_MV
-   fprintf (pPR->pLogFile, "%d\t\t\t/* Ground moisture content model: 0 = dry ... 10  = wet \t*/\n", GMV_model);
+   for (i = 0; i < pPR->Tracks; i++) {
+      fprintf (pPR->pLogFile, "%f\t\t\t/* Ground moisture content model: 0 = dry ... 10  = wet \t*/\n", GMV_model[i]);
+   }
 #endif
    fprintf (pPR->pLogFile, "%f\t\t\t/* Point Spread Function Broadening Factor (eta) \t*/\n",  pPR->PSFeta);
    fprintf (pPR->pLogFile, "%f\t\t\t/* Azimuth Resolution Sampling Factor \t*/\n",  pPR->f_azimuth);
@@ -953,7 +971,9 @@ int		Input_PolSARproSim_Record		(const char *filename, PolSARproSim_Record *pPR)
    fprintf (pPR->pOutputFile, "%lf\t\t/* Area of the forest stand in square metres \t*/\n", pPR->Stand_Area);
    fprintf (pPR->pOutputFile, "%d\t\t\t/* Desired stand density in stems per hectare \t*/\n",  pPR->req_trees_per_hectare);
 #ifdef INPUT_GROUND_MV
-   fprintf (pPR->pOutputFile, "%d\t\t\t/* Ground moisture content model: 0 = dry ... 10  = wet \t*/\n\n", GMV_model);
+for (i = 0; i < pPR->Tracks; i++) {
+   fprintf (pPR->pOutputFile, "%f\t\t\t/* Ground moisture content model: 0 = dry ... 10  = wet \t*/\n\n", GMV_model[i]);
+   }
 #endif
    fprintf (pPR->pOutputFile, "%f\t\t\t/* Point Spread Function Broadening Factor (eta) \t*/\n",  pPR->PSFeta);
    fprintf (pPR->pOutputFile, "%f\t\t\t/* Azimuth Resolution Sampling Factor \t*/\n",  pPR->f_azimuth);
@@ -1031,8 +1051,7 @@ int		Input_PolSARproSim_Record		(const char *filename, PolSARproSim_Record *pPR)
       /* greater than a crown area, but for the hedge ...   */
       /******************************************************/
       
-      pPR->mean_crown_radius			= Mean_Tree_Crown_Radius (pPR->species, pPR->mean_tree_height, pPR);
-      
+      pPR->mean_crown_radius  = Mean_Tree_Crown_Radius (pPR->species, pPR->mean_tree_height, pPR);
       pPR->Layover_Distance	= pPR->mean_tree_height / tan(pPR->incidence_angle[0]);
       pPR->Shadow_Distance		= pPR->mean_tree_height * tan(pPR->incidence_angle[0]);
       pPR->Gap_Distance			= RESOLUTION_GAP_SIZE * (pPR->azimuth_resolution + pPR->ground_range_resolution[0])/2.0;
@@ -1114,12 +1133,23 @@ int		Input_PolSARproSim_Record		(const char *filename, PolSARproSim_Record *pPR)
    /********************************/
    
 #ifdef INPUT_GROUND_MV
-   ground_mv			= MIN_GROUND_MV + ((double) GMV_model)*(MAX_GROUND_MV-MIN_GROUND_MV)/10.0;
+   ground_mv         = (double *)calloc(pPR->Tracks, sizeof(double));
+   for (i=0; i<pPR->Tracks; i++) {
+      if(GMV_model[i]>GROUND_MOISTURE_MAX)   GMV_model[i] = (double)GROUND_MOISTURE_MAX;
+      if(GMV_model[i]<GROUND_MOISTURE_MIN)   GMV_model[i] = (double)GROUND_MOISTURE_MIN;
+      ground_mv[i]   = MIN_GROUND_MV + (GMV_model[i])*(MAX_GROUND_MV-MIN_GROUND_MV)/10.0;
+   }
+#else
+   for (i=0; i<pPR->Tracks; i++) {
+      ground_mv[i]			= MIN_GROUND_MV + ((double)DEFAULT_GROUND_MV)*(MAX_GROUND_MV-MIN_GROUND_MV)/10.0;
+   }
 #endif
-   
-   pPR->ground_eps   = ground_permittivity (dry_density, ground_pf, sand_fraction, 
-                                            clay_fraction, ground_mv, pPR->frequency);
-   
+   pPR->ground_eps         = (Complex *)calloc(pPR->Tracks, sizeof(Complex));
+   for (i=0; i<pPR->Tracks; i++) {
+      pPR->ground_eps[i]= ground_permittivity (dry_density, ground_pf, sand_fraction, clay_fraction, ground_mv[i], pPR->frequency);
+      printf("inputMV = %f, gnd_mv = %f, epsr = %f %fi\n", GMV_model[i], ground_mv[i], pPR->ground_eps[i].x, pPR->ground_eps[i].y);
+   }
+      
    /**************************************************/
    /* Large scale and small scale surface parameters */
    /**************************************************/
@@ -1299,8 +1329,6 @@ int		Input_PolSARproSim_Record		(const char *filename, PolSARproSim_Record *pPR)
          fprintf (pPR->pLogFile, "Track %d will be run in fast-mode\n", i);
       }
    }
-
-
 
    /*********************************/
    /* Initialise progress indicator */
@@ -4925,7 +4953,7 @@ void     *Compute_Direct_Gamma            (void *threadarg)
    d3Vector             r;
    d3Vector             ar;
    Ray                  ray1;
-   double               G, zed;
+   double               G, zed, Shgt;
    double               GammaH, GammaV;
    int                  itree;
    Crown                *pC;
@@ -4965,11 +4993,12 @@ void     *Compute_Direct_Gamma            (void *threadarg)
    Create_Cylinder	(&cyl1);
 #endif
    Create_Tree (&tree1); 
-   G	= ground_height (pPR, x, y);
+   G     = ground_height (pPR, x, y);
    zed	= ((double)k*pPR->Amap.dz);
-   z	= G + zed;
-   r	= Cartesian_Assign_d3Vector (x, y, z);
+   z     = G + zed;
+   r     = Cartesian_Assign_d3Vector (x, y, z);
    Assign_Ray_d3V (&ray1, &r, &ar);
+   Shgt  = shadow_height (pPR, x, y);
    /***************************************************/
    /* Calculate total attenuation for this grid point */
    /***************************************************/
@@ -4981,72 +5010,30 @@ void     *Compute_Direct_Gamma            (void *threadarg)
    if (zed < pPR->shrt_vegi_depth) {
       GammaH	*= exp(-fabs(pPR->koz_short.y)*(pPR->shrt_vegi_depth-zed));
       GammaV	*= exp(-fabs(pPR->kez_short.y)*(pPR->shrt_vegi_depth-zed));
-   }
-   /*****************************/
-   /* Living crown contribution */
-   /*****************************/
-   for (itree=0; itree<pPR->Trees; itree++) {
-       if (fabs (x-pPR->Tree_Location[itree].x) <= pPR->Tree_Location[itree].radius) {
-         if (y > (pPR->Tree_Location[itree].y - pPR->Tree_Location[itree].radius)) {
-            /***********************************************/
-            /* Look for ray intersection with living crown */
-            /***********************************************/
-            Realise_Tree_Crown_Only (&tree1, itree, pPR);
-            pC          = tree1.CrownVolume.head;
-            rtn_value	= RayCrownIntersection (&ray1, pC, &sa1, &alpha1, &sa2, &alpha2);
-            /**********************************************************************/
-            /* Additional check for solution above crown apex for conical crowns  */
-            /**********************************************************************/
-            if ((rtn_value == NO_RAYCROWN_ERRORS) && (pC->shape == CROWN_CONE)) {
-               f1	= d3Vector_scalar_product (pC->axis, d3Vector_difference (sa1, pC->base));
-               f2	= d3Vector_scalar_product (pC->axis, d3Vector_difference (sa2, pC->base));
-               if ((f1 > pC->d3) || (f2 > pC->d3)) {
-                  rtn_value = !NO_RAYCROWN_ERRORS;
-               }
-            }
-            path_length	= 0.0;
-            if (rtn_value == NO_RAYCROWN_ERRORS) {
-               if (alpha1 >= 0.0) {
-                  if (alpha2 >= 0.0) {
-                     path_length	= fabs(alpha1 - alpha2);
-                  } else {
-                     path_length	= fabs(alpha1);
-                  }
-               } else {
-                  if (alpha2 >= 0.0) {
-                     path_length	= fabs(alpha2);
-                  } else {
-                     path_length	= 0.0;
-                  }
-               }
-            }
-            GammaH	*= exp(-fabs(pPR->koz_living[tree1.species].y)*cos_theta*path_length);
-            GammaV	*= exp(-fabs(pPR->kez_living[tree1.species].y)*cos_theta*path_length);
-            
-#ifdef ENABLE_ATTENUATION_FROM_STEMS
-            /******* look for stem intersection ******/
-            pB = tree1.Stem.head;
-            nsegments = (int)(pC->base.x[2]/pPR->Amap.dz);
-            if(y < (pC->base.x[2]/sin_theta*cos_theta + pPR->Tree_Location[itree].y)){
-               for (isegment=0; isegment<nsegments; isegment++) {
-                  Cylinder_from_Branch(&cyl1,pB,isegment,nsegments);
-                  cylinder_value		= RayCylinderIntersection (&ray1, &cyl1, &s_cyl1, &alpha_cyl1, &s_cyl2, &alpha_cyl2);
-                  if (cylinder_value == NO_RAYCYLINDER_ERRORS) {
-                     if(alpha_cyl1 >= 0 || alpha_cyl2 >= 0){
-                        GammaH *=0;
-                        GammaV *=0;
-                     }
-                  }
-               }
-            }
-#endif
-            /**************************************/
-            /* Dry crown contribution if required */
-            /**************************************/
-            pT = &tree1;
-            if(pT->CrownVolume.tail != NULL_PTR2CROWN){
-               pC          = tree1.CrownVolume.tail;
+   }   
+   if (zed >= Shgt){
+      /*****************************/
+      /* Living crown contribution */
+      /*****************************/
+      for (itree=0; itree<pPR->Trees; itree++) {
+         if (fabs (x-pPR->Tree_Location[itree].x) <= pPR->Tree_Location[itree].radius) {
+            if (y > (pPR->Tree_Location[itree].y - pPR->Tree_Location[itree].radius)) {
+               /***********************************************/
+               /* Look for ray intersection with living crown */
+               /***********************************************/
+               Realise_Tree_Crown_Only (&tree1, itree, pPR);
+               pC          = tree1.CrownVolume.head;
                rtn_value	= RayCrownIntersection (&ray1, pC, &sa1, &alpha1, &sa2, &alpha2);
+               /**********************************************************************/
+               /* Additional check for solution above crown apex for conical crowns  */
+               /**********************************************************************/
+               if ((rtn_value == NO_RAYCROWN_ERRORS) && (pC->shape == CROWN_CONE)) {
+                  f1	= d3Vector_scalar_product (pC->axis, d3Vector_difference (sa1, pC->base));
+                  f2	= d3Vector_scalar_product (pC->axis, d3Vector_difference (sa2, pC->base));
+                  if ((f1 > pC->d3) || (f2 > pC->d3)) {
+                     rtn_value = !NO_RAYCROWN_ERRORS;
+                  }
+               }
                path_length	= 0.0;
                if (rtn_value == NO_RAYCROWN_ERRORS) {
                   if (alpha1 >= 0.0) {
@@ -5063,13 +5050,61 @@ void     *Compute_Direct_Gamma            (void *threadarg)
                      }
                   }
                }
-               GammaH	*= exp(-fabs(pPR->koz_dry[tree1.species].y)*cos_theta*path_length);
-               GammaV	*= exp(-fabs(pPR->kez_dry[tree1.species].y)*cos_theta*path_length);
-            }/* end condition on dry crown contribution */
-         }/* end condition on range pixels in shadow */
-      }/* end condition on azimuth pixels in shadow */
-   }/* end loop on trees */
-   
+               GammaH	*= exp(-fabs(pPR->koz_living[tree1.species].y)*cos_theta*path_length);
+               GammaV	*= exp(-fabs(pPR->kez_living[tree1.species].y)*cos_theta*path_length);
+               
+#ifdef ENABLE_ATTENUATION_FROM_STEMS
+               /******* look for stem intersection ******/
+               pB = tree1.Stem.head;
+               nsegments = (int)(pC->base.x[2]/pPR->Amap.dz);
+               if(y < (pC->base.x[2]/sin_theta*cos_theta + pPR->Tree_Location[itree].y)){
+                  for (isegment=0; isegment<nsegments; isegment++) {
+                     Cylinder_from_Branch(&cyl1,pB,isegment,nsegments);
+                     cylinder_value		= RayCylinderIntersection (&ray1, &cyl1, &s_cyl1, &alpha_cyl1, &s_cyl2, &alpha_cyl2);
+                     if (cylinder_value == NO_RAYCYLINDER_ERRORS) {
+                        if(alpha_cyl1 >= 0 || alpha_cyl2 >= 0){
+                           GammaH *=0;
+                           GammaV *=0;
+                        }
+                     }
+                  }
+               }
+#endif
+               /**************************************/
+               /* Dry crown contribution if required */
+               /**************************************/
+               pT = &tree1;
+               if(pT->CrownVolume.tail != NULL_PTR2CROWN){
+                  pC          = tree1.CrownVolume.tail;
+                  rtn_value	= RayCrownIntersection (&ray1, pC, &sa1, &alpha1, &sa2, &alpha2);
+                  path_length	= 0.0;
+                  if (rtn_value == NO_RAYCROWN_ERRORS) {
+                     if (alpha1 >= 0.0) {
+                        if (alpha2 >= 0.0) {
+                           path_length	= fabs(alpha1 - alpha2);
+                        } else {
+                           path_length	= fabs(alpha1);
+                        }
+                     } else {
+                        if (alpha2 >= 0.0) {
+                           path_length	= fabs(alpha2);
+                        } else {
+                           path_length	= 0.0;
+                        }
+                     }
+                  }
+                  GammaH	*= exp(-fabs(pPR->koz_dry[tree1.species].y)*cos_theta*path_length);
+                  GammaV	*= exp(-fabs(pPR->kez_dry[tree1.species].y)*cos_theta*path_length);
+               }/* end condition on dry crown contribution */
+            }/* end condition on range pixels in shadow */
+         }/* end condition on azimuth pixels in shadow */
+      }/* end loop on trees */
+   }else{  
+      /* tree is in shadow => infinite atteuation */
+      GammaH   *=0;
+      GammaV   *=0;
+   }/* end condition on shadow height */
+
    /* assignment return variables */
    pTA->GammaH = GammaH;
    pTA->GammaV = GammaV;
@@ -5177,9 +5212,10 @@ void		Attenuation_Map_SMP					(PolSARproSim_Record *pPR)
    fprintf (pPR->pLogFile, "Attenuation map length\t=\t%12.5em\n", pPR->Amap.Ay);
    fprintf (pPR->pLogFile, "Attenuation map depth \t=\t%12.5em\n", pPR->Amap.Az);
    fprintf (pPR->pLogFile, "Attenuation map dimensions:\t%5d\t%5d\t%5d\n", pPR->Amap.Nx, pPR->Amap.Ny, pPR->Amap.Nz);
+   fprintf (pPR->pLogFile, "Attenuation map resolution:\t%5f\t%5f\t%5f\n", pPR->Amap.dx, pPR->Amap.dy, pPR->Amap.dz);
    fprintf (pPR->pLogFile, "\n");
    fflush  (pPR->pLogFile);
-   
+
    /***************************************/
    /* Allocate attenuation factor storage */
    /***************************************/
@@ -5704,6 +5740,7 @@ void        Max_Height_Generation     (double  focus_x, double focus_y, double h
    double         dy		= pPR->deltay;
    double         xmid	= pPR->xmid;
    double         ymid	= pPR->ymid;
+   double         gnd   = ground_height(pPR, focus_x, focus_y);
    /**************************************************************/
    /* Find pixel coordinates for pixel closest to point of focus */
    /**************************************************************/
@@ -5711,10 +5748,10 @@ void        Max_Height_Generation     (double  focus_x, double focus_y, double h
    int         jy		= (int) ((ymid-focus_y)/dy);
    sim_pixel	spix;
    sim_pixel   gpix;
-      
    spix.simpixeltype	= pPR->Max_Height.pixel_type;
    gpix.simpixeltype	= pPR->Max_Height.pixel_type;
 
+   height            = height - gnd; /* subtract DEM */
    pthread_mutex_lock   (&PolSARproSim_MaxHgtmutex);
    gpix				= getSIMpixel (&(pPR->Max_Height), ix, jy);
    if(gpix.data.f < height){
@@ -5793,20 +5830,11 @@ d3Vector	Lookup_Surface_Normal	(PolSARproSim_Record *pPR, double x, double y)
  double		Ly			=  pPR->Ly;
  int        nx			=  pPR->nx;
  int        ny			=  pPR->ny;
-// double		sx			=  pPR->slope_x;
-// double		sy			=  pPR->slope_y;
  double		deltax		=  Lx/(double)nx;
  double		deltay		=  Ly/(double)ny;
  int        ix			=  (int)(( x+(Lx-deltax)/2.0)/deltax);
  int        iy			=  (int)((-y+(Ly-deltay)/2.0)/deltay);
-// double		x0			=  ix*deltax - (Lx - deltax)/2.0;
-// double		y0			= -(iy*deltay - (Ly - deltay)/2.0);
  sim_pixel	pz;
-// double		z,z0,z1,z2,z3;
-// double		a0,a1,a2,a3;
-// double		dx,dy;
-// int		kx,ky;
-// double		xi,yi,xk,yk;
  d3Vector   normal;
  double     Xn, Yn, Zn;
 
@@ -5913,11 +5941,13 @@ void		Initialise_SAR_Stack				(PolSARproSim_Record *pPR)
    pPR->HHstack	= (SIM_Stack*) calloc (pPR->Tracks, sizeof (SIM_Stack));
    pPR->HVstack	= (SIM_Stack*) calloc (pPR->Tracks, sizeof (SIM_Stack));
    pPR->VVstack	= (SIM_Stack*) calloc (pPR->Tracks, sizeof (SIM_Stack));
+   pPR->VHstack	= (SIM_Stack*) calloc (pPR->Tracks, sizeof (SIM_Stack));
       
    for (itrack = 0; itrack<pPR->Tracks;itrack++){
       Destroy_SIM_Record      (&(pPR->HHstack[itrack].Image));
       Destroy_SIM_Record      (&(pPR->HVstack[itrack].Image));
       Destroy_SIM_Record      (&(pPR->VVstack[itrack].Image));
+      Destroy_SIM_Record      (&(pPR->VHstack[itrack].Image));
       Create_SAR_Filenames		(pPR, itrack);
       Initialise_SIM_Record	(&(pPR->HHstack[itrack].Image), pPR->HH_string, pPR->nx, pPR->ny, SIM_COMPLEX_FLOAT_TYPE,
                                pPR->Lx, pPR->Ly, "PolSARproSim HH image file");
@@ -5925,6 +5955,8 @@ void		Initialise_SAR_Stack				(PolSARproSim_Record *pPR)
                                pPR->Lx, pPR->Ly, "PolSARproSim HV image file");
       Initialise_SIM_Record	(&(pPR->VVstack[itrack].Image), pPR->VV_string, pPR->nx, pPR->ny, SIM_COMPLEX_FLOAT_TYPE,
                                pPR->Lx, pPR->Ly, "PolSARproSim VV image file");
+      Initialise_SIM_Record	(&(pPR->VHstack[itrack].Image), pPR->VH_string, pPR->nx, pPR->ny, SIM_COMPLEX_FLOAT_TYPE,
+                               pPR->Lx, pPR->Ly, "PolSARproSim VH image file");
    }
    return;
 }
@@ -5937,6 +5969,7 @@ void		Destroy_SAR_Stack				(PolSARproSim_Record *pPR)
       Destroy_SIM_Record      (&(pPR->HHstack[itrack].Image));
       Destroy_SIM_Record      (&(pPR->HVstack[itrack].Image));
       Destroy_SIM_Record      (&(pPR->VVstack[itrack].Image));
+      Destroy_SIM_Record      (&(pPR->VHstack[itrack].Image));
    }
    return;
 }
@@ -6587,7 +6620,8 @@ void		Write_SAR_Stack				(PolSARproSim_Record *pPR)
       Write_SIM_Record	(&RotImage);
       Rotate_SIM_Record	(&(pPR->HVstack[itrack].Image), &RotImage);
       Write_SIM_Record	(&RotImage);
-      Rename_SIM_Record	(&RotImage, pPR->VH_string);
+      //Rename_SIM_Record	(&RotImage, pPR->VH_string);
+      Rotate_SIM_Record	(&(pPR->VHstack[itrack].Image), &RotImage);
       Write_SIM_Record	(&RotImage);
       Rotate_SIM_Record	(&(pPR->VVstack[itrack].Image), &RotImage);
       Write_SIM_Record	(&RotImage);
@@ -6596,17 +6630,19 @@ void		Write_SAR_Stack				(PolSARproSim_Record *pPR)
       Write_SIM_Record	(&(pPR->HHstack[itrack].Image));
       Write_SIM_Record	(&(pPR->HVstack[itrack].Image));
       Write_SIM_Record	(&(pPR->VVstack[itrack].Image));
-      Rename_SIM_Record	(&(pPR->HVstack[itrack].Image), pPR->VH_string);
-      Write_SIM_Record	(&(pPR->HVstack[itrack].Image));
-      Rename_SIM_Record	(&(pPR->HVstack[itrack].Image), pPR->HV_string);
+      Write_SIM_Record	(&(pPR->VHstack[itrack].Image));
+      //Rename_SIM_Record	(&(pPR->HVstack[itrack].Image), pPR->VH_string);
+      //Write_SIM_Record	(&(pPR->HVstack[itrack].Image));
+      //Rename_SIM_Record	(&(pPR->HVstack[itrack].Image), pPR->HV_string);
 #endif
 #else
       Write_SIM_Record_As_POLSARPRO_BINARY (&(pPR->HHstack[itrack].Image));
       Write_SIM_Record_As_POLSARPRO_BINARY (&(pPR->HVstack[itrack].Image));
       Write_SIM_Record_As_POLSARPRO_BINARY (&(pPR->VVstack[itrack].Image));
-      Rename_SIM_Record (&(pPR->HVstack[itrack].Image), pPR->VH_string);
-      Write_SIM_Record_As_POLSARPRO_BINARY (&(pPR->HVstack[itrack].Image));
-      Rename_SIM_Record (&(pPR->HVstack[itrack].Image), pPR->HV_string);
+      Write_SIM_Record_As_POLSARPRO_BINARY (&(pPR->VHstack[itrack].Image));
+      //Rename_SIM_Record (&(pPR->HVstack[itrack].Image), pPR->VH_string);
+      //Write_SIM_Record_As_POLSARPRO_BINARY (&(pPR->HVstack[itrack].Image));
+      //Rename_SIM_Record (&(pPR->HVstack[itrack].Image), pPR->HV_string);
 #endif
    }
    return;
@@ -6898,5 +6934,298 @@ int		Image_Corner_Reflectors_Direct	(PolSARproSim_Record *pPR)
       weight_average	= Accumulate_SAR_Contribution (focus_x, focus_y, focus_srange, Shh, Shv, Svv, pPR, pPR->current_track, focus_angle);
    }
    return (NO_POLSARPROSIM_ERRORS);
+}
+
+
+/*********************************************************/
+/* Check the DEM read into PolSARproSim for consistency  */
+/*********************************************************/
+
+int		Check_Input_DEM			(SIM_Record *pSIMR, PolSARproSim_Record  *pPR)
+{
+   int         i,j;
+   sim_pixel	sp;
+   
+   if((int)(pSIMR->Lx/pSIMR->dx) != pSIMR->nx){
+      printf("WARNING: In file %s header: Lx/dx != nx\n", pSIMR->filename);
+      return(!NO_SIMPRIMITIVE_ERRORS);
+   }
+   if((int)(pSIMR->Ly/pSIMR->dy) != pSIMR->ny){
+      printf("WARNING: In file %s header: Ly/dy != ny\n", pSIMR->filename);
+      return(!NO_SIMPRIMITIVE_ERRORS);
+   }
+   if(pSIMR->Lx < pPR->Lx){
+      printf("WARNING: Input Image does not completely cover the simulated area along the azimuth, suggest using a larger section of DEM or zero padding\n");
+      return(!NO_SIMPRIMITIVE_ERRORS);
+   }
+   if(pSIMR->Ly < pPR->Ly){
+      printf("WARNING: Input DEM does not completely cover the simulated area along ground-range, suggest using a larger section of DEM or zero padding\n");
+      return(!NO_SIMPRIMITIVE_ERRORS);
+   }
+   
+   /* go through pixel by pixel and check for bad stuff */
+   for (i=0; i<pPR->nx; i++) {
+      for (j=0; j<pPR->ny; j++) {
+         sp    = getSIMpixel(pSIMR, i, j);
+         /* find and replace NANs with a default height */
+         if(isnan(sp.data.f)){
+            sp.data.f    = (float)DEFAULT_DEM_HEIGHT;
+            putSIMpixel (pSIMR, sp, i,j);
+         }
+      }      
+   }
+   return (NO_SIMPRIMITIVE_ERRORS);
+}
+
+/*********************************************************/
+/* Resample a SIM record to the PolSARproSIM image dims  */
+/*********************************************************/
+
+int		Resample_Input_DEM			(SIM_Record *pDEM, PolSARproSim_Record *pPR)
+{
+   SIM_Record  Copy;
+   sim_pixel	sp;
+   int         isim, jsim, idem, jdem;
+   double      xmidsim, ymidsim, xmiddem, ymiddem, dxsim, dysim,dxdem, dydem, x, y;
+   int         nxdem, nydem;
+#ifdef DEM_RESAMPLE_BILINEAR
+   double      xdem, ydem, xdiff, ydiff, x1, x2, y1, y2;
+   int         i1, i2, j1, j2;
+   sim_pixel   sp1, sp2, sp3, sp4;
+#endif
+   dxdem       = pDEM->dx;
+   dydem       = pDEM->dy;   
+   xmiddem     = (pDEM->nx/2)*dxdem;
+   ymiddem     = (pDEM->ny/2)*dydem;
+   xmidsim     = pPR->xmid;
+   ymidsim     = pPR->ymid;
+   dxsim       = pPR->deltax;
+   dysim       = pPR->deltay;
+   nxdem       = pDEM->nx;
+   nydem       = pDEM->ny;
+   
+   Create_SIM_Record          (&Copy);
+   Copy_SIM_Record            (pDEM, &Copy); 
+   Destroy_SIM_Record         (pDEM);
+   Initialise_SIM_Record		(pDEM, Copy.filename, pPR->nx, pPR->ny, Copy.pixel_type, pPR->Lx, pPR->Ly, Copy.pInfo);
+   
+   /* nearest neighbor resampling */
+   for (jsim=0; jsim<pPR->ny; jsim++) {
+      for (isim=0; isim<pPR->nx; isim++) {
+         
+         x     = isim * dxsim - xmidsim;
+         y     = ymidsim - jsim * dysim;
+         idem  = (int)((x + xmiddem)/dxdem);
+         jdem  = (int)((ymiddem - y)/dydem);
+#ifdef DEM_RESAMPLE_NEAREST_NEIGHBOR
+         sp    = getSIMpixel(&Copy, idem, jdem);
+#endif
+#ifdef DEM_RESAMPLE_BILINEAR
+         sp    = getSIMpixel(&Copy, idem, jdem);
+         xdem  = idem * dxdem - xmiddem;
+         ydem  = ymiddem - jdem * dydem;
+         xdiff = x - xdem;
+         ydiff = y - ydem;
+         if(xdiff > 0){
+            i1 = idem;
+            i2 = MIN(idem+1, nxdem-1);
+            x1 = xdem;
+            x2 = xdem + dxdem;
+         }else{
+            i1 = MAX(idem -1, 0);
+            i2 = idem;
+            x1 = xdem - dxdem;
+            x2 = xdem;
+         }
+         if(ydiff > 0){
+            j1 = jdem;
+            j2 = MAX(jdem - 1, 0);
+            y1 = ydem;
+            y2 = ydem + dydem;
+         }else{
+            j1 = MIN(jdem +1,nydem-1);
+            j2 = jdem;
+            y1 = ydem - dydem;
+            y2 = ydem;
+         }
+         sp1   = getSIMpixel(&Copy, i1, j1);
+         sp2   = getSIMpixel(&Copy, i1, j2);
+         sp3   = getSIMpixel(&Copy, i2, j1);
+         sp4   = getSIMpixel(&Copy, i2, j2);
+         sp.data.f = (float) (1/dxdem/dydem * (sp1.data.f * (float)((x2-x)*(y2-y)) 
+                                               + sp2.data.f * (float)((x2-x)*(y-y1)) 
+                                               + sp3.data.f * (float)((x-x1)*(y2-y)) 
+                                               + sp4.data.f * (float)((x-x1)*(y-y1))));
+#endif
+         putSIMpixel(pDEM, sp, isim,jsim);
+      }
+   }
+   Destroy_SIM_Record(&Copy);
+   return (NO_SIMPRIMITIVE_ERRORS);
+}
+
+
+/*********************************************************/
+/* Create a DEM shadow map  */
+/*********************************************************/
+
+int      Create_Shadow_Map   (SIM_Record *pSHADE, PolSARproSim_Record *pPR)
+{
+   int            i, j;
+   double         x, y;
+   Plane				Pg;
+   d3Vector       g, up;
+   Ray				Rb;
+   double         yslope = -cos(pPR->incidence_angle[0])/sin(pPR->incidence_angle[0]);
+   int            rtn_value;
+   d3Vector			shadow_point;
+   double			shadow_distance = 0.0;
+   char           *filename;
+   sim_pixel      sp;
+   
+   
+   
+   /* an upward pointing vector */
+   up          = Cartesian_Assign_d3Vector (0, 0, 1);
+   
+   /* create filename */ 
+   filename    = (char*) calloc (strlen(pPR->pMasterDirectory)+strlen("shadow_map.bin")+1, sizeof(char));
+   strcpy      (filename, pPR->pMasterDirectory);
+   strcat      (filename, "shadow_map.bin");
+   /* create the simulation record */
+   Create_SIM_Record       (pSHADE);
+   Initialise_SIM_Record   (pSHADE, filename, pPR->nx, pPR->ny, SIM_FLOAT_TYPE, pPR->Lx, pPR->Ly, "PolSARproSim shadow map");
+   free                    (filename);
+   
+   for (i=0; i<pPR->nx; i++) {
+      x        = i * pPR->deltax - pPR->xmid;
+      g        = Cartesian_Assign_d3Vector (x, -pPR->Ly/2, ground_height(pPR, x, -pPR->Ly/2));
+      /* create plane for first pixel */
+      Assign_Plane (&Pg, &g, 0.0, yslope);
+      for (j=pPR->ny-1; j>=0; j--) {
+         sp    = getSIMpixel(pSHADE, i,j);   
+         y     = pPR->ymid - j * pPR->deltay;
+         g     = Cartesian_Assign_d3Vector (x, y, ground_height(pPR, x, y));
+         Assign_Ray_d3V (&Rb, &g , &up);
+         rtn_value		= RayPlaneIntersection (&Rb, &Pg, &shadow_point, &shadow_distance);
+         if ((rtn_value == 1) && (shadow_distance > 0.0)) {
+            /* if pixel is in the shade */
+            sp.data.f   = shadow_distance;
+            putSIMpixel(pSHADE, sp, i,j);
+         }else{
+            sp.data.f   = 0.0;
+            putSIMpixel(pSHADE, sp, i,j);
+            Assign_Plane   (&Pg, &g, 0.0, yslope);
+         }
+      }
+   }
+   
+   return(NO_POLSARPROSIM_ERRORS);
+   
+}
+
+/*********************************************************/
+/* Read shadow height from shadow height map             */
+/*********************************************************/
+double	shadow_height	(PolSARproSim_Record *pPR, double x, double y)
+{
+ double		Lx			=  pPR->Lx;
+ double		Ly			=  pPR->Ly;
+ int        nx			=  pPR->nx;
+ int        ny			=  pPR->ny;
+ double		deltax	=  Lx/(double)nx;
+ double		deltay	=  Ly/(double)ny;
+ int        ix			=  (int)(( x+(Lx-deltax)/2.0)/deltax);
+ int        iy			=  (int)((-y+(Ly-deltay)/2.0)/deltay);
+ sim_pixel	pz;
+ double		z;
+
+ pz			= getSIMpixel_periodic (&(pPR->Shadow_Map), ix, iy);
+ z          = (double) pz.data.f;
+ return (z);
+}
+
+/*********************************************************/
+/* Add thermal noise to image stack                      */
+/*********************************************************/
+
+void		Add_Thermal_Noise		(PolSARproSim_Record *pPR)
+{
+   double			dx			= pPR->deltax;
+   double			dy			= pPR->deltay;
+   double			xmid		= pPR->xmid;
+   double			ymid		= pPR->ymid;
+   int            i, j;
+   double			x, y;
+   sim_pixel		s, svh;
+   Complex        cs, noise;
+   int            track;
+   double         noise_amp[4];
+   double         min_noise_amp = pow(10, (NOISE_POWER_MIN/20));
+   double         max_noise_amp = pow(10, (NOISE_POWER_MAX/20));
+   double         noise_real, noise_imag;
+
+   /* calculate the polarimetric channel dependent noise */
+   for(i=0;i<4;i++){
+       noise_amp[i] = pow(10, (pPR->noise_power[i]/20))/sqrt(2); /* standard deviation of thermal noise */
+   }
+
+   /* re-seed the random number */
+   srand(rand());
+
+   /* loop over tracks */
+   for (track = 0; track < pPR->Tracks; track++) {
+      /* loop over range pixels */
+      for (j = 0; j < pPR->ny; j++) {
+         y		= ymid - j * dy;
+         /* loop over azimuth pixels */
+         for (i = 0; i < pPR->nx; i++) {
+            x           = i * dx - xmid;
+            /* add noise to HH image */
+            s           = getSIMpixel (&(pPR->HHstack[track].Image), i, j);
+            cs          = xy_complex (s.data.cf.x, s.data.cf.y);
+            noise_real  = Gaussian_drand	(0.0, noise_amp[0], min_noise_amp, max_noise_amp); 
+            noise_imag  = Gaussian_drand	(0.0, noise_amp[0], min_noise_amp, max_noise_amp); 
+            Cartesian_Assign_Complex (&noise, noise_real, noise_imag);
+            cs          = complex_add (cs, noise);
+            s.data.cf.x	= (float) cs.x;
+            s.data.cf.y	= (float) cs.y;
+            putSIMpixel (&(pPR->HHstack[track].Image), s, i, j);
+            /* add noise to HV image */
+            s			= getSIMpixel (&(pPR->HVstack[track].Image), i, j);
+            svh		= getSIMpixel (&(pPR->HVstack[track].Image), i, j);
+            cs			= xy_complex (s.data.cf.x, s.data.cf.y);
+            noise_real  = Gaussian_drand	(0.0, noise_amp[1], min_noise_amp, max_noise_amp); 
+            noise_imag  = Gaussian_drand	(0.0, noise_amp[1], min_noise_amp, max_noise_amp); 
+            Cartesian_Assign_Complex (&noise, noise_real, noise_imag);
+            cs          = complex_add (cs, noise);
+            s.data.cf.x	= (float) cs.x;
+            s.data.cf.y	= (float) cs.y;
+            putSIMpixel (&(pPR->HVstack[track].Image), s, i, j);
+            /* add noise to VH image */
+            cs          = xy_complex (svh.data.cf.x, svh.data.cf.y);
+            noise_real  = Gaussian_drand	(0.0, noise_amp[2], min_noise_amp, max_noise_amp); 
+            noise_imag  = Gaussian_drand	(0.0, noise_amp[2], min_noise_amp, max_noise_amp); 
+            Cartesian_Assign_Complex (&noise, noise_real, noise_imag);
+            cs          = complex_add (cs, noise);
+            s.data.cf.x	= (float) cs.x;
+            s.data.cf.y	= (float) cs.y;
+            putSIMpixel (&(pPR->VHstack[track].Image), s, i, j);
+            /* add noise to VV image */
+            s			= getSIMpixel (&(pPR->VVstack[track].Image), i, j);
+            cs			= xy_complex (s.data.cf.x, s.data.cf.y);
+            noise_real  = Gaussian_drand	(0.0, noise_amp[3], min_noise_amp, max_noise_amp); 
+            noise_imag  = Gaussian_drand	(0.0, noise_amp[3], min_noise_amp, max_noise_amp); 
+            Cartesian_Assign_Complex (&noise, noise_real, noise_imag);
+            cs          = complex_add (cs, noise);
+            s.data.cf.x	= (float) cs.x;
+            s.data.cf.y	= (float) cs.y;
+            putSIMpixel (&(pPR->VVstack[track].Image), s, i, j);
+            
+         }
+         
+      }
+   }
+   return;
 }
 

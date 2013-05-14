@@ -150,6 +150,11 @@ int         Image_Corner_Reflectors_Direct	(PolSARproSim_Record *pPR);
 void        Initialize_Surface_Normal_Layers (PolSARproSim_Record *pPR);
 void        Fill_Surface_Normal_Layers    (double  focus_x, double focus_y, d3Vector norm, PolSARproSim_Record *pPR);
 d3Vector    Lookup_Surface_Normal         (PolSARproSim_Record *pPR, double x, double y);
+int         Check_Input_DEM               (SIM_Record *pSIMR, PolSARproSim_Record  *pPR);
+int         Resample_Input_DEM            (SIM_Record *pDEM, PolSARproSim_Record *pPR);
+int         Create_Shadow_Map             (SIM_Record *pSHADE, PolSARproSim_Record *pPR);
+double      shadow_height                 (PolSARproSim_Record *pPR, double x, double y);
+void        Add_Thermal_Noise             (PolSARproSim_Record *pPR);
 /************************/
 /* TCLTK string parsing */
 /************************/

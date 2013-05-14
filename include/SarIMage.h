@@ -32,6 +32,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 
 /*********************************/
 /* Complex data type definitions */
@@ -132,13 +133,15 @@ sim_pixel	getSIMpixel                (SIM_Record *pSIMR, int i, int j);
 void        putSIMpixel                (SIM_Record *pSIMR, sim_pixel p, int i, int j);
 sim_pixel	getSIMpixel_periodic       (SIM_Record *pSIMR, int i, int j);
 void        putSIMpixel_periodic       (SIM_Record *pSIMR, sim_pixel p, int i, int j);
+int         Copy_SIM_Record            (SIM_Record *pOrg, SIM_Record *pCpy);
 void        Rescale_SIM_Record         (SIM_Record *pSIMR, double scale_factor);
-
+int         Trim_SIM_Record            (SIM_Record *pSIMR, double Lx, double Ly);
+int         Add_SIM_Records            (SIM_Record *pIMG1, SIM_Record *pIMG2);
 /**********************/
 /* Error return codes */
 /**********************/
 
-#define NO_SIMPRIMITIVE_ERRORS         0
+#define  NO_SIMPRIMITIVE_ERRORS        0
 #define	NULL_PTR2SIM_HEADER				0
 
 /******************************************************/

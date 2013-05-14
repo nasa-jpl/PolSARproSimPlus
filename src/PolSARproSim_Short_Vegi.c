@@ -1210,7 +1210,7 @@ void		*Image_Short_Veg_Bounce_Stems		(void *threadarg)
    k02         = pPR->k0*pPR->k0;
    kro2        = k02 - k0z2;
    kro         = sqrt(kro2);
-   k22         = complex_rmul (pPR->ground_eps, k02);
+   k22         = complex_rmul (pPR->ground_eps[pPR->current_track], k02);
    k2          = complex_sqrt (k22);
    k2z2        = complex_sub  (k22, xy_complex (kro2, 0.0));
    k2z         = complex_sqrt (k2z2);
@@ -1545,7 +1545,7 @@ void		*Image_Short_Veg_Bounce_Leaves		(void *threadarg)
    k02         = pPR->k0*pPR->k0;
    kro2        = k02 - k0z2;
    kro         = sqrt(kro2);
-   k22         = complex_rmul (pPR->ground_eps, k02);
+   k22         = complex_rmul (pPR->ground_eps[pPR->current_track], k02);
    k2          = complex_sqrt (k22);
    k2z2        = complex_sub  (k22, xy_complex (kro2, 0.0));
    k2z         = complex_sqrt (k2z2);
@@ -1862,7 +1862,7 @@ int		PolSARproSim_Short_Vegetation_Bounce_SMP		(PolSARproSim_Record *pPR)
    k02         = pPR->k0*pPR->k0;
    kro2        = k02 - k0z2;
    kro         = sqrt(kro2);
-   k22         = complex_rmul (pPR->ground_eps, k02);
+   k22         = complex_rmul (pPR->ground_eps[pPR->current_track], k02);
    k2          = complex_sqrt (k22);
    k2z2        = complex_sub  (k22, xy_complex (kro2, 0.0));
    k2z         = complex_sqrt (k2z2);
@@ -2209,7 +2209,7 @@ int		PolSARproSim_Short_Vegetation_Bounce		(PolSARproSim_Record *pPR)
    k02         = pPR->k0*pPR->k0;
    kro2        = k02 - k0z2;
    kro         = sqrt(kro2);
-   k22         = complex_rmul (pPR->ground_eps, k02);
+   k22         = complex_rmul (pPR->ground_eps[pPR->current_track], k02);
    k2          = complex_sqrt (k22);
    k2z2        = complex_sub  (k22, xy_complex (kro2, 0.0));
    k2z         = complex_sqrt (k2z2);

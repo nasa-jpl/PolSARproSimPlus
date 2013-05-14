@@ -204,6 +204,7 @@ typedef struct polsarprosim_record_tag {
    double			*ground_range_resolution;	/* Width at half height power of PSF in ground range in metres	*/
    double			f_azimuth;              /* Azimuth sampling frequency (ratio < 1.0)                    */
    double			f_ground_range;         /* Ground range sampling frequency (ratio < 1.0)               */
+   double         noise_power[4];         /* noise equivalent sigma zero                                 */
    /**************************************************/
    /* Variables governing large-scale ground surface */
    /**************************************************/
@@ -216,12 +217,14 @@ typedef struct polsarprosim_record_tag {
    SIM_Record     Surface_Normal_X;       /* X-component of the surface normal                           */
    SIM_Record     Surface_Normal_Y;       /* X-component of the surface normal                           */
    SIM_Record     Surface_Normal_Z;       /* X-component of the surface normal                           */
+   SIM_Record     Input_DEM;              /* A dem in the PSPsim coordinates                             */
+   SIM_Record     Shadow_Map;             /* Map for shadows cast by the topography                      */
    /**************************************************/
    /* Variables governing small-scale ground surface */
    /**************************************************/
    double			small_scale_length;			/* Correlation length of small-scale surface in metres      */
    double			small_scale_height_stdev;	/* Height standard deviation for small-scale ground surface (m)	*/
-   Complex        ground_eps;             /* Soil dielectric permittivity                                */
+   Complex        *ground_eps;             /* Soil dielectric permittivity                                */
    /******************************************/
    /* Variables governing forest description */
    /******************************************/
@@ -323,6 +326,7 @@ typedef struct polsarprosim_record_tag {
    SIM_Stack      *HHstack;         /* Stack of HH images are stored here                             */
    SIM_Stack      *HVstack;         /* Stack of HV images are stored here                             */
    SIM_Stack      *VVstack;         /* Stack of VV images are stored here                             */   
+   SIM_Stack      *VHstack;         /* Stack of VH images are stored here                             */
    double			xmid;					/* Used to calculate image array indices                          */
    double			ymid;					/* Used to calculate image array indices                          */
    double			psfaaz;           /* Point spread function azimuth parameter                        */
@@ -356,6 +360,7 @@ typedef struct polsarprosim_record_tag {
    char           *ForestData;         /* Full filename for forest input file                            */
    char           *ForestOutput;       /* Full filename for forest output file                           */
    char           *SpeciesData;        /* Full filename for species database file                        */
+   char           *ExternalDEM_fname;  /* Full filename for external DEM file                            */
    /**********************/
    /* Progress indicator */
    /**********************/
@@ -373,7 +378,10 @@ typedef struct polsarprosim_record_tag {
    /*******************************************************************************************/
    int            ForestFastMode_Flag;
    int            *ForestFastMode;     
-
+   /*******************************************************************************************/
+   /* External DEM input Flag                                                                 */
+   /*******************************************************************************************/
+   int            ExternalDEM_Flag;
    /**************************/
    /* Temporal Decorrelation */
    /**************************/

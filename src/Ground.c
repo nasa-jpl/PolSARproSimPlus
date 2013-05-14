@@ -44,21 +44,21 @@ double	ground_height	(PolSARproSim_Record *pPR, double x, double y)
 {
  double		Lx			=  pPR->Lx;
  double		Ly			=  pPR->Ly;
- int		nx			=  pPR->nx;
- int		ny			=  pPR->ny;
+ int        nx			=  pPR->nx;
+ int        ny			=  pPR->ny;
  double		sx			=  pPR->slope_x;
  double		sy			=  pPR->slope_y;
- double		deltax		=  Lx/(double)nx;
- double		deltay		=  Ly/(double)ny;
- int		ix			=  (int)(( x+(Lx-deltax)/2.0)/deltax);
- int		iy			=  (int)((-y+(Ly-deltay)/2.0)/deltay);
+ double		deltax	=  Lx/(double)nx;
+ double		deltay	=  Ly/(double)ny;
+ int        ix			=  (int)(( x+(Lx-deltax)/2.0)/deltax);
+ int        iy			=  (int)((-y+(Ly-deltay)/2.0)/deltay);
  double		x0			=  ix*deltax - (Lx - deltax)/2.0;
  double		y0			= -(iy*deltay - (Ly - deltay)/2.0);
  sim_pixel	pz;
  double		z,z0,z1,z2,z3;
  double		a0,a1,a2,a3;
  double		dx,dy;
- int		kx,ky;
+ int        kx,ky;
  double		xi,yi,xk,yk;
 
  pz			= getSIMpixel_periodic (&(pPR->Ground_Height), ix, iy);
