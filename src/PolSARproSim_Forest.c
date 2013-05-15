@@ -1062,7 +1062,725 @@ double		Image_Cylinder_Bounce	(Cylinder *pC, SarGeometry *pSG, PolSARproSim_Reco
    return		(weight_average);
 }
 
-int		Image_Tree_Bounce		(Tree *pT, SarGeometry *pSG, PolSARproSim_Record *pPR)
+//int		Image_Tree_Bounce		(Tree *pT, SarGeometry *pSG, PolSARproSim_Record *pPR)
+//{
+//   const double		bsecl	=	POLSARPROSIM_SAR_BRANCH_FACTOR*(pPR->azimuth_resolution + pPR->slant_range_resolution);
+//   long              iBranch;
+//   Branch            *pB;
+//   int               Nsections;
+//   int               i_section;
+//   double            deltat, deltar;
+//   Cylinder          cyl1;
+//   double            weight_sum;
+//   double            weight_count;
+//   double            weight_avg;
+//   int               rtn_value;
+//   int               Cscatt_Flag;
+//   double            tb_scaling;
+//   double            flg_scaling;
+//   long              iLeaf;
+//   Leaf              *pL;
+//   double            leafL1, leafL2, leafL3;       //to calculate leaf depolarization factors
+//   d3Vector          Ldvec;
+//   c4Vector          Sbounce;             //bounce scattering vectors S = [Shh, Shv, Svh, Svv]
+//   /************************************
+//    ** This part edited out along with **
+//    ** the Tertiary imaging section    **
+//    ** code                  --RAedit  **
+//    #ifndef POLSARPROSIM_NO_SAR_TERTIARIES
+//    Branch				tertiary_branch;
+//    double				tertiary_branch_length, tertiary_branch_radius;
+//    long         n_Tertiary;
+//    double				tertiary_moisture;
+//    Complex			tertiary_permittivity;
+//    #endif
+//    ************************************/
+//   /************************************
+//    ** This part edited out along with **
+//    ** the Foliage imaging section     **
+//    ** code                  --RAedit  **
+//    #ifndef POLSARPROSIM_NO_SAR_FOLIAGE
+//    long           n_Leaves;
+//    int            L_species;
+//    double         leaf_d1, leaf_d2, leaf_d3;
+//    double         L_moisture;
+//    Complex        L_permittivity;
+//    Leaf           tree_leaf;
+//    #endif
+//    ************************************/
+//   
+//   /************************/
+//   /* Initialise variables */
+//   /************************/
+//   Create_Cylinder (&cyl1);
+//   Create_d3Vector (&Ldvec);
+//   Create_c4Vector (&Sbounce);
+//#ifndef FORCE_GRG_CYLINDERS
+//   Cscatt_Flag	= POLSARPROSIM_SAR_INF_TERTIARY_BRANCHES;
+//#else
+//   Cscatt_Flag	= POLSARPROSIM_SAR_GRG_TERTIARY_BRANCHES;
+//#endif
+//   /*******************/
+//   /* Image the stems */
+//   /*******************/
+//#ifndef POLSARPROSIM_NO_SAR_STEMS
+//   if (pT->Stem.head != NULL_PTR2BRANCH_LIST){ /* Image stem if it exists */  
+//      pB			= pT->Stem.head;
+//      weight_sum	= 0.0;
+//      weight_count	= 0.0;
+//      for (iBranch=0L; iBranch < pT->Stem.n; iBranch++) {
+//         Nsections	= (int) (pB->l/bsecl) + 1;
+//         deltat		= 1.0 / (double) Nsections;
+//         deltar		= (pB->start_radius - pB->end_radius) / (double) Nsections;
+//         for (i_section = 0; i_section < Nsections; i_section++) {
+//            rtn_value		= Cylinder_from_Branch (&cyl1, pB, i_section, Nsections);
+//            weight_sum		+= Image_Cylinder_Bounce (&cyl1, pSG, pPR, 1.0, Cscatt_Flag, &Sbounce);
+//            weight_count	+= 1.0;
+//         }
+//         pB			= pB->next;
+//      }
+//      weight_avg	= weight_sum/weight_count;
+//   }
+//#endif
+//   /**************************/
+//   /* Image primary branches */
+//   /**************************/
+//#ifndef POLSARPROSIM_NO_SAR_PRIMARIES
+//   /****** Image the dry part ********/
+//    if(pT->Dry.head != NULL_PTR2BRANCH_LIST) { /* Only image the dry crown if it exists. Checking this way removes reliance on species definition  --RAedit  */
+//      pB           = pT->Dry.head;
+//      weight_sum	= 0.0;
+//      weight_count	= 0.0;
+//      for (iBranch=0L; iBranch < pT->Dry.n; iBranch++) {
+//         Nsections	= (int) (pB->l/bsecl) + 1;
+//         deltat		= 1.0 / (double) Nsections;
+//         deltar		= (pB->start_radius - pB->end_radius) / (double) Nsections;
+//         for (i_section = 0; i_section < Nsections; i_section++) {
+//            rtn_value		= Cylinder_from_Branch (&cyl1, pB, i_section, Nsections);
+//            weight_sum		+= Image_Cylinder_Bounce (&cyl1, pSG, pPR, 1.0, Cscatt_Flag, &Sbounce);
+//            weight_count	+= 1.0;
+//         }
+//         pB			= pB->next;
+//      }
+//      weight_avg	= weight_sum/weight_count;
+//   }
+//   /****** Image the live part *****/
+//   if(pT->Primary.head != NULL_PTR2BRANCH_LIST){ /* Image wet primary branches only if they exist   */
+//      pB			= pT->Primary.head;
+//      weight_sum	= 0.0;
+//      weight_count	= 0.0;
+//      for (iBranch=0L; iBranch < pT->Primary.n; iBranch++) {
+//         Nsections	= (int) (pB->l/bsecl) + 1;
+//         deltat		= 1.0 / (double) Nsections;
+//         deltar		= (pB->start_radius - pB->end_radius) / (double) Nsections;
+//         for (i_section = 0; i_section < Nsections; i_section++) {
+//            rtn_value		= Cylinder_from_Branch (&cyl1, pB, i_section, Nsections);
+//            weight_sum		+= Image_Cylinder_Bounce (&cyl1, pSG, pPR, 1.0, Cscatt_Flag, &Sbounce);
+//            weight_count	+= 1.0;
+//         }
+//         pB			= pB->next;
+//      }
+//      weight_avg	= weight_sum/weight_count;
+//   }
+//#endif
+//   /****************************/
+//   /* Image secondary branches */
+//   /****************************/
+//#ifndef POLSARPROSIM_NO_SAR_SECONDARIES
+//   if(pT->Secondary.head != NULL_PTR2BRANCH){ /* Image secondary branches only if they exist  */
+//      pB			= pT->Secondary.head;
+//      weight_sum	= 0.0;
+//      weight_count	= 0.0;
+//      for (iBranch=0L; iBranch < pT->Secondary.n; iBranch++) {
+//         Nsections	= (int) (pB->l/bsecl) + 1;
+//         deltat		= 1.0 / (double) Nsections;
+//         deltar		= (pB->start_radius - pB->end_radius) / (double) Nsections;
+//         for (i_section = 0; i_section < Nsections; i_section++) {
+//            rtn_value		= Cylinder_from_Branch (&cyl1, pB, i_section, Nsections);
+//            weight_sum		+= Image_Cylinder_Bounce (&cyl1, pSG, pPR, 1.0, Cscatt_Flag, &Sbounce);
+//            weight_count	+= 1.0;
+//         }
+//         pB			= pB->next;
+//      }
+//      weight_avg	= weight_sum/weight_count;
+//   }
+//#endif
+//   /***************************/
+//   /* Image tertiary branches */
+//   /***************************/
+//#ifndef POLSARPROSIM_NO_SAR_TERTIARIES
+//#ifndef FORCE_GRG_CYLINDERS
+//   if (pPR->Grg_Flag == 0) {
+//      Cscatt_Flag	=    POLSARPROSIM_SAR_GRG_TERTIARY_BRANCHES;
+//   } else {
+//      Cscatt_Flag	=    POLSARPROSIM_SAR_INF_TERTIARY_BRANCHES;
+//   }
+//#endif
+//   
+//   /***************************************************
+//    ** This part is commented out so tertiaries from  **
+//    ** the link-list created by Realise_Tertiaries()  **
+//    ** are imaged instead of being regenerated here.  **
+//    ** This removes the dependence of imaging code    **
+//    ** on tree species.                               **
+//    **                                       --RAedit **
+//    ****************************************************
+//    
+//    tb_scaling				= Estimate_SAR_Tertiaries (pT, pPR, &n_Tertiary, &tertiary_branch_length, &tertiary_branch_radius);
+//    weight_sum				= 0.0;
+//    weight_count			= 0.0;
+//    pB						= &tertiary_branch;
+//    Create_Branch (pB);
+//    tertiary_moisture		= Tertiary_Branch_Moisture (pT->species);
+//    tertiary_permittivity	= vegetation_permittivity (tertiary_moisture, pPR->frequency);
+//    for (iBranch=0L; iBranch < n_Tertiary; iBranch++) {
+//    if (pT->species != POLSARPROSIM_HEDGE) {
+//    tertiary_moisture		= Tertiary_Branch_Moisture (pT->species);
+//    tertiary_permittivity	= vegetation_permittivity (tertiary_moisture, pPR->frequency);
+//    }
+//    rtn_value				= Realise_Tertiary_Branch (pT, pPR, pB, tertiary_branch_length, tertiary_branch_radius, tertiary_moisture, tertiary_permittivity);
+//    if (rtn_value == NO_RAYCROWN_ERRORS) {
+//    Nsections			= (int) (pB->l/bsecl) + 1;
+//    deltat				= 1.0 / (double) Nsections;
+//    deltar				= (pB->start_radius - pB->end_radius) / (double) Nsections;
+//    for (i_section = 0; i_section < Nsections; i_section++) {
+//    rtn_value			 = Cylinder_from_Branch (&cyl1, pB, i_section, Nsections);
+//    weight_sum			+= Image_Cylinder_Bounce (&cyl1, pSG, pPR, tb_scaling, Cscatt_Flag);
+//    weight_count		+= 1.0;
+//    }
+//    pB = pB->next;
+//    }
+//    }
+//    weight_avg		= weight_sum/weight_count;
+//    Destroy_Branch (pB);
+//    *****************************************--RAedit**/
+//   
+//   if(pT->Tertiary.head != NULL_PTR2BRANCH){
+//      weight_sum				= 0.0;
+//      weight_count			= 0.0;
+//      pB                = pT->Tertiary.head;
+//      tb_scaling        = pT->Tertiary.scale_factor;  /* New addition to the Branch_list structure --RAedit */
+//      
+//      for (iBranch=0L; iBranch < pT->Tertiary.n; iBranch++) {
+//         Nsections       = (int) (pB->l/bsecl) + 1;
+//         deltat          = 1.0 / (double) Nsections;
+//         deltar          = (pB->start_radius - pB->end_radius) / (double) Nsections;
+//         for (i_section = 0; i_section < Nsections; i_section++) {
+//            rtn_value			= Cylinder_from_Branch (&cyl1, pB, i_section, Nsections);
+//            weight_sum			+= Image_Cylinder_Bounce (&cyl1, pSG, pPR, tb_scaling, Cscatt_Flag, &Sbounce);
+//            weight_count		+= 1.0;
+//         }
+//         pB = pB->next;
+//      }
+//      weight_avg		= weight_sum/weight_count;
+//   }
+//#endif
+//   
+//   /*****************/
+//   /* Image foliage */
+//   /*****************/
+//#ifndef POLSARPROSIM_NO_SAR_FOLIAGE
+//   /***************************************************
+//    ** This part is commented out so leaves from      **
+//    ** the link-list created by Realise_Foliage()     **
+//    ** are imaged instead of being regenerated here.  **
+//    ** This removes the dependence of imaging code    **
+//    ** on tree species.                               **
+//    **                                       --RAedit **
+//    ****************************************************
+//    
+//    L_species		= Leaf_Species		(pT->species);
+//    leaf_d1		= Leaf_Dimension_1	(pT->species);
+//    leaf_d2		= Leaf_Dimension_2	(pT->species);
+//    leaf_d3		= Leaf_Dimension_3	(pT->species);
+//    L_moisture		= Leaf_Moisture		(pT->species);
+//    L_permittivity	= vegetation_permittivity (L_moisture, pPR->frequency);
+//    pL				= &tree_leaf;
+//    Create_Leaf (pL);
+//    flg_scaling	= Estimate_SAR_Foliage (pT, pPR, &n_Leaves);
+//    weight_sum		= 0.0;
+//    weight_count	= 0.0;
+//    printf("No of Imaging Leaves: %ld\n", n_Leaves);
+//    for (iLeaf=0L; iLeaf < n_Leaves; iLeaf++) {
+//    if (pT->species != POLSARPROSIM_HEDGE) {
+//    L_moisture		= Leaf_Moisture	(pT->species);
+//    L_permittivity	= vegetation_permittivity (L_moisture, pPR->frequency);
+//    }
+//    rtn_value		= Realise_Foliage_Element (pT, pPR, pL, L_species, leaf_d1, leaf_d2, leaf_d3, L_moisture, L_permittivity);
+//    if (rtn_value == NO_RAYCROWN_ERRORS) {
+//    weight_sum	+= Image_Foliage_Bounce (pL, pSG, pPR, flg_scaling);
+//    weight_count	+= 1.0;
+//    }
+//    }
+//    Destroy_Leaf (pL);
+//    *****************************************--RAedit**/
+//   
+//   if(pT->Foliage.head != NULL_PTR2LEAF_LIST){
+//      weight_sum		= 0.0;
+//      weight_count	= 0.0;
+//      pL           = pT->Foliage.head;
+//      flg_scaling  = pT->Foliage.scale_factor;
+//      for (iLeaf=0L; iLeaf < pT->Foliage.n; iLeaf++) {
+//         Leaf_Depolarization_Factors (pL, &leafL1, &leafL2, &leafL3);
+////         pPR->Tertiary_leafL1	= leafL1;
+////         pPR->Tertiary_leafL2	= leafL2;
+////         pPR->Tertiary_leafL3	= leafL3;
+//         Ldvec = Cartesian_Assign_d3Vector(leafL1, leafL2, leafL3);
+//         weight_sum          += Image_Foliage_Bounce (pL, pSG, pPR, flg_scaling, &Ldvec, &Sbounce);
+//         weight_count        += 1.0;
+//         pL                   = pL->next;
+//      }
+//   }
+//   
+//#endif
+//   /***************/
+//   /* Tidy up ... */
+//   /***************/
+//   Destroy_Cylinder (&cyl1);
+//   /*****************************/
+//   /* Return to calling routine */
+//   /*****************************/
+//   return (NO_POLSARPROSIM_FOREST_ERRORS);
+//}
+//
+//int		PolSARproSim_Forest_Bounce		(PolSARproSim_Record *pPR)
+//{
+//   Tree			tree1;
+//   int			itree;
+//   SarGeometry	SG1;
+//   int			rtn_value;
+//   /**********************/
+//   /* Imaging the forest */
+//   /**********************/
+//#ifdef VERBOSE_POLSARPROSIM
+//   printf ("\n");
+//   printf ("Call to PolSARproSim_Forest_Bounce ... \n");
+//   printf ("\n");
+//#endif
+//   fprintf (pPR->pLogFile, "Call to PolSARproSim_Forest_Bounce ...\n");
+//   fflush  (pPR->pLogFile);
+//   /**********************************/
+//   /* Set up the SAR geometry record */
+//   /**********************************/
+//   rtn_value	= Initialise_SAR_Geometry (&SG1, pPR, pPR->current_track);
+//   /********************************/
+//   /* Seed random number generator */
+//   /********************************/
+//   srand (pPR->seed);
+//   /**************************/
+//   /* Main tree imaging loop */
+//   /**************************/
+//   Create_Tree (&tree1);
+//   for (itree=0; itree<pPR->Trees; itree++) {
+//      Realise_Tree		(&tree1, itree, pPR);
+//      Image_Tree_Bounce	(&tree1, &SG1, pPR);
+//   }
+//   Destroy_Tree (&tree1);
+//   /***********************/
+//   /* Monitor performance */
+//   /***********************/
+//   SG1.Sigma0_count	 = pPR->Lx*pPR->Ly;
+//   SG1.Sigma0HH		/= SG1.Sigma0_count;
+//   SG1.Sigma0HV		/= SG1.Sigma0_count;
+//   SG1.Sigma0VH		/= SG1.Sigma0_count;
+//   SG1.Sigma0VV		/= SG1.Sigma0_count;
+//   SG1.AvgShhvv		= complex_rmul (SG1.AvgShhvv, 1.0/SG1.Sigma0_count);
+//   fprintf (pPR->pLogFile, "Bounce Forest HH backscattering coefficient\t= %lf dB\n", 10.0*log10(SG1.Sigma0HH));
+//   fprintf (pPR->pLogFile, "Bounce Forest HV backscattering coefficient\t= %lf dB\n", 10.0*log10(SG1.Sigma0HV));
+//   fprintf (pPR->pLogFile, "Bounce Forest VH backscattering coefficient\t= %lf dB\n", 10.0*log10(SG1.Sigma0VH));
+//   fprintf (pPR->pLogFile, "Bounce Forest VV backscattering coefficient\t= %lf dB\n", 10.0*log10(SG1.Sigma0VV));
+//   fprintf (pPR->pLogFile, "Bounce Forest HHVV correlation magnitude   \t= %lf dB\n", 10.0*log10(SG1.AvgShhvv.r));
+//   fprintf (pPR->pLogFile, "Bounce Forest HHVV correlation phase       \t= %lf rads.\n", SG1.AvgShhvv.phi);
+//   fflush  (pPR->pLogFile);
+//   /***********/
+//   /* Tidy up */
+//   /***********/
+//   Delete_SAR_Geometry (&SG1);
+//   /**********************************************/
+//   /* Report progress if running in VERBOSE mode */
+//   /**********************************************/
+//#ifdef VERBOSE_POLSARPROSIM
+//   printf ("\n");
+//   printf ("... Returning from call to PolSARproSim_Forest_Bounce\n");
+//   printf ("\n");
+//#endif
+//   fprintf (pPR->pLogFile, "... Returning from call to PolSARproSim_Forest_Bounce\n\n");
+//   fflush  (pPR->pLogFile);
+//   /********************************/
+//   /* Increment progress indicator */
+//   /********************************/
+//   pPR->progress++;
+//   /********************************/
+//   /* Report progress if requested */
+//   /********************************/
+//#ifdef POLSARPROSIM_MAX_PROGRESS
+//   PolSARproSim_indicate_progress (pPR);
+//#endif
+//   /*****************************/
+//   /* Return to calling routine */
+//   /*****************************/
+//   return (NO_POLSARPROSIM_FOREST_ERRORS);
+//}
+//
+//
+//int		Image_Tree_Direct		(Tree *pT, SarGeometry *pSG, PolSARproSim_Record *pPR)
+//{
+//   const double		bsecl	=	POLSARPROSIM_SAR_BRANCH_FACTOR*(pPR->azimuth_resolution + pPR->slant_range_resolution);
+//   long             iBranch;
+//   Branch           *pB;
+//   int              Nsections;
+//   int              i_section;
+//   double           deltat, deltar;
+//   Cylinder         cyl1;
+//   double           weight_sum;
+//   double           weight_count;
+//   double           weight_avg;
+//   int              rtn_value;
+//   double           tb_scaling;
+//   double           flg_scaling;
+//   long             iLeaf;
+//   Leaf             *pL;
+//   int              Cscatt_Flag;
+//   double           leafL1, leafL2, leafL3; //to calculate leaf depolarization factors
+//   d3Vector         Ldvec;
+//   c4Vector         Sdirect;             // direct scattering vector S = [Shh, Shv, Svh, Svv]
+//   /************************************
+//    ** This part edited out along with **
+//    ** the Tertiary imaging section    **
+//    ** code                  --RAedit  **
+//    #ifndef POLSARPROSIM_NO_SAR_TERTIARIES
+//    Branch				tertiary_branch;
+//    double				tertiary_branch_length, tertiary_branch_radius;
+//    long         n_Tertiary;
+//    double				tertiary_moisture;
+//    Complex			tertiary_permittivity;
+//    #endif
+//    ************************************/
+//   
+//   /************************************
+//    ** This part edited out along with **
+//    ** the Foliage imaging section     **
+//    ** code                  --RAedit  **
+//    #ifndef POLSARPROSIM_NO_SAR_FOLIAGE
+//    long           n_Leaves;
+//    int            L_species;
+//    double         leaf_d1, leaf_d2, leaf_d3;
+//    double         L_moisture;
+//    Complex        L_permittivity;
+//    Leaf           tree_leaf;
+//    #endif
+//    ************************************/
+//   
+//   /************************/
+//   /* Initialise variables */
+//   /************************/
+//   Create_Cylinder (&cyl1);
+//   Create_d3Vector (&Ldvec);
+//   Create_c4Vector(&Sdirect);
+//
+//#ifndef FORCE_GRG_CYLINDERS
+//   Cscatt_Flag	= POLSARPROSIM_SAR_INF_TERTIARY_BRANCHES;
+//#else
+//   Cscatt_Flag	= POLSARPROSIM_SAR_GRG_TERTIARY_BRANCHES;
+//#endif
+//   /*******************/
+//   /* Image the stems */
+//   /*******************/
+//#ifndef POLSARPROSIM_NO_SAR_STEMS
+//    if(pT->Stem.head != NULL_PTR2BRANCH_LIST){ /* Image Stem only if it exists                 */
+//      pB			= pT->Stem.head;
+//      weight_sum	= 0.0;
+//      weight_count	= 0.0;
+//      for (iBranch=0L; iBranch < pT->Stem.n; iBranch++) {
+//         Nsections	= (int) (pB->l/bsecl) + 1;
+//         deltat		= 1.0 / (double) Nsections;
+//         deltar		= (pB->start_radius - pB->end_radius) / (double) Nsections;
+//         for (i_section = 0; i_section < Nsections; i_section++) {
+//            rtn_value	= Cylinder_from_Branch (&cyl1, pB, i_section, Nsections);
+//            weight_sum	+= Image_Cylinder_Direct (&cyl1, pSG, pPR, 1.0, Cscatt_Flag, &Sdirect);
+//            weight_count	+= 1.0;
+//         }
+//         pB			= pB->next;
+//      }
+//      weight_avg	= weight_sum/weight_count;
+//   }
+//#endif
+//   /**************************/
+//   /* Image primary branches */
+//   /**************************/
+//#ifndef POLSARPROSIM_NO_SAR_PRIMARIES
+//   if(pT->Dry.head != NULL_PTR2BRANCH_LIST) {       /* Image Dry Primary branches onl if they exist                                      --RAedit */
+//      pB			= pT->Dry.head;
+//      weight_sum	= 0.0;
+//      weight_count	= 0.0;
+//      for (iBranch=0L; iBranch < pT->Dry.n; iBranch++) {
+//         Nsections	= (int) (pB->l/bsecl) + 1;
+//         deltat		= 1.0 / (double) Nsections;
+//         deltar		= (pB->start_radius - pB->end_radius) / (double) Nsections;
+//         for (i_section = 0; i_section < Nsections; i_section++) {
+//            rtn_value	= Cylinder_from_Branch (&cyl1, pB, i_section, Nsections);
+//            weight_sum	+= Image_Cylinder_Direct (&cyl1, pSG, pPR, 1.0, Cscatt_Flag, &Sdirect);
+//            weight_count	+= 1.0;
+//         }
+//         pB			= pB->next;
+//      }
+//      weight_avg	= weight_sum/weight_count;
+//   }
+//   if(pT->Primary.head != NULL_PTR2BRANCH_LIST) { /* Image live primaries only if they exist  */
+//      pB			= pT->Primary.head;
+//      weight_sum	= 0.0;
+//      weight_count	= 0.0;
+//      for (iBranch=0L; iBranch < pT->Primary.n; iBranch++) {
+//         Nsections	= (int) (pB->l/bsecl) + 1;
+//         deltat		= 1.0 / (double) Nsections;
+//         deltar		= (pB->start_radius - pB->end_radius) / (double) Nsections;
+//         for (i_section = 0; i_section < Nsections; i_section++) {
+//            rtn_value	= Cylinder_from_Branch (&cyl1, pB, i_section, Nsections);
+//            weight_sum	+= Image_Cylinder_Direct (&cyl1, pSG, pPR, 1.0, Cscatt_Flag, &Sdirect);
+//            weight_count	+= 1.0;
+//         }
+//         pB			= pB->next;
+//      }
+//      weight_avg	= weight_sum/weight_count;
+//   }
+//#endif
+//   /****************************/
+//   /* Image secondary branches */
+//   /****************************/
+//#ifndef POLSARPROSIM_NO_SAR_SECONDARIES
+//   if(pT->Secondary.head != NULL_PTR2BRANCH_LIST) { /* Image secondaries only if they exist        */
+//      pB			= pT->Secondary.head;
+//      weight_sum	= 0.0;
+//      weight_count	= 0.0;
+//      for (iBranch=0L; iBranch < pT->Secondary.n; iBranch++) {
+//         Nsections	= (int) (pB->l/bsecl) + 1;
+//         deltat		= 1.0 / (double) Nsections;
+//         deltar		= (pB->start_radius - pB->end_radius) / (double) Nsections;
+//         for (i_section = 0; i_section < Nsections; i_section++) {
+//            rtn_value	= Cylinder_from_Branch (&cyl1, pB, i_section, Nsections);
+//            weight_sum	+= Image_Cylinder_Direct (&cyl1, pSG, pPR, 1.0, Cscatt_Flag, &Sdirect);
+//            weight_count	+= 1.0;
+//         }
+//         pB			= pB->next;
+//      }
+//      weight_avg	= weight_sum/weight_count;
+//   }
+//#endif
+//   /***************************/
+//   /* Image tertiary branches */
+//   /***************************/
+//#ifndef POLSARPROSIM_NO_SAR_TERTIARIES
+//#ifndef FORCE_GRG_CYLINDERS
+//   if (pPR->Grg_Flag == 0) {
+//      Cscatt_Flag	=    POLSARPROSIM_SAR_GRG_TERTIARY_BRANCHES;
+//   } else {
+//      Cscatt_Flag	=    POLSARPROSIM_SAR_INF_TERTIARY_BRANCHES;
+//   }
+//#endif
+//   /***************************************************
+//    ** This part is commented out so tertiaries from  **
+//    ** the link-list created by Realise_Tertiaries()  **
+//    ** are imaged instead of being regenerated here.  **
+//    ** This removes the dependence of imaging code    **
+//    ** on tree species.                               **
+//    **                                       --RAedit **
+//    ****************************************************
+//    
+//    tb_scaling				= Estimate_SAR_Tertiaries (pT, pPR, &n_Tertiary, &tertiary_branch_length, &tertiary_branch_radius);
+//    weight_sum				= 0.0;
+//    weight_count			= 0.0;
+//    pB						= &tertiary_branch;
+//    Create_Branch (pB);
+//    tertiary_moisture		= Tertiary_Branch_Moisture (pT->species);
+//    tertiary_permittivity	= vegetation_permittivity (tertiary_moisture, pPR->frequency);
+//    for (iBranch=0L; iBranch < n_Tertiary; iBranch++) {
+//    if (pT->species != POLSARPROSIM_HEDGE) {
+//    tertiary_moisture		= Tertiary_Branch_Moisture (pT->species);
+//    tertiary_permittivity	= vegetation_permittivity (tertiary_moisture, pPR->frequency);
+//    }
+//    rtn_value				= Realise_Tertiary_Branch (pT, pPR, pB, tertiary_branch_length, tertiary_branch_radius, tertiary_moisture, tertiary_permittivity);
+//    if (rtn_value == NO_RAYCROWN_ERRORS) {
+//    Nsections			= (int) (pB->l/bsecl) + 1;
+//    deltat				= 1.0 / (double) Nsections;
+//    deltar				= (pB->start_radius - pB->end_radius) / (double) Nsections;
+//    for (i_section = 0; i_section < Nsections; i_section++) {
+//    rtn_value			 = Cylinder_from_Branch (&cyl1, pB, i_section, Nsections);
+//    weight_sum			+= Image_Cylinder_Direct (&cyl1, pSG, pPR, tb_scaling, Cscatt_Flag);
+//    weight_count		+= 1.0;
+//    }
+//    }
+//    }
+//    weight_avg		= weight_sum/weight_count;
+//    Destroy_Branch (pB);
+//    ***************************************************/
+//   if(pT->Tertiary.head != NULL_PTR2BRANCH_LIST){
+//      weight_sum				= 0.0;
+//      weight_count			= 0.0;
+//      pB                = pT->Tertiary.head;
+//      tb_scaling        = pT->Tertiary.scale_factor; /* New addition to the Branch_list structure --RAedit */
+//      
+//      for (iBranch=0L; iBranch < pT->Tertiary.n; iBranch++) {
+//         Nsections       = (int) (pB->l/bsecl) + 1;
+//         deltat          = 1.0 / (double) Nsections;
+//         deltar          = (pB->start_radius - pB->end_radius) / (double) Nsections;
+//         for (i_section = 0; i_section < Nsections; i_section++) {
+//            rtn_value     = Cylinder_from_Branch (&cyl1, pB, i_section, Nsections);
+//            weight_sum		+= Image_Cylinder_Direct (&cyl1, pSG, pPR, tb_scaling, Cscatt_Flag, &Sdirect);
+//            weight_count	+= 1.0;
+//         }
+//         pB              = pB->next;
+//      }
+//      weight_avg        = weight_sum/weight_count;
+//   }
+//#endif
+//   
+//   /*****************/
+//   /* Image foliage */
+//   /*****************/
+//#ifndef POLSARPROSIM_NO_SAR_FOLIAGE
+//   /***************************************************
+//    ** This part is commented out so leaves from      **
+//    ** the link-list created by Realise_Foliage()     **
+//    ** are imaged instead of being regenerated here.  **
+//    ** This removes the dependence of imaging code    **
+//    ** on tree species.                               **
+//    **                                       --RAedit **
+//    ****************************************************
+//    L_species		= Leaf_Species		(pT->species);
+//    leaf_d1		= Leaf_Dimension_1	(pT->species);
+//    leaf_d2		= Leaf_Dimension_2	(pT->species);
+//    leaf_d3		= Leaf_Dimension_3	(pT->species);
+//    L_moisture		= Leaf_Moisture		(pT->species);
+//    L_permittivity	= vegetation_permittivity (L_moisture, pPR->frequency);
+//    pL				= &tree_leaf;
+//    Create_Leaf (pL);
+//    flg_scaling	= Estimate_SAR_Foliage (pT, pPR, &n_Leaves);
+//    weight_sum		= 0.0;
+//    weight_count	= 0.0;
+//    printf("No of Imaging Leaves: %ld\n", n_Leaves);
+//    for (iLeaf=0L; iLeaf < n_Leaves; iLeaf++) {
+//    if (pT->species != POLSARPROSIM_HEDGE) {
+//    L_moisture		= Leaf_Moisture	(pT->species);
+//    L_permittivity	= vegetation_permittivity (L_moisture, pPR->frequency);
+//    }
+//    rtn_value		= Realise_Foliage_Element (pT, pPR, pL, L_species, leaf_d1, leaf_d2, leaf_d3, L_moisture, L_permittivity);
+//    if (rtn_value == NO_RAYCROWN_ERRORS) {
+//    weight_sum	+= Image_Foliage_Direct (pL, pSG, pPR, flg_scaling);
+//    weight_count	+= 1.0;
+//    }
+//    }
+//    Destroy_Leaf (pL);
+//    *****************************************--RAedit*/
+//   if(pT->Foliage.head != NULL_PTR2LEAF_LIST){
+//      weight_sum		= 0.0;
+//      weight_count	= 0.0;
+//      pL             = pT->Foliage.head;
+//      flg_scaling    = pT->Foliage.scale_factor;
+//      for (iLeaf=0L; iLeaf < pT->Foliage.n; iLeaf++) {
+//         Leaf_Depolarization_Factors (pL, &leafL1, &leafL2, &leafL3);
+//         Ldvec = Cartesian_Assign_d3Vector(leafL1, leafL2, leafL3);
+////         pPR->Tertiary_leafL1	= leafL1;
+////         pPR->Tertiary_leafL2	= leafL2;
+////         pPR->Tertiary_leafL3	= leafL3;
+//         weight_sum           += Image_Foliage_Direct (pL, pSG, pPR, flg_scaling, &Ldvec, &Sdirect);
+//         weight_count         += 1.0;
+//         pL = pL->next;
+//      }
+//   }
+//#endif
+//   /***************/
+//   /* Tidy up ... */
+//   /***************/
+//   Destroy_Cylinder (&cyl1);
+//   /********************/
+//   /* ... and go home. */
+//   /********************/
+//   return (NO_POLSARPROSIM_FOREST_ERRORS);
+//}
+//
+//int		PolSARproSim_Forest_Direct		(PolSARproSim_Record *pPR)
+//{
+//   Tree			tree1;
+//   int			itree;
+//   SarGeometry	SG1;
+//   int			rtn_value;
+//   /**********************/
+//   /* Imaging the forest */
+//   /**********************/
+//#ifdef VERBOSE_POLSARPROSIM
+//   printf ("\n");
+//   printf ("Call to PolSARproSim_Forest_Direct ... \n");
+//   printf ("\n");
+//#endif
+//   fprintf (pPR->pLogFile, "Call to PolSARproSim_Forest_Direct ... \n");
+//   fflush  (pPR->pLogFile);
+//   /**********************************/
+//   /* Set up the SAR geometry record */
+//   /**********************************/
+//   rtn_value	= Initialise_SAR_Geometry (&SG1, pPR, pPR->current_track);
+//   /********************************/
+//   /* Seed random number generator */
+//   /********************************/
+//   srand (pPR->seed);
+//   /**************************/
+//   /* Main tree imaging loop */
+//   /**************************/
+//   Create_Tree (&tree1);
+//   for (itree=0; itree<pPR->Trees; itree++) {
+//      Realise_Tree		(&tree1, itree, pPR);
+//      Image_Tree_Direct	(&tree1, &SG1, pPR);  
+//   }
+//   Destroy_Tree (&tree1);
+//   /***********************/
+//   /* Monitor performance */
+//   /***********************/
+//   SG1.Sigma0_count	 = pPR->Lx*pPR->Ly;
+//   SG1.Sigma0HH		/= SG1.Sigma0_count;
+//   SG1.Sigma0HV		/= SG1.Sigma0_count;
+//   SG1.Sigma0VH		/= SG1.Sigma0_count;
+//   SG1.Sigma0VV		/= SG1.Sigma0_count;
+//   SG1.AvgShhvv		= complex_rmul (SG1.AvgShhvv, 1.0/SG1.Sigma0_count);
+//   fprintf (pPR->pLogFile, "Direct Forest HH backscattering coefficient\t= %lf dB\n", 10.0*log10(SG1.Sigma0HH));
+//   fprintf (pPR->pLogFile, "Direct Forest HV backscattering coefficient\t= %lf dB\n", 10.0*log10(SG1.Sigma0HV));
+//   fprintf (pPR->pLogFile, "Direct Forest VH backscattering coefficient\t= %lf dB\n", 10.0*log10(SG1.Sigma0VH));
+//   fprintf (pPR->pLogFile, "Direct Forest VV backscattering coefficient\t= %lf dB\n", 10.0*log10(SG1.Sigma0VV));
+//   fprintf (pPR->pLogFile, "Direct Forest HHVV correlation magnitude   \t= %lf dB\n", 10.0*log10(SG1.AvgShhvv.r));
+//   fprintf (pPR->pLogFile, "Direct Forest HHVV correlation phase       \t= %lf rads.\n", SG1.AvgShhvv.phi);
+//   fflush  (pPR->pLogFile);
+//   /***********/
+//   /* Tidy up */
+//   /***********/
+//   Delete_SAR_Geometry (&SG1);
+//   /**********************************************/
+//   /* Report progress if running in VERBOSE mode */
+//   /**********************************************/
+//#ifdef VERBOSE_POLSARPROSIM
+//   printf ("\n");
+//   printf ("... Returning from call to PolSARproSim_Forest_Direct\n");
+//   printf ("\n");
+//#endif
+//   fprintf (pPR->pLogFile, "... Returning from call to PolSARproSim_Forest_Direct\n\n");
+//   fflush  (pPR->pLogFile);
+//   /********************************/
+//   /* Increment progress indicator */
+//   /********************************/
+//   pPR->progress++;
+//   /********************************/
+//   /* Report progress if requested */
+//   /********************************/
+//#ifdef POLSARPROSIM_MAX_PROGRESS
+//   PolSARproSim_indicate_progress (pPR);
+//#endif
+//   /*****************************/
+//   /* Return to calling routine */
+//   /*****************************/
+//   return (NO_POLSARPROSIM_FOREST_ERRORS);
+//}
+
+/************************************/
+/* Image all tree components        */
+/************************************/
+int		Image_Tree		(Tree *pT, SarGeometry *pSGdirect, SarGeometry *pSGbounce, PolSARproSim_Record *pPR)
 {
    const double		bsecl	=	POLSARPROSIM_SAR_BRANCH_FACTOR*(pPR->azimuth_resolution + pPR->slant_range_resolution);
    long              iBranch;
@@ -1073,443 +1791,77 @@ int		Image_Tree_Bounce		(Tree *pT, SarGeometry *pSG, PolSARproSim_Record *pPR)
    Cylinder          cyl1;
    double            weight_sum;
    double            weight_count;
-   double            weight_avg;
    int               rtn_value;
-   int               Cscatt_Flag;
    double            tb_scaling;
    double            flg_scaling;
    long              iLeaf;
    Leaf              *pL;
+   int               Cscatt_Flag;
    double            leafL1, leafL2, leafL3;       //to calculate leaf depolarization factors
-   d3Vector          Ldvec;
-   c4Vector          Sbounce;             //bounce scattering vectors S = [Shh, Shv, Svh, Svv]
-   /************************************
-    ** This part edited out along with **
-    ** the Tertiary imaging section    **
-    ** code                  --RAedit  **
-    #ifndef POLSARPROSIM_NO_SAR_TERTIARIES
-    Branch				tertiary_branch;
-    double				tertiary_branch_length, tertiary_branch_radius;
-    long         n_Tertiary;
-    double				tertiary_moisture;
-    Complex			tertiary_permittivity;
-    #endif
-    ************************************/
-   /************************************
-    ** This part edited out along with **
-    ** the Foliage imaging section     **
-    ** code                  --RAedit  **
-    #ifndef POLSARPROSIM_NO_SAR_FOLIAGE
-    long           n_Leaves;
-    int            L_species;
-    double         leaf_d1, leaf_d2, leaf_d3;
-    double         L_moisture;
-    Complex        L_permittivity;
-    Leaf           tree_leaf;
-    #endif
-    ************************************/
+   d3Vector          Ldvec;   // leaf depolarization vector
+   double            weight_sum2;
+   int               track;                        // to loop over tracks
+   d3Vector          motion_offset;                // offset for adding motion to a cylinder/leaf 
+   double            moisture_offset;              // offset for adding moisture to a cylinder/leaf
+   double            change_start_height;          // to allow re-computation of offsets to preserve vertical profiles
+   c4Vector          *Sdirect, *Sbounce;
    
    /************************/
    /* Initialise variables */
    /************************/
    Create_Cylinder (&cyl1);
-   Create_d3Vector (&Ldvec);
-   Create_c4Vector (&Sbounce);
 #ifndef FORCE_GRG_CYLINDERS
    Cscatt_Flag	= POLSARPROSIM_SAR_INF_TERTIARY_BRANCHES;
 #else
    Cscatt_Flag	= POLSARPROSIM_SAR_GRG_TERTIARY_BRANCHES;
 #endif
+   Create_d3Vector(&motion_offset);
+   Create_d3Vector(&Ldvec);
    /*******************/
    /* Image the stems */
    /*******************/
 #ifndef POLSARPROSIM_NO_SAR_STEMS
-   if (pT->Stem.head != NULL_PTR2BRANCH_LIST){ /* Image stem if it exists */  
+   if(pT->Stem.head != NULL_PTR2BRANCH_LIST){ 
       pB			= pT->Stem.head;
       weight_sum	= 0.0;
+      weight_sum2	= 0.0;
       weight_count	= 0.0;
       for (iBranch=0L; iBranch < pT->Stem.n; iBranch++) {
          Nsections	= (int) (pB->l/bsecl) + 1;
          deltat		= 1.0 / (double) Nsections;
          deltar		= (pB->start_radius - pB->end_radius) / (double) Nsections;
-         for (i_section = 0; i_section < Nsections; i_section++) {
-            rtn_value		= Cylinder_from_Branch (&cyl1, pB, i_section, Nsections);
-            weight_sum		+= Image_Cylinder_Bounce (&cyl1, pSG, pPR, 1.0, Cscatt_Flag, &Sbounce);
-            weight_count	+= 1.0;
+         Sdirect     = (c4Vector *)calloc(Nsections, sizeof(c4Vector));
+         Sbounce     = (c4Vector *)calloc(Nsections, sizeof(c4Vector));
+         change_start_height  = pB->b0.x[2];
+         for (track=0;track<pPR->Tracks;track++){
+            /* compute initial change in branch properties (position and moisture) */
+            Model_Change (pT, pPR, track, &motion_offset, &moisture_offset, change_start_height);
+            for (i_section = 0; i_section < Nsections; i_section++) {
+               rtn_value	= Cylinder_from_Branch (&cyl1, pB, i_section, Nsections);
+               /* recompute changed properties if branch exceed a height level */
+               if(cyl1.base.x[2] > change_start_height + pPR->change_height_delta) {
+                  Model_Change (pT, pPR, track, &motion_offset, &moisture_offset, cyl1.base.x[2]);
+                  change_start_height = cyl1.base.x[2];
+               }
+               /* change the cylinder properties */
+               Change_Cylinder (&cyl1, pB, pPR, motion_offset, moisture_offset, track);
+               /* image cylinders */
+               weight_sum	+= Image_Cylinder_Direct (&cyl1, &(pSGdirect[track]), pPR, 1.0, Cscatt_Flag, &(Sdirect[i_section]));
+               weight_sum2	+= Image_Cylinder_Bounce (&cyl1, &(pSGbounce[track]), pPR, 1.0, Cscatt_Flag, &(Sbounce[i_section]));                  
+               weight_count	+= 1.0;
+            }
          }
+         free(Sdirect);
+         free(Sbounce);
          pB			= pB->next;
       }
-      weight_avg	= weight_sum/weight_count;
    }
 #endif
    /**************************/
    /* Image primary branches */
    /**************************/
 #ifndef POLSARPROSIM_NO_SAR_PRIMARIES
-   /****** Image the dry part ********/
-    if(pT->Dry.head != NULL_PTR2BRANCH_LIST) { /* Only image the dry crown if it exists. Checking this way removes reliance on species definition  --RAedit  */
-      pB           = pT->Dry.head;
-      weight_sum	= 0.0;
-      weight_count	= 0.0;
-      for (iBranch=0L; iBranch < pT->Dry.n; iBranch++) {
-         Nsections	= (int) (pB->l/bsecl) + 1;
-         deltat		= 1.0 / (double) Nsections;
-         deltar		= (pB->start_radius - pB->end_radius) / (double) Nsections;
-         for (i_section = 0; i_section < Nsections; i_section++) {
-            rtn_value		= Cylinder_from_Branch (&cyl1, pB, i_section, Nsections);
-            weight_sum		+= Image_Cylinder_Bounce (&cyl1, pSG, pPR, 1.0, Cscatt_Flag, &Sbounce);
-            weight_count	+= 1.0;
-         }
-         pB			= pB->next;
-      }
-      weight_avg	= weight_sum/weight_count;
-   }
-   /****** Image the live part *****/
-   if(pT->Primary.head != NULL_PTR2BRANCH_LIST){ /* Image wet primary branches only if they exist   */
-      pB			= pT->Primary.head;
-      weight_sum	= 0.0;
-      weight_count	= 0.0;
-      for (iBranch=0L; iBranch < pT->Primary.n; iBranch++) {
-         Nsections	= (int) (pB->l/bsecl) + 1;
-         deltat		= 1.0 / (double) Nsections;
-         deltar		= (pB->start_radius - pB->end_radius) / (double) Nsections;
-         for (i_section = 0; i_section < Nsections; i_section++) {
-            rtn_value		= Cylinder_from_Branch (&cyl1, pB, i_section, Nsections);
-            weight_sum		+= Image_Cylinder_Bounce (&cyl1, pSG, pPR, 1.0, Cscatt_Flag, &Sbounce);
-            weight_count	+= 1.0;
-         }
-         pB			= pB->next;
-      }
-      weight_avg	= weight_sum/weight_count;
-   }
-#endif
-   /****************************/
-   /* Image secondary branches */
-   /****************************/
-#ifndef POLSARPROSIM_NO_SAR_SECONDARIES
-   if(pT->Secondary.head != NULL_PTR2BRANCH){ /* Image secondary branches only if they exist  */
-      pB			= pT->Secondary.head;
-      weight_sum	= 0.0;
-      weight_count	= 0.0;
-      for (iBranch=0L; iBranch < pT->Secondary.n; iBranch++) {
-         Nsections	= (int) (pB->l/bsecl) + 1;
-         deltat		= 1.0 / (double) Nsections;
-         deltar		= (pB->start_radius - pB->end_radius) / (double) Nsections;
-         for (i_section = 0; i_section < Nsections; i_section++) {
-            rtn_value		= Cylinder_from_Branch (&cyl1, pB, i_section, Nsections);
-            weight_sum		+= Image_Cylinder_Bounce (&cyl1, pSG, pPR, 1.0, Cscatt_Flag, &Sbounce);
-            weight_count	+= 1.0;
-         }
-         pB			= pB->next;
-      }
-      weight_avg	= weight_sum/weight_count;
-   }
-#endif
-   /***************************/
-   /* Image tertiary branches */
-   /***************************/
-#ifndef POLSARPROSIM_NO_SAR_TERTIARIES
-#ifndef FORCE_GRG_CYLINDERS
-   if (pPR->Grg_Flag == 0) {
-      Cscatt_Flag	=    POLSARPROSIM_SAR_GRG_TERTIARY_BRANCHES;
-   } else {
-      Cscatt_Flag	=    POLSARPROSIM_SAR_INF_TERTIARY_BRANCHES;
-   }
-#endif
-   
-   /***************************************************
-    ** This part is commented out so tertiaries from  **
-    ** the link-list created by Realise_Tertiaries()  **
-    ** are imaged instead of being regenerated here.  **
-    ** This removes the dependence of imaging code    **
-    ** on tree species.                               **
-    **                                       --RAedit **
-    ****************************************************
-    
-    tb_scaling				= Estimate_SAR_Tertiaries (pT, pPR, &n_Tertiary, &tertiary_branch_length, &tertiary_branch_radius);
-    weight_sum				= 0.0;
-    weight_count			= 0.0;
-    pB						= &tertiary_branch;
-    Create_Branch (pB);
-    tertiary_moisture		= Tertiary_Branch_Moisture (pT->species);
-    tertiary_permittivity	= vegetation_permittivity (tertiary_moisture, pPR->frequency);
-    for (iBranch=0L; iBranch < n_Tertiary; iBranch++) {
-    if (pT->species != POLSARPROSIM_HEDGE) {
-    tertiary_moisture		= Tertiary_Branch_Moisture (pT->species);
-    tertiary_permittivity	= vegetation_permittivity (tertiary_moisture, pPR->frequency);
-    }
-    rtn_value				= Realise_Tertiary_Branch (pT, pPR, pB, tertiary_branch_length, tertiary_branch_radius, tertiary_moisture, tertiary_permittivity);
-    if (rtn_value == NO_RAYCROWN_ERRORS) {
-    Nsections			= (int) (pB->l/bsecl) + 1;
-    deltat				= 1.0 / (double) Nsections;
-    deltar				= (pB->start_radius - pB->end_radius) / (double) Nsections;
-    for (i_section = 0; i_section < Nsections; i_section++) {
-    rtn_value			 = Cylinder_from_Branch (&cyl1, pB, i_section, Nsections);
-    weight_sum			+= Image_Cylinder_Bounce (&cyl1, pSG, pPR, tb_scaling, Cscatt_Flag);
-    weight_count		+= 1.0;
-    }
-    pB = pB->next;
-    }
-    }
-    weight_avg		= weight_sum/weight_count;
-    Destroy_Branch (pB);
-    *****************************************--RAedit**/
-   
-   if(pT->Tertiary.head != NULL_PTR2BRANCH){
-      weight_sum				= 0.0;
-      weight_count			= 0.0;
-      pB                = pT->Tertiary.head;
-      tb_scaling        = pT->Tertiary.scale_factor;  /* New addition to the Branch_list structure --RAedit */
-      
-      for (iBranch=0L; iBranch < pT->Tertiary.n; iBranch++) {
-         Nsections       = (int) (pB->l/bsecl) + 1;
-         deltat          = 1.0 / (double) Nsections;
-         deltar          = (pB->start_radius - pB->end_radius) / (double) Nsections;
-         for (i_section = 0; i_section < Nsections; i_section++) {
-            rtn_value			= Cylinder_from_Branch (&cyl1, pB, i_section, Nsections);
-            weight_sum			+= Image_Cylinder_Bounce (&cyl1, pSG, pPR, tb_scaling, Cscatt_Flag, &Sbounce);
-            weight_count		+= 1.0;
-         }
-         pB = pB->next;
-      }
-      weight_avg		= weight_sum/weight_count;
-   }
-#endif
-   
-   /*****************/
-   /* Image foliage */
-   /*****************/
-#ifndef POLSARPROSIM_NO_SAR_FOLIAGE
-   /***************************************************
-    ** This part is commented out so leaves from      **
-    ** the link-list created by Realise_Foliage()     **
-    ** are imaged instead of being regenerated here.  **
-    ** This removes the dependence of imaging code    **
-    ** on tree species.                               **
-    **                                       --RAedit **
-    ****************************************************
-    
-    L_species		= Leaf_Species		(pT->species);
-    leaf_d1		= Leaf_Dimension_1	(pT->species);
-    leaf_d2		= Leaf_Dimension_2	(pT->species);
-    leaf_d3		= Leaf_Dimension_3	(pT->species);
-    L_moisture		= Leaf_Moisture		(pT->species);
-    L_permittivity	= vegetation_permittivity (L_moisture, pPR->frequency);
-    pL				= &tree_leaf;
-    Create_Leaf (pL);
-    flg_scaling	= Estimate_SAR_Foliage (pT, pPR, &n_Leaves);
-    weight_sum		= 0.0;
-    weight_count	= 0.0;
-    printf("No of Imaging Leaves: %ld\n", n_Leaves);
-    for (iLeaf=0L; iLeaf < n_Leaves; iLeaf++) {
-    if (pT->species != POLSARPROSIM_HEDGE) {
-    L_moisture		= Leaf_Moisture	(pT->species);
-    L_permittivity	= vegetation_permittivity (L_moisture, pPR->frequency);
-    }
-    rtn_value		= Realise_Foliage_Element (pT, pPR, pL, L_species, leaf_d1, leaf_d2, leaf_d3, L_moisture, L_permittivity);
-    if (rtn_value == NO_RAYCROWN_ERRORS) {
-    weight_sum	+= Image_Foliage_Bounce (pL, pSG, pPR, flg_scaling);
-    weight_count	+= 1.0;
-    }
-    }
-    Destroy_Leaf (pL);
-    *****************************************--RAedit**/
-   
-   if(pT->Foliage.head != NULL_PTR2LEAF_LIST){
-      weight_sum		= 0.0;
-      weight_count	= 0.0;
-      pL           = pT->Foliage.head;
-      flg_scaling  = pT->Foliage.scale_factor;
-      for (iLeaf=0L; iLeaf < pT->Foliage.n; iLeaf++) {
-         Leaf_Depolarization_Factors (pL, &leafL1, &leafL2, &leafL3);
-//         pPR->Tertiary_leafL1	= leafL1;
-//         pPR->Tertiary_leafL2	= leafL2;
-//         pPR->Tertiary_leafL3	= leafL3;
-         Ldvec = Cartesian_Assign_d3Vector(leafL1, leafL2, leafL3);
-         weight_sum          += Image_Foliage_Bounce (pL, pSG, pPR, flg_scaling, &Ldvec, &Sbounce);
-         weight_count        += 1.0;
-         pL                   = pL->next;
-      }
-   }
-   
-#endif
-   /***************/
-   /* Tidy up ... */
-   /***************/
-   Destroy_Cylinder (&cyl1);
-   /*****************************/
-   /* Return to calling routine */
-   /*****************************/
-   return (NO_POLSARPROSIM_FOREST_ERRORS);
-}
-
-int		PolSARproSim_Forest_Bounce		(PolSARproSim_Record *pPR)
-{
-   Tree			tree1;
-   int			itree;
-   SarGeometry	SG1;
-   int			rtn_value;
-   /**********************/
-   /* Imaging the forest */
-   /**********************/
-#ifdef VERBOSE_POLSARPROSIM
-   printf ("\n");
-   printf ("Call to PolSARproSim_Forest_Bounce ... \n");
-   printf ("\n");
-#endif
-   fprintf (pPR->pLogFile, "Call to PolSARproSim_Forest_Bounce ...\n");
-   fflush  (pPR->pLogFile);
-   /**********************************/
-   /* Set up the SAR geometry record */
-   /**********************************/
-   rtn_value	= Initialise_SAR_Geometry (&SG1, pPR, pPR->current_track);
-   /********************************/
-   /* Seed random number generator */
-   /********************************/
-   srand (pPR->seed);
-   /**************************/
-   /* Main tree imaging loop */
-   /**************************/
-   Create_Tree (&tree1);
-   for (itree=0; itree<pPR->Trees; itree++) {
-      Realise_Tree		(&tree1, itree, pPR);
-      Image_Tree_Bounce	(&tree1, &SG1, pPR);
-   }
-   Destroy_Tree (&tree1);
-   /***********************/
-   /* Monitor performance */
-   /***********************/
-   SG1.Sigma0_count	 = pPR->Lx*pPR->Ly;
-   SG1.Sigma0HH		/= SG1.Sigma0_count;
-   SG1.Sigma0HV		/= SG1.Sigma0_count;
-   SG1.Sigma0VH		/= SG1.Sigma0_count;
-   SG1.Sigma0VV		/= SG1.Sigma0_count;
-   SG1.AvgShhvv		= complex_rmul (SG1.AvgShhvv, 1.0/SG1.Sigma0_count);
-   fprintf (pPR->pLogFile, "Bounce Forest HH backscattering coefficient\t= %lf dB\n", 10.0*log10(SG1.Sigma0HH));
-   fprintf (pPR->pLogFile, "Bounce Forest HV backscattering coefficient\t= %lf dB\n", 10.0*log10(SG1.Sigma0HV));
-   fprintf (pPR->pLogFile, "Bounce Forest VH backscattering coefficient\t= %lf dB\n", 10.0*log10(SG1.Sigma0VH));
-   fprintf (pPR->pLogFile, "Bounce Forest VV backscattering coefficient\t= %lf dB\n", 10.0*log10(SG1.Sigma0VV));
-   fprintf (pPR->pLogFile, "Bounce Forest HHVV correlation magnitude   \t= %lf dB\n", 10.0*log10(SG1.AvgShhvv.r));
-   fprintf (pPR->pLogFile, "Bounce Forest HHVV correlation phase       \t= %lf rads.\n", SG1.AvgShhvv.phi);
-   fflush  (pPR->pLogFile);
-   /***********/
-   /* Tidy up */
-   /***********/
-   Delete_SAR_Geometry (&SG1);
-   /**********************************************/
-   /* Report progress if running in VERBOSE mode */
-   /**********************************************/
-#ifdef VERBOSE_POLSARPROSIM
-   printf ("\n");
-   printf ("... Returning from call to PolSARproSim_Forest_Bounce\n");
-   printf ("\n");
-#endif
-   fprintf (pPR->pLogFile, "... Returning from call to PolSARproSim_Forest_Bounce\n\n");
-   fflush  (pPR->pLogFile);
-   /********************************/
-   /* Increment progress indicator */
-   /********************************/
-   pPR->progress++;
-   /********************************/
-   /* Report progress if requested */
-   /********************************/
-#ifdef POLSARPROSIM_MAX_PROGRESS
-   PolSARproSim_indicate_progress (pPR);
-#endif
-   /*****************************/
-   /* Return to calling routine */
-   /*****************************/
-   return (NO_POLSARPROSIM_FOREST_ERRORS);
-}
-
-
-int		Image_Tree_Direct		(Tree *pT, SarGeometry *pSG, PolSARproSim_Record *pPR)
-{
-   const double		bsecl	=	POLSARPROSIM_SAR_BRANCH_FACTOR*(pPR->azimuth_resolution + pPR->slant_range_resolution);
-   long             iBranch;
-   Branch           *pB;
-   int              Nsections;
-   int              i_section;
-   double           deltat, deltar;
-   Cylinder         cyl1;
-   double           weight_sum;
-   double           weight_count;
-   double           weight_avg;
-   int              rtn_value;
-   double           tb_scaling;
-   double           flg_scaling;
-   long             iLeaf;
-   Leaf             *pL;
-   int              Cscatt_Flag;
-   double           leafL1, leafL2, leafL3; //to calculate leaf depolarization factors
-   d3Vector         Ldvec;
-   c4Vector         Sdirect;             // direct scattering vector S = [Shh, Shv, Svh, Svv]
-   /************************************
-    ** This part edited out along with **
-    ** the Tertiary imaging section    **
-    ** code                  --RAedit  **
-    #ifndef POLSARPROSIM_NO_SAR_TERTIARIES
-    Branch				tertiary_branch;
-    double				tertiary_branch_length, tertiary_branch_radius;
-    long         n_Tertiary;
-    double				tertiary_moisture;
-    Complex			tertiary_permittivity;
-    #endif
-    ************************************/
-   
-   /************************************
-    ** This part edited out along with **
-    ** the Foliage imaging section     **
-    ** code                  --RAedit  **
-    #ifndef POLSARPROSIM_NO_SAR_FOLIAGE
-    long           n_Leaves;
-    int            L_species;
-    double         leaf_d1, leaf_d2, leaf_d3;
-    double         L_moisture;
-    Complex        L_permittivity;
-    Leaf           tree_leaf;
-    #endif
-    ************************************/
-   
-   /************************/
-   /* Initialise variables */
-   /************************/
-   Create_Cylinder (&cyl1);
-   Create_d3Vector (&Ldvec);
-   Create_c4Vector(&Sdirect);
-
-#ifndef FORCE_GRG_CYLINDERS
-   Cscatt_Flag	= POLSARPROSIM_SAR_INF_TERTIARY_BRANCHES;
-#else
-   Cscatt_Flag	= POLSARPROSIM_SAR_GRG_TERTIARY_BRANCHES;
-#endif
-   /*******************/
-   /* Image the stems */
-   /*******************/
-#ifndef POLSARPROSIM_NO_SAR_STEMS
-    if(pT->Stem.head != NULL_PTR2BRANCH_LIST){ /* Image Stem only if it exists                 */
-      pB			= pT->Stem.head;
-      weight_sum	= 0.0;
-      weight_count	= 0.0;
-      for (iBranch=0L; iBranch < pT->Stem.n; iBranch++) {
-         Nsections	= (int) (pB->l/bsecl) + 1;
-         deltat		= 1.0 / (double) Nsections;
-         deltar		= (pB->start_radius - pB->end_radius) / (double) Nsections;
-         for (i_section = 0; i_section < Nsections; i_section++) {
-            rtn_value	= Cylinder_from_Branch (&cyl1, pB, i_section, Nsections);
-            weight_sum	+= Image_Cylinder_Direct (&cyl1, pSG, pPR, 1.0, Cscatt_Flag, &Sdirect);
-            weight_count	+= 1.0;
-         }
-         pB			= pB->next;
-      }
-      weight_avg	= weight_sum/weight_count;
-   }
-#endif
-   /**************************/
-   /* Image primary branches */
-   /**************************/
-#ifndef POLSARPROSIM_NO_SAR_PRIMARIES
-   if(pT->Dry.head != NULL_PTR2BRANCH_LIST) {       /* Image Dry Primary branches onl if they exist                                      --RAedit */
+   if(pT->Dry.head != NULL_PTR2BRANCH_LIST) {     
       pB			= pT->Dry.head;
       weight_sum	= 0.0;
       weight_count	= 0.0;
@@ -1517,14 +1869,31 @@ int		Image_Tree_Direct		(Tree *pT, SarGeometry *pSG, PolSARproSim_Record *pPR)
          Nsections	= (int) (pB->l/bsecl) + 1;
          deltat		= 1.0 / (double) Nsections;
          deltar		= (pB->start_radius - pB->end_radius) / (double) Nsections;
-         for (i_section = 0; i_section < Nsections; i_section++) {
-            rtn_value	= Cylinder_from_Branch (&cyl1, pB, i_section, Nsections);
-            weight_sum	+= Image_Cylinder_Direct (&cyl1, pSG, pPR, 1.0, Cscatt_Flag, &Sdirect);
-            weight_count	+= 1.0;
+         Sdirect     = (c4Vector *)calloc(Nsections, sizeof(c4Vector));
+         Sbounce     = (c4Vector *)calloc(Nsections, sizeof(c4Vector));
+         change_start_height  = pB->b0.x[2];
+         for (track=0;track<pPR->Tracks;track++){
+            /* compute initial change in branch properties (position and moisture) */
+            Model_Change (pT, pPR, track, &motion_offset, &moisture_offset, change_start_height);
+            for (i_section = 0; i_section < Nsections; i_section++) {
+               rtn_value	= Cylinder_from_Branch (&cyl1, pB, i_section, Nsections);
+               /* recompute changed properties if branch exceed a height level */
+               if(cyl1.base.x[2] > change_start_height + pPR->change_height_delta) {
+                  Model_Change (pT, pPR, track, &motion_offset, &moisture_offset, cyl1.base.x[2]);
+                  change_start_height = cyl1.base.x[2];
+               }
+               /* change the cylinder properties */
+               Change_Cylinder (&cyl1, pB, pPR, motion_offset, moisture_offset, track); 
+               /* image cylinders */
+               weight_sum	+= Image_Cylinder_Direct (&cyl1, &(pSGdirect[track]), pPR, 1.0, Cscatt_Flag, &(Sdirect[i_section]));
+               weight_sum2	+= Image_Cylinder_Bounce (&cyl1, &(pSGbounce[track]), pPR, 1.0, Cscatt_Flag, &(Sbounce[i_section]));
+               weight_count	+= 1.0;
+            }
          }
+         free(Sdirect);
+         free(Sbounce);
          pB			= pB->next;
       }
-      weight_avg	= weight_sum/weight_count;
    }
    if(pT->Primary.head != NULL_PTR2BRANCH_LIST) { /* Image live primaries only if they exist  */
       pB			= pT->Primary.head;
@@ -1534,14 +1903,31 @@ int		Image_Tree_Direct		(Tree *pT, SarGeometry *pSG, PolSARproSim_Record *pPR)
          Nsections	= (int) (pB->l/bsecl) + 1;
          deltat		= 1.0 / (double) Nsections;
          deltar		= (pB->start_radius - pB->end_radius) / (double) Nsections;
-         for (i_section = 0; i_section < Nsections; i_section++) {
-            rtn_value	= Cylinder_from_Branch (&cyl1, pB, i_section, Nsections);
-            weight_sum	+= Image_Cylinder_Direct (&cyl1, pSG, pPR, 1.0, Cscatt_Flag, &Sdirect);
-            weight_count	+= 1.0;
+         Sdirect     = (c4Vector *)calloc(Nsections, sizeof(c4Vector));
+         Sbounce     = (c4Vector *)calloc(Nsections, sizeof(c4Vector));
+         change_start_height  = pB->b0.x[2];
+         for (track=0;track<pPR->Tracks;track++){
+            /* compute initial change in branch properties (position and moisture) */
+            Model_Change (pT, pPR, track, &motion_offset, &moisture_offset, change_start_height);
+            for (i_section = 0; i_section < Nsections; i_section++) {
+               rtn_value	= Cylinder_from_Branch (&cyl1, pB, i_section, Nsections);
+               /* recompute changed properties if branch exceed a height level */
+               if(cyl1.base.x[2] > change_start_height + pPR->change_height_delta) {
+                  Model_Change (pT, pPR, track, &motion_offset, &moisture_offset, cyl1.base.x[2]);
+                  change_start_height = cyl1.base.x[2];
+               }
+               /* change the cylinder properties */
+               Change_Cylinder (&cyl1, pB, pPR, motion_offset, moisture_offset, track); 
+               /* image cylinders */
+               weight_sum	+= Image_Cylinder_Direct (&cyl1, &(pSGdirect[track]), pPR, 1.0, Cscatt_Flag, &(Sdirect[i_section]));
+               weight_sum2	+= Image_Cylinder_Bounce (&cyl1, &(pSGbounce[track]), pPR, 1.0, Cscatt_Flag, &(Sbounce[i_section]));
+               weight_count	+= 1.0;
+            }
          }
+         free(Sdirect);
+         free(Sbounce);
          pB			= pB->next;
       }
-      weight_avg	= weight_sum/weight_count;
    }
 #endif
    /****************************/
@@ -1556,14 +1942,31 @@ int		Image_Tree_Direct		(Tree *pT, SarGeometry *pSG, PolSARproSim_Record *pPR)
          Nsections	= (int) (pB->l/bsecl) + 1;
          deltat		= 1.0 / (double) Nsections;
          deltar		= (pB->start_radius - pB->end_radius) / (double) Nsections;
-         for (i_section = 0; i_section < Nsections; i_section++) {
-            rtn_value	= Cylinder_from_Branch (&cyl1, pB, i_section, Nsections);
-            weight_sum	+= Image_Cylinder_Direct (&cyl1, pSG, pPR, 1.0, Cscatt_Flag, &Sdirect);
-            weight_count	+= 1.0;
+         Sdirect     = (c4Vector *)calloc(Nsections, sizeof(c4Vector));
+         Sbounce     = (c4Vector *)calloc(Nsections, sizeof(c4Vector));
+         change_start_height  = pB->b0.x[2];
+         for (track=0;track<pPR->Tracks;track++){
+            /* compute initial change in branch properties (position and moisture) */
+            Model_Change (pT, pPR, track, &motion_offset, &moisture_offset, change_start_height);
+            for (i_section = 0; i_section < Nsections; i_section++) {
+               rtn_value	= Cylinder_from_Branch (&cyl1, pB, i_section, Nsections);
+               /* recompute changed properties if branch exceed a height level */
+               if(cyl1.base.x[2] > change_start_height + pPR->change_height_delta) {
+                  Model_Change (pT, pPR, track, &motion_offset, &moisture_offset, cyl1.base.x[2]);
+                  change_start_height = cyl1.base.x[2];
+               }
+               /* change the cylinder properties */
+               Change_Cylinder (&cyl1, pB, pPR, motion_offset, moisture_offset, track); 
+               /* image cylinders */
+               weight_sum	+= Image_Cylinder_Direct (&cyl1, &(pSGdirect[track]), pPR, 1.0, Cscatt_Flag, &(Sdirect[i_section]));
+               weight_sum2	+= Image_Cylinder_Bounce (&cyl1, &(pSGbounce[track]), pPR, 1.0, Cscatt_Flag, &(Sbounce[i_section]));
+               weight_count	+= 1.0;
+            }
          }
+         free(Sdirect);
+         free(Sbounce);
          pB			= pB->next;
       }
-      weight_avg	= weight_sum/weight_count;
    }
 #endif
    /***************************/
@@ -1577,60 +1980,40 @@ int		Image_Tree_Direct		(Tree *pT, SarGeometry *pSG, PolSARproSim_Record *pPR)
       Cscatt_Flag	=    POLSARPROSIM_SAR_INF_TERTIARY_BRANCHES;
    }
 #endif
-   /***************************************************
-    ** This part is commented out so tertiaries from  **
-    ** the link-list created by Realise_Tertiaries()  **
-    ** are imaged instead of being regenerated here.  **
-    ** This removes the dependence of imaging code    **
-    ** on tree species.                               **
-    **                                       --RAedit **
-    ****************************************************
-    
-    tb_scaling				= Estimate_SAR_Tertiaries (pT, pPR, &n_Tertiary, &tertiary_branch_length, &tertiary_branch_radius);
-    weight_sum				= 0.0;
-    weight_count			= 0.0;
-    pB						= &tertiary_branch;
-    Create_Branch (pB);
-    tertiary_moisture		= Tertiary_Branch_Moisture (pT->species);
-    tertiary_permittivity	= vegetation_permittivity (tertiary_moisture, pPR->frequency);
-    for (iBranch=0L; iBranch < n_Tertiary; iBranch++) {
-    if (pT->species != POLSARPROSIM_HEDGE) {
-    tertiary_moisture		= Tertiary_Branch_Moisture (pT->species);
-    tertiary_permittivity	= vegetation_permittivity (tertiary_moisture, pPR->frequency);
-    }
-    rtn_value				= Realise_Tertiary_Branch (pT, pPR, pB, tertiary_branch_length, tertiary_branch_radius, tertiary_moisture, tertiary_permittivity);
-    if (rtn_value == NO_RAYCROWN_ERRORS) {
-    Nsections			= (int) (pB->l/bsecl) + 1;
-    deltat				= 1.0 / (double) Nsections;
-    deltar				= (pB->start_radius - pB->end_radius) / (double) Nsections;
-    for (i_section = 0; i_section < Nsections; i_section++) {
-    rtn_value			 = Cylinder_from_Branch (&cyl1, pB, i_section, Nsections);
-    weight_sum			+= Image_Cylinder_Direct (&cyl1, pSG, pPR, tb_scaling, Cscatt_Flag);
-    weight_count		+= 1.0;
-    }
-    }
-    }
-    weight_avg		= weight_sum/weight_count;
-    Destroy_Branch (pB);
-    ***************************************************/
    if(pT->Tertiary.head != NULL_PTR2BRANCH_LIST){
       weight_sum				= 0.0;
       weight_count			= 0.0;
-      pB                = pT->Tertiary.head;
-      tb_scaling        = pT->Tertiary.scale_factor; /* New addition to the Branch_list structure --RAedit */
-      
+      pB                   = pT->Tertiary.head;
+      tb_scaling           = pT->Tertiary.scale_factor; /* New addition to the Branch_list structure --RAedit */
       for (iBranch=0L; iBranch < pT->Tertiary.n; iBranch++) {
-         Nsections       = (int) (pB->l/bsecl) + 1;
-         deltat          = 1.0 / (double) Nsections;
-         deltar          = (pB->start_radius - pB->end_radius) / (double) Nsections;
-         for (i_section = 0; i_section < Nsections; i_section++) {
-            rtn_value     = Cylinder_from_Branch (&cyl1, pB, i_section, Nsections);
-            weight_sum		+= Image_Cylinder_Direct (&cyl1, pSG, pPR, tb_scaling, Cscatt_Flag, &Sdirect);
-            weight_count	+= 1.0;
+         Nsections   = (int) (pB->l/bsecl) + 1;
+         deltat      = 1.0 / (double) Nsections;
+         deltar      = (pB->start_radius - pB->end_radius) / (double) Nsections;
+         Sdirect     = (c4Vector *)calloc(Nsections, sizeof(c4Vector));
+         Sbounce     = (c4Vector *)calloc(Nsections, sizeof(c4Vector));
+         change_start_height  = pB->b0.x[2];
+         for (track=0;track<pPR->Tracks;track++){
+            /* compute initial change in branch properties (position and moisture) */
+            Model_Change (pT, pPR, track, &motion_offset, &moisture_offset, change_start_height);
+            for (i_section = 0; i_section < Nsections; i_section++) {
+               rtn_value     = Cylinder_from_Branch (&cyl1, pB, i_section, Nsections);
+               /* recompute changed properties if branch exceed a height level */
+               if(cyl1.base.x[2] > change_start_height + pPR->change_height_delta) {
+                  Model_Change (pT, pPR, track, &motion_offset, &moisture_offset, cyl1.base.x[2]);
+                  change_start_height = cyl1.base.x[2];
+               }
+               /* change the cylinder properties */
+               Change_Cylinder (&cyl1, pB, pPR, motion_offset, moisture_offset, track); 
+               /* image cylinders */
+               weight_sum		+= Image_Cylinder_Direct (&cyl1, &(pSGdirect[track]), pPR, tb_scaling, Cscatt_Flag, &(Sdirect[i_section]));
+               weight_sum2		+= Image_Cylinder_Bounce (&cyl1, &(pSGbounce[track]), pPR, tb_scaling, Cscatt_Flag, &(Sbounce[i_section]));
+               weight_count	+= 1.0;
+            }
          }
+         free(Sdirect);
+         free(Sbounce);
          pB              = pB->next;
       }
-      weight_avg        = weight_sum/weight_count;
    }
 #endif
    
@@ -1638,52 +2021,23 @@ int		Image_Tree_Direct		(Tree *pT, SarGeometry *pSG, PolSARproSim_Record *pPR)
    /* Image foliage */
    /*****************/
 #ifndef POLSARPROSIM_NO_SAR_FOLIAGE
-   /***************************************************
-    ** This part is commented out so leaves from      **
-    ** the link-list created by Realise_Foliage()     **
-    ** are imaged instead of being regenerated here.  **
-    ** This removes the dependence of imaging code    **
-    ** on tree species.                               **
-    **                                       --RAedit **
-    ****************************************************
-    L_species		= Leaf_Species		(pT->species);
-    leaf_d1		= Leaf_Dimension_1	(pT->species);
-    leaf_d2		= Leaf_Dimension_2	(pT->species);
-    leaf_d3		= Leaf_Dimension_3	(pT->species);
-    L_moisture		= Leaf_Moisture		(pT->species);
-    L_permittivity	= vegetation_permittivity (L_moisture, pPR->frequency);
-    pL				= &tree_leaf;
-    Create_Leaf (pL);
-    flg_scaling	= Estimate_SAR_Foliage (pT, pPR, &n_Leaves);
-    weight_sum		= 0.0;
-    weight_count	= 0.0;
-    printf("No of Imaging Leaves: %ld\n", n_Leaves);
-    for (iLeaf=0L; iLeaf < n_Leaves; iLeaf++) {
-    if (pT->species != POLSARPROSIM_HEDGE) {
-    L_moisture		= Leaf_Moisture	(pT->species);
-    L_permittivity	= vegetation_permittivity (L_moisture, pPR->frequency);
-    }
-    rtn_value		= Realise_Foliage_Element (pT, pPR, pL, L_species, leaf_d1, leaf_d2, leaf_d3, L_moisture, L_permittivity);
-    if (rtn_value == NO_RAYCROWN_ERRORS) {
-    weight_sum	+= Image_Foliage_Direct (pL, pSG, pPR, flg_scaling);
-    weight_count	+= 1.0;
-    }
-    }
-    Destroy_Leaf (pL);
-    *****************************************--RAedit*/
    if(pT->Foliage.head != NULL_PTR2LEAF_LIST){
       weight_sum		= 0.0;
       weight_count	= 0.0;
       pL             = pT->Foliage.head;
       flg_scaling    = pT->Foliage.scale_factor;
+      Leaf_Depolarization_Factors (pL, &leafL1, &leafL2, &leafL3);
+      Ldvec = Cartesian_Assign_d3Vector(leafL1, leafL2, leafL3);
+      Sdirect     = (c4Vector *)calloc(1, sizeof(c4Vector));
+      Sbounce     = (c4Vector *)calloc(1, sizeof(c4Vector));
       for (iLeaf=0L; iLeaf < pT->Foliage.n; iLeaf++) {
-         Leaf_Depolarization_Factors (pL, &leafL1, &leafL2, &leafL3);
-         Ldvec = Cartesian_Assign_d3Vector(leafL1, leafL2, leafL3);
-//         pPR->Tertiary_leafL1	= leafL1;
-//         pPR->Tertiary_leafL2	= leafL2;
-//         pPR->Tertiary_leafL3	= leafL3;
-         weight_sum           += Image_Foliage_Direct (pL, pSG, pPR, flg_scaling, &Ldvec, &Sdirect);
-         weight_count         += 1.0;
+         for (track=0;track<pPR->Tracks;track++){
+            Model_Change (pT, pPR, track, &motion_offset, &moisture_offset, pL->cl.x[2]);
+            Change_Leaf  (pL, pPR, motion_offset, moisture_offset, track); 
+            weight_sum           += Image_Foliage_Direct (pL, &(pSGdirect[track]), pPR, flg_scaling, &Ldvec, &(Sdirect[0]));
+            weight_sum2          += Image_Foliage_Bounce (pL, &(pSGbounce[track]), pPR, flg_scaling, &Ldvec, &(Sbounce[0]));
+            weight_count         += 1.0;
+         }
          pL = pL->next;
       }
    }
@@ -1692,32 +2046,48 @@ int		Image_Tree_Direct		(Tree *pT, SarGeometry *pSG, PolSARproSim_Record *pPR)
    /* Tidy up ... */
    /***************/
    Destroy_Cylinder (&cyl1);
-   /********************/
-   /* ... and go home. */
-   /********************/
+   Destroy_Tree(pT);
+   free(Sdirect);
+   free(Sbounce);
    return (NO_POLSARPROSIM_FOREST_ERRORS);
 }
 
-int		PolSARproSim_Forest_Direct		(PolSARproSim_Record *pPR)
+/************************************/
+/* Simulate Forest scattering       */
+/************************************/
+int		PolSARproSim_Forest		(PolSARproSim_Record *pPR)
 {
    Tree			tree1;
-   int			itree;
-   SarGeometry	SG1;
+   int			itree, track;
+   SarGeometry	*SGdirect;
+   SarGeometry *SGbounce;
    int			rtn_value;
+#ifdef OUTPUT_CHANGE_STATS_ON 
+   int i,j,index;
+#endif
+
    /**********************/
    /* Imaging the forest */
    /**********************/
 #ifdef VERBOSE_POLSARPROSIM
    printf ("\n");
-   printf ("Call to PolSARproSim_Forest_Direct ... \n");
+   printf ("Call to PolSARproSim_Forest ... \n");
    printf ("\n");
 #endif
-   fprintf (pPR->pLogFile, "Call to PolSARproSim_Forest_Direct ... \n");
+   fprintf (pPR->pLogFile, "Call to PolSARproSim_Forest ... \n");
    fflush  (pPR->pLogFile);
+   
+   /* initialize SAR geometry variables*/
+   SGdirect   = (SarGeometry*) calloc (pPR->Tracks, sizeof (SarGeometry));
+   SGbounce   = (SarGeometry*) calloc (pPR->Tracks, sizeof (SarGeometry));
    /**********************************/
    /* Set up the SAR geometry record */
    /**********************************/
-   rtn_value	= Initialise_SAR_Geometry (&SG1, pPR, pPR->current_track);
+   for (track = 0; track < pPR->Tracks; track++) {
+      rtn_value	= Initialise_SAR_Geometry (&SGdirect[track], pPR, track);
+      rtn_value	= Initialise_SAR_Geometry (&SGbounce[track], pPR, track);
+      printf("Geometries Initialized for track %d\n", track);
+   }
    /********************************/
    /* Seed random number generator */
    /********************************/
@@ -1728,29 +2098,99 @@ int		PolSARproSim_Forest_Direct		(PolSARproSim_Record *pPR)
    Create_Tree (&tree1);
    for (itree=0; itree<pPR->Trees; itree++) {
       Realise_Tree		(&tree1, itree, pPR);
-      Image_Tree_Direct	(&tree1, &SG1, pPR);  
+      printf("Realized tree %d\n", itree);
+      Image_Tree        (&tree1, &(SGdirect[0]), &(SGbounce[0]), pPR);  
+      printf("Imaged tree %d\n", itree);
    }
-   Destroy_Tree (&tree1);
-   /***********************/
-   /* Monitor performance */
-   /***********************/
-   SG1.Sigma0_count	 = pPR->Lx*pPR->Ly;
-   SG1.Sigma0HH		/= SG1.Sigma0_count;
-   SG1.Sigma0HV		/= SG1.Sigma0_count;
-   SG1.Sigma0VH		/= SG1.Sigma0_count;
-   SG1.Sigma0VV		/= SG1.Sigma0_count;
-   SG1.AvgShhvv		= complex_rmul (SG1.AvgShhvv, 1.0/SG1.Sigma0_count);
-   fprintf (pPR->pLogFile, "Direct Forest HH backscattering coefficient\t= %lf dB\n", 10.0*log10(SG1.Sigma0HH));
-   fprintf (pPR->pLogFile, "Direct Forest HV backscattering coefficient\t= %lf dB\n", 10.0*log10(SG1.Sigma0HV));
-   fprintf (pPR->pLogFile, "Direct Forest VH backscattering coefficient\t= %lf dB\n", 10.0*log10(SG1.Sigma0VH));
-   fprintf (pPR->pLogFile, "Direct Forest VV backscattering coefficient\t= %lf dB\n", 10.0*log10(SG1.Sigma0VV));
-   fprintf (pPR->pLogFile, "Direct Forest HHVV correlation magnitude   \t= %lf dB\n", 10.0*log10(SG1.AvgShhvv.r));
-   fprintf (pPR->pLogFile, "Direct Forest HHVV correlation phase       \t= %lf rads.\n", SG1.AvgShhvv.phi);
-   fflush  (pPR->pLogFile);
+   
+   /* write out some average backscattering coefficients */    
+   for (track = 0; track < pPR->Tracks; track++) {
+      fprintf(pPR->pLogFile, "Forest Statistics for track %d\n", track);
+      /******************************/
+      /* Monitor Direct performance */
+      /******************************/
+      SGdirect[track].Sigma0_count	 = pPR->Lx*pPR->Ly;
+      SGdirect[track].Sigma0HH		/= SGdirect[track].Sigma0_count;
+      SGdirect[track].Sigma0HV		/= SGdirect[track].Sigma0_count;
+      SGdirect[track].Sigma0VH		/= SGdirect[track].Sigma0_count;
+      SGdirect[track].Sigma0VV		/= SGdirect[track].Sigma0_count;
+      SGdirect[track].AvgShhvv		= complex_rmul (SGdirect[track].AvgShhvv, 1.0/SGdirect[track].Sigma0_count);
+      fprintf (pPR->pLogFile, "Direct Forest HH backscattering coefficient\t= %lf dB\n", 10.0*log10(SGdirect[track].Sigma0HH));
+      fprintf (pPR->pLogFile, "Direct Forest HV backscattering coefficient\t= %lf dB\n", 10.0*log10(SGdirect[track].Sigma0HV));
+      fprintf (pPR->pLogFile, "Direct Forest VH backscattering coefficient\t= %lf dB\n", 10.0*log10(SGdirect[track].Sigma0VH));
+      fprintf (pPR->pLogFile, "Direct Forest VV backscattering coefficient\t= %lf dB\n", 10.0*log10(SGdirect[track].Sigma0VV));
+      fprintf (pPR->pLogFile, "Direct Forest HHVV correlation magnitude   \t= %lf dB\n", 10.0*log10(SGdirect[track].AvgShhvv.r));
+      fprintf (pPR->pLogFile, "Direct Forest HHVV correlation phase       \t= %lf rads.\n", SGdirect[track].AvgShhvv.phi);
+      fflush  (pPR->pLogFile);
+      /******************************/
+      /* Monitor Bounce performance */
+      /******************************/
+      SGbounce[track].Sigma0_count	 = pPR->Lx*pPR->Ly;
+      SGbounce[track].Sigma0HH		/= SGbounce[track].Sigma0_count;
+      SGbounce[track].Sigma0HV		/= SGbounce[track].Sigma0_count;
+      SGbounce[track].Sigma0VH		/= SGbounce[track].Sigma0_count;
+      SGbounce[track].Sigma0VV		/= SGbounce[track].Sigma0_count;
+      SGbounce[track].AvgShhvv		= complex_rmul (SGbounce[track].AvgShhvv, 1.0/SGbounce[track].Sigma0_count);
+      fprintf (pPR->pLogFile, "Bounce Forest HH backscattering coefficient\t= %lf dB\n", 10.0*log10(SGbounce[track].Sigma0HH));
+      fprintf (pPR->pLogFile, "Bounce Forest HV backscattering coefficient\t= %lf dB\n", 10.0*log10(SGbounce[track].Sigma0HV));
+      fprintf (pPR->pLogFile, "Bounce Forest VH backscattering coefficient\t= %lf dB\n", 10.0*log10(SGbounce[track].Sigma0VH));
+      fprintf (pPR->pLogFile, "Bounce Forest VV backscattering coefficient\t= %lf dB\n", 10.0*log10(SGbounce[track].Sigma0VV));
+      fprintf (pPR->pLogFile, "Bounce Forest HHVV correlation magnitude   \t= %lf dB\n", 10.0*log10(SGbounce[track].AvgShhvv.r));
+      fprintf (pPR->pLogFile, "Bounce Forest HHVV correlation phase       \t= %lf rads.\n", SGbounce[track].AvgShhvv.phi);
+      fflush  (pPR->pLogFile);
+
+   }
+   /***************************************************************************/
+   /* Report statistics of changes applied to scatterer position and moisture */
+   /***************************************************************************/
+#ifdef OUTPUT_CHANGE_STATS_ON 
+   fprintf (pPR->pLogFile, "\nMotion Offset Profile (x-axis only): Height [m], mean [line 0], variance [line 0], count [line 0], mean [line 1], variance [line 1]..... \n");
+   for(i=0;i<CHANGE_PROFILE_BINS;i++){
+      fprintf(pPR->pLogFile, "%f",  (double)(i*pPR->change_profile_bin_res));
+      for(j=0;j<pPR->Tracks;j++){
+         index = i * pPR->Tracks + j;
+         if(pPR->motion_profile_count[index] > 2){
+            /* this is what the statistics should really be */
+            fprintf (pPR->pLogFile, "\t%f\t%f\t%d", pPR->motion_profile_mean[index], 
+                   (double)(pPR->motion_profile_var[index]/(pPR->motion_profile_count[index]-1)), 
+                   pPR->motion_profile_count[index]);
+         }else{
+            /* this is just to avoid divide by zero, may be inaccurate */
+            fprintf (pPR->pLogFile, "\t%f\t%f\t%d", pPR->motion_profile_mean[i+j], 
+                   (double)(pPR->motion_profile_var[index]/(pPR->motion_profile_count[index]+1)),
+                   pPR->motion_profile_count[index]);
+         }
+      }
+      fprintf (pPR->pLogFile, "\n");
+   }
+   fprintf (pPR->pLogFile, "\nMoisture Offset Profile: Height [m], mean [line 0], variance [line 0], mean [line 1], count [line 0], variance [line 1]..... \n");
+   for(i=0;i<CHANGE_PROFILE_BINS;i++){
+      fprintf(pPR->pLogFile, "%f",  (double)(i*pPR->change_profile_bin_res));
+      for(j=0;j<pPR->Tracks;j++){
+         index = i * pPR->Tracks + j;
+         if(pPR->moisture_profile_count[index] > 2){
+            /* this is what the statistics should really be */
+            fprintf (pPR->pLogFile, "\t%f\t%f\t%d", pPR->moisture_profile_mean[index], 
+                   (double)(pPR->moisture_profile_var[index]/(pPR->moisture_profile_count[index]-1)), 
+                   pPR->moisture_profile_count[index]);
+         }else{
+            /* this is just to avoid divide by zero, may be inaccurate */
+            fprintf (pPR->pLogFile, "\t%f\t%f\t%d", pPR->moisture_profile_mean[i+j], 
+                   (double)(pPR->moisture_profile_var[index]/(pPR->moisture_profile_count[index]+1)),
+                   pPR->moisture_profile_count[index]);
+         }
+      }
+      fprintf (pPR->pLogFile, "\n");
+   }
+#endif
    /***********/
    /* Tidy up */
    /***********/
-   Delete_SAR_Geometry (&SG1);
+   for (track=0;track<pPR->Tracks;track++){
+      Delete_SAR_Geometry (&SGdirect[track]);
+      Delete_SAR_Geometry (&SGbounce[track]);
+   }
+   Destroy_Tree (&tree1);
    /**********************************************/
    /* Report progress if running in VERBOSE mode */
    /**********************************************/
@@ -1776,6 +2216,8 @@ int		PolSARproSim_Forest_Direct		(PolSARproSim_Record *pPR)
    /*****************************/
    return (NO_POLSARPROSIM_FOREST_ERRORS);
 }
+
+
 
 
 /* multi-threaded version of the image tree function */

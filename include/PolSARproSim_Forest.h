@@ -114,6 +114,9 @@ typedef struct sargeometry_tag {
  double			Sigma0_count;
 } SarGeometry;
 
+/****************************************/
+/* SAR Local Geometry Record definition */
+/****************************************/
 typedef struct localgeometry_tag {
  int           track;
 /*********************************/
@@ -127,8 +130,6 @@ typedef struct localgeometry_tag {
  double			p_thetai;
  double			p_height;
  double			p_grange;
-// Yn_Lookup		Ytable;
-// Jn_Lookup		Jtable;
  d3Vector		ki, ks;
  c3Vector		ch, cv;
 /*********************************/
@@ -141,15 +142,6 @@ typedef struct localgeometry_tag {
  c3Vector		chi,  cvi,  chs,  cvs,  chr,  cvr,  chrm,  cvrm;
  c3Vector		chil, cvil, chsl, cvsl, chrl, cvrl, chrlm, cvrlm;
  c33Matrix		R1, R2;
-///************************/
-///* Performance monitors */
-///************************/
-// double			Sigma0HH;
-// double			Sigma0HV;
-// double			Sigma0VH;
-// double			Sigma0VV;
-// Complex       AvgShhvv, zhhvv;
-// double			Sigma0_count;
 } LocalGeometry;
 
 
@@ -158,18 +150,16 @@ typedef struct localgeometry_tag {
 /*************************/
 
 int		Initialise_SAR_Geometry			(SarGeometry *pSG, PolSARproSim_Record *pPR, int track);
-//int		Initialise_Stack_Geometry		(PolSARproSim_Record *pPR);
 int		Delete_SAR_Geometry				(SarGeometry *pSG);
-//int		Delete_Stack_Geometry			(PolSARproSim_Record *pPR);
 
 /********************************************************************/
 /* Short vegetation interferometric SAR image calculation prototype */
 /********************************************************************/
 
-int		PolSARproSim_Forest_Direct		(PolSARproSim_Record *pPR);
-int		PolSARproSim_Forest_Bounce		(PolSARproSim_Record *pPR);
+//int		PolSARproSim_Forest_Direct		(PolSARproSim_Record *pPR);
+//int		PolSARproSim_Forest_Bounce		(PolSARproSim_Record *pPR);
 int		PolSARproSim_Forest_SMP       (PolSARproSim_Record *pPR);
-
+int		PolSARproSim_Forest           (PolSARproSim_Record *pPR);
 
 #define	NO_POLSARPROSIM_FOREST_ERRORS			0
 
