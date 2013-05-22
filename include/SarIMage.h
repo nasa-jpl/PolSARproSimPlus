@@ -137,6 +137,7 @@ int         Copy_SIM_Record            (SIM_Record *pOrg, SIM_Record *pCpy);
 void        Rescale_SIM_Record         (SIM_Record *pSIMR, double scale_factor);
 int         Trim_SIM_Record            (SIM_Record *pSIMR, double Lx, double Ly);
 int         Add_SIM_Records            (SIM_Record *pIMG1, SIM_Record *pIMG2);
+void        Print_SIM_Record           (SIM_Record *pSIMR);
 /**********************/
 /* Error return codes */
 /**********************/
@@ -149,8 +150,8 @@ int         Add_SIM_Records            (SIM_Record *pIMG1, SIM_Record *pIMG2);
 /******************************************************/
 
 int		Write_SIM_Record_As_BINARY	(SIM_Record *pSIMR);
-int		Read_BINARY_As_SIM_Record	(SIM_Record *pSIMR, const char *filename, int nx, int ny);
-
+int      Read_BINARY_As_SIM_Record	(SIM_Record *pSIMR, const char *filename, int nx, int ny, double dx, double dy);
+int      Read_FLOAT_BINARY_As_SIM_Record	(SIM_Record *pSIMR, const char *filename, int nx, int ny, double dx, double dy);
 /******************************************************/
 /* Image rotation for testing binary image compliance */
 /******************************************************/

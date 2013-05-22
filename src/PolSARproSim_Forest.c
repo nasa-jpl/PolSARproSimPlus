@@ -393,28 +393,33 @@ double      Change_Cylinder      (Cylinder *pC, Branch *pB, PolSARproSim_Record 
    
 #ifdef OUTPUT_CHANGE_STATS_ON  
    /* calculate first two moments of the vertical change profiles */
-   /* motion */
    gnd_hgt                    = ground_height(pPR, cyl_x, cyl_y);
-   pthread_mutex_lock         (&PolSARproSim_Statmutex);
-   change_profile_bin_index   = (int)((cyl_original_height-gnd_hgt)/pPR->max_tree_height*CHANGE_PROFILE_BINS);
-   if(change_profile_bin_index > CHANGE_PROFILE_BINS){
-      change_profile_bin_index = CHANGE_PROFILE_BINS;
+   change_profile_bin_index   = (int)((cyl_original_height-gnd_hgt)/pPR->max_tree_height*(CHANGE_PROFILE_BINS-1));
+   if(change_profile_bin_index > (CHANGE_PROFILE_BINS-1)){
+      change_profile_bin_index = (CHANGE_PROFILE_BINS-1);
+   }
+   if(change_profile_bin_index < 0){
+      change_profile_bin_index = 0;
    }
    change_profile_bin_index   = change_profile_bin_index*pPR->Tracks+current_track;
-   change_profile_bin_count   = pPR->motion_profile_count[change_profile_bin_index];
-   motion_profile_mean        = pPR->motion_profile_mean[change_profile_bin_index];
-   motion_profile_var         = pPR->motion_profile_var [change_profile_bin_index];
-   pPR->motion_profile_mean [change_profile_bin_index] = motion_profile_mean + (applied_offset.x[0] - motion_profile_mean)/(double)(change_profile_bin_count+1);
-   pPR->motion_profile_var  [change_profile_bin_index] = motion_profile_var  + (applied_offset.x[0] - motion_profile_mean) * (applied_offset.x[0] - pPR->motion_profile_mean[change_profile_bin_index]); 
-   pPR->motion_profile_count[change_profile_bin_index]++;
-   /* moisture */
-   change_profile_bin_count   = pPR->moisture_profile_count[change_profile_bin_index];
-   moisture_profile_mean      = pPR->moisture_profile_mean[change_profile_bin_index];
-   moisture_profile_var       = pPR->moisture_profile_var [change_profile_bin_index];
-   pPR->moisture_profile_mean [change_profile_bin_index] = moisture_profile_mean + (moisture_offset - moisture_profile_mean)/(double)(change_profile_bin_count+1);
-   pPR->moisture_profile_var  [change_profile_bin_index] = moisture_profile_var  + (moisture_offset - moisture_profile_mean) * (moisture_offset - pPR->moisture_profile_mean[change_profile_bin_index]); 
-   pPR->moisture_profile_count[change_profile_bin_index]++;
+   
+   pthread_mutex_lock         (&PolSARproSim_Statmutex);
+      /* motion */
+      change_profile_bin_count   = pPR->motion_profile_count[change_profile_bin_index];
+      motion_profile_mean        = pPR->motion_profile_mean[change_profile_bin_index];
+      motion_profile_var         = pPR->motion_profile_var [change_profile_bin_index];
+      pPR->motion_profile_mean [change_profile_bin_index] = motion_profile_mean + (applied_offset.x[0] - motion_profile_mean)/(double)(change_profile_bin_count+1);
+      pPR->motion_profile_var  [change_profile_bin_index] = motion_profile_var  + (applied_offset.x[0] - motion_profile_mean) * (applied_offset.x[0] - pPR->motion_profile_mean[change_profile_bin_index]); 
+      pPR->motion_profile_count[change_profile_bin_index]++;
+      /* moisture */
+      change_profile_bin_count   = pPR->moisture_profile_count[change_profile_bin_index];
+      moisture_profile_mean      = pPR->moisture_profile_mean[change_profile_bin_index];
+      moisture_profile_var       = pPR->moisture_profile_var [change_profile_bin_index];
+      pPR->moisture_profile_mean [change_profile_bin_index] = moisture_profile_mean + (moisture_offset - moisture_profile_mean)/(double)(change_profile_bin_count+1);
+      pPR->moisture_profile_var  [change_profile_bin_index] = moisture_profile_var  + (moisture_offset - moisture_profile_mean) * (moisture_offset - pPR->moisture_profile_mean[change_profile_bin_index]); 
+      pPR->moisture_profile_count[change_profile_bin_index]++;
    pthread_mutex_unlock       (&PolSARproSim_Statmutex);
+
 #endif 
 
    return(NO_POLSARPROSIM_FOREST_ERRORS);
@@ -462,9 +467,12 @@ double      Change_Leaf      (Leaf *pL, PolSARproSim_Record *pPR, d3Vector motio
    /* motion */
    gnd_hgt                    = ground_height(pPR, leaf_x, leaf_y);
    pthread_mutex_lock         (&PolSARproSim_Statmutex);
-   change_profile_bin_index   = (int)((leaf_original_height-gnd_hgt)/pPR->max_tree_height*CHANGE_PROFILE_BINS);
-   if(change_profile_bin_index > CHANGE_PROFILE_BINS){
-      change_profile_bin_index = CHANGE_PROFILE_BINS;
+   change_profile_bin_index   = (int)((leaf_original_height-gnd_hgt)/pPR->max_tree_height*CHANGE_PROFILE_BINS-1);
+   if(change_profile_bin_index > CHANGE_PROFILE_BINS-1){
+      change_profile_bin_index = CHANGE_PROFILE_BINS-1;
+   }
+   if(change_profile_bin_index < 0){
+      change_profile_bin_index = 0;
    }
    change_profile_bin_index   = change_profile_bin_index*pPR->Tracks+current_track;
    change_profile_bin_count   = pPR->motion_profile_count[change_profile_bin_index];

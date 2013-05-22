@@ -507,6 +507,18 @@
 #define  EXTERNAL_DEM_MIN              0
 #define  EXTERNAL_DEM_MAX              1
 #define  EXTERNAL_DEM_DEFAULT          0              /* No external dem by default */
+#define  DEM_NX_MIN                    0
+#define  DEM_NX_MAX                    INT_MAX
+#define  DEM_NX_DEFAULT                200
+#define  DEM_NY_MIN                    0
+#define  DEM_NY_MAX                    INT_MAX
+#define  DEM_NY_DEFAULT                200
+#define  DEM_DX_MIN                    0.0
+#define  DEM_DX_MAX                    DBL_MAX
+#define  DEM_DX_DEFAULT                1.0
+#define  DEM_DY_MIN                    0.0
+#define  DEM_DY_MAX                    DBL_MAX
+#define  DEM_DY_DEFAULT                1.0
 
 #define  NOISE_POWER_MIN               -65.0          /* Minimum allowable Noise equivalent sigma nought */
 #define  NOISE_POWER_MAX               0.0            /* Maximum allowable NESZ  */
@@ -515,7 +527,7 @@
 /****************************************/
 /* CORNER REFLECTOR CONTROLS            */
 /****************************************/
-#define  ENABLE_CORNER_REFLECTORS
+//#define  ENABLE_CORNER_REFLECTORS
 #define  NUMBER_OF_CORNER_REFLECTORS   5
 #define  CORNER_REFLECTOR_LENGTH       4             /* length of one side of the corner reflector (in meters)    */
 

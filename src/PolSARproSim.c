@@ -43,7 +43,7 @@ int main(int argv, char *argc[])
    const char				ddlim	= '/';
 #endif
    char                 *prefix;
-   int                  n,nmax,i,ilen, retval;;
+   int                  n,nmax,i,ilen;
    char                 *input_string;
    char                 *output_string;
    char                 *logfile_string;
@@ -228,44 +228,11 @@ int main(int argv, char *argc[])
    /*                                                  */
    /****************************************************/
    
-   /*************************************************************/
-   /* Generate ground height map on ground range - azimuth grid */
-   /*************************************************************/
-   /* Read in external DEM */
-   if(Master_Record.ExternalDEM_Flag == READ_EXTERNAL_DEM){
-      Create_SIM_Record             (&(Master_Record.Input_DEM));
-      /* read in the external DEM */
-      Read_SIM_Record               (&(Master_Record.Input_DEM), Master_Record.ExternalDEM_fname);
-      /* do some error checking */
-      retval = Check_Input_DEM      (&(Master_Record.Input_DEM), &Master_Record);
-      if(retval != NO_SIMPRIMITIVE_ERRORS){
-         printf("DEM from %s will not be used\n", Master_Record.ExternalDEM_fname);
-      }else{
-         /* trim the DEM */
-         Trim_SIM_Record(&(Master_Record.Input_DEM), Master_Record.Lx, Master_Record.Ly);
-         /* resample the DEM to simulation resolution */
-         Resample_Input_DEM(&(Master_Record.Input_DEM), &Master_Record);
-         /* set slopes to zero */
-         Master_Record.slope_x = 0;
-         Master_Record.slope_y = 0;
-      }
-   }
-   /* Create rough surface */
-   Create_SIM_Record                (&(Master_Record.Ground_Height));
-   Ground_Surface_Generation        (&Master_Record);
-   /* Add DEM and rough surface */
-   if(Master_Record.ExternalDEM_Flag == READ_EXTERNAL_DEM){
-      Add_SIM_Records               (&(Master_Record.Ground_Height), &(Master_Record.Input_DEM));
-      Destroy_SIM_Record            (&(Master_Record.Input_DEM));
-   }
-   Create_Shadow_Map                (&(Master_Record.Shadow_Map), &Master_Record);
-   
-   /****************************************************/
-   /* Initialize Max Height and Surface Normal Layers  */
-   /****************************************************/
-   Initialize_Max_Height_Map        (&Master_Record);
-   Initialize_Surface_Normal_Layers (&Master_Record);
-   
+   /********************************************************************************/
+   /* Generate ground surface with some roughness and a specified DEM or slopes    */
+   /********************************************************************************/
+   Create_Ground_Surface            (&Master_Record);
+
    /****************************************************/
    /* Generate tree stem position and height database. */
    /****************************************************/
@@ -347,26 +314,18 @@ int main(int argv, char *argc[])
       /* Calculate the short vegetation contribution */
       /***********************************************/
 #ifdef ENABLE_THREADS
-//      PolSARproSim_Short_Vegetation_Direct_SMP  (&Master_Record);
-//      PolSARproSim_Short_Vegetation_Bounce_SMP  (&Master_Record);
+      PolSARproSim_Short_Vegetation_Direct_SMP  (&Master_Record);
+      PolSARproSim_Short_Vegetation_Bounce_SMP  (&Master_Record);
 #else
       PolSARproSim_Short_Vegetation_Direct      (&Master_Record);
       PolSARproSim_Short_Vegetation_Bounce      (&Master_Record);
 #endif
-
-//      /*************************************/
-//      /* Calculate the volume contribution */
-//      /*************************************/
-//#ifndef ENABLE_THREADS
-//      PolSARproSim_Forest_Direct                (&Master_Record);
-//      PolSARproSim_Forest_Bounce                (&Master_Record);
-//#endif
       
       /*****************************************/
       /* Put a corner reflector or two for fun */
       /*****************************************/
 #ifdef   ENABLE_CORNER_REFLECTORS
-//      Image_Corner_Reflectors_Direct            (&Master_Record);
+      Image_Corner_Reflectors_Direct            (&Master_Record);
 #endif
       
       /***********/
@@ -376,7 +335,7 @@ int main(int argv, char *argc[])
       printf("Finished track %d in about %f seconds. \n",Master_Record.current_track, difftime(stopgndsv, startgndsv));
 
    }
-   
+
    /*************************************/
    /* Calculate the volume contribution */
    /*************************************/

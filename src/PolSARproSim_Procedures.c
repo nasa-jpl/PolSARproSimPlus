@@ -727,7 +727,8 @@ int		Input_PolSARproSim_Record		(const char *filename, PolSARproSim_Record *pPR)
    int            i;
    double			image_width, image_height;
    FILE           *pInputFile;
-   
+   FILE           *pDEMFile;
+   long           DEMFileSize;
    /* required by module read_parfile */
    static char    buff[MAX_STR];   
    double         baseline[2];
@@ -784,59 +785,86 @@ int		Input_PolSARproSim_Record		(const char *filename, PolSARproSim_Record *pPR)
    pPR->slant_range                 = (double *)calloc (pPR->Tracks, sizeof (double));
    pPR->incidence_angle             = (double *)calloc (pPR->Tracks, sizeof (double));
    GMV_model                        = (double *)calloc(pPR->Tracks, sizeof(double));
-   /* read in the geometry */
+
+   /* geometry inputs and contrls */
    read_double   (pInputFile,    "center_slant_range_master",  &(pPR->slant_range[0]), SLANT_RANGE_MIN, SLANT_RANGE_MAX, SLANT_RANGE_DEFAULT);
    read_double   (pInputFile,    "incidence_angle_master",     &(pPR->incidence_angle[0]), INC_ANGLE_MIN, INC_ANGLE_MAX, INC_ANGLE_DEFAULT);
    pPR->incidence_angle[0] *=DEG_TO_RAD; /* convert to radians */
    master_track_height        = pPR->slant_range[0]*cos(pPR->incidence_angle[0]);
    master_track_ground_range  = pPR->slant_range[0]*sin(pPR->incidence_angle[0]);
    for (i = 1; i < pPR->Tracks; i++) {
-      sprintf(buff,                 "baseline_track_%d", i);
+      sprintf(buff,              "baseline_track_%d", i);
       read_dvector   (pInputFile,   buff,                      (double *)&baseline,2);
       slave_ground_range      = master_track_ground_range + baseline[0];
       slave_height            = master_track_height + baseline[1];
       pPR->slant_range[i]     = sqrt(slave_height*slave_height + slave_ground_range*slave_ground_range);
       pPR->incidence_angle[i] = atan2(slave_ground_range, slave_height);
-      printf("%d)\tSlant Range %f\tIncidence Angle: %f, Bperp with 0: %f\n", i, pPR->slant_range[i], pPR->incidence_angle[i]*RAD_TO_DEG, sqrt(baseline[0]*baseline[0]+baseline[1]*baseline[1])*cos(pPR->incidence_angle[0]));
+      //printf("%d)\tSlant Range %f\tIncidence Angle: %f, Bperp with 0: %f\n", i, pPR->slant_range[i], pPR->incidence_angle[i]*RAD_TO_DEG, sqrt(baseline[0]*baseline[0]+baseline[1]*baseline[1])*cos(pPR->incidence_angle[0]));
    }
+
+   /* instrument parameters and controls */
    read_double    (pInputFile,   "radar_frequency",            &(pPR->frequency), RADAR_FREQUENCY_MIN, RADAR_FREQUENCY_MAX, RADAR_FREQUENCY_DEFAULT);
    read_double    (pInputFile,   "azimuth_resolution",         &(pPR->azimuth_resolution), AZIMUTH_RESOLUTION_MIN, AZIMUTH_RESOLUTION_MAX, AZIMUTH_RESOLUTION_DEFAULT);
    read_double    (pInputFile,   "slant_range_resolution",     &(pPR->slant_range_resolution), RANGE_RESOLUTION_MIN, RANGE_RESOLUTION_MAX, RANGE_RESOLUTION_DEFAULT);
-   read_integer   (pInputFile,   "DEM_model",                  &(DEM_model), DEM_MODEL_MIN, DEM_MODEL_MAX, DEM_MODEL_DEFAULT);
-   read_double    (pInputFile,   "ground_slope_azimuth",       &(pPR->slope_x), SLOPE_MIN, SLOPE_MAX, SLOPE_DEFAULT);   
-   read_double    (pInputFile,   "ground_slope_range",         &(pPR->slope_y), SLOPE_MIN, SLOPE_MAX, SLOPE_DEFAULT);
-   read_integer   (pInputFile,   "randn_seed",                 &(pPR->seed), SEED_MIN, SEED_MAX, SEED_DEFAULT);             
-   read_integer   (pInputFile,   "global_tree_species",        &(pPR->species), GLOBAL_SPECIES_MIN, GLOBAL_SPECIES_MAX, GLOBAL_SPECIES_DEFAULT);              
-   read_double    (pInputFile,   "global_tree_height",         &(pPR->mean_tree_height), GLOBAL_TREE_HEIGHT_MIN, GLOBAL_TREE_HEIGHT_MAX, GLOBAL_TREE_HEIGHT_DEFAULT);
-   read_double    (pInputFile,   "forest_stand_area",          &(pPR->Stand_Area), STAND_AREA_MIN, STAND_AREA_MAX, STAND_AREA_DEFAULT); 
-   read_integer   (pInputFile,   "stem_density",               &(pPR->req_trees_per_hectare), STEM_DENSITY_MIN, STEM_DENSITY_MAX, STEM_DENSITY_DEFAULT);   
+   read_dvector   (pInputFile,   "NESZ",                       &(pPR->noise_power[0]), 4);                                                            /* noise equivalent power in dB -- for simulating thermal noise */
+   for(i=0;i<4;i++){
+      if(pPR->noise_power[i] < NOISE_POWER_MIN) pPR->noise_power[i] = NOISE_POWER_DEFAULT;
+      if(pPR->noise_power[i] > NOISE_POWER_MAX) pPR->noise_power[i] = NOISE_POWER_DEFAULT;
+   }
    read_double    (pInputFile,   "PSF_broadening_factor",      &(pPR->PSFeta), PSF_ETA_MIN, PSF_ETA_MAX, PSF_ETA_DEFAULT);
    read_double    (pInputFile,   "azimuth_sampling_factor",    &(pPR->f_azimuth), SAMPLING_FACTOR_MIN, SAMPLING_FACTOR_MAX, DEFAULT_RESOLUTION_SAMPLING_FACTOR);
    read_double    (pInputFile,   "gnd_range_sampling_factor",  &(pPR->f_ground_range), SAMPLING_FACTOR_MIN, SAMPLING_FACTOR_MAX, DEFAULT_RESOLUTION_SAMPLING_FACTOR);
+
+   /* Simulation inputs and controls */
+   read_integer   (pInputFile,   "fast_mode",                  &(pPR->ForestFastMode_Flag), ENABLE_FAST_MODE_MIN, ENABLE_FAST_MODE_MAX, ENABLE_FAST_MODE_DEFAULT); /* whether to run in fast mode or not */
+   read_integer   (pInputFile,   "randn_seed",                 &(pPR->seed), SEED_MIN, SEED_MAX, SEED_DEFAULT);             
+
+   /* ground parameters */
 #ifdef INPUT_GROUND_MV
    for (i = 0; i < pPR->Tracks; i++) {
       GMV_model[i]            = GROUND_MOISTURE_DEFAULT;
    }
-   read_dvector   (pInputFile,    "ground_moisture",           &(GMV_model[0]), pPR->Tracks);
+   read_dvector   (pInputFile,   "ground_moisture",            &(GMV_model[0]), pPR->Tracks);
 #endif
-   read_integer   (pInputFile,    "input_forest",              &(pPR->ForestInput_Flag), INPUT_FOREST_MIN, INPUT_FOREST_MAX, INPUT_FOREST_DEFAULT);   /* whether to input forest primitives */
-   read_integer   (pInputFile,    "draw_forest",               &(pPR->ForestDraw_Flag), DRAW_FOREST_MIN, DRAW_FOREST_MAX, DRAW_FOREST_DEFAULT);       /* whether to draw forest             */
-   read_integer   (pInputFile,    "input_dem",                 &(pPR->ExternalDEM_Flag), EXTERNAL_DEM_MIN, EXTERNAL_DEM_MAX, EXTERNAL_DEM_DEFAULT);   /* whether to read external dem       */
-   read_dvector   (pInputFile,    "NESZ",                      &(pPR->noise_power[0]), 4);                                                            /* noise equivalent power in dB -- for simulating thermal noise */
-   for(i=0;i<4;i++){
-      if(pPR->noise_power[i] < NOISE_POWER_MIN) pPR->noise_power[i] = NOISE_POWER_DEFAULT;
-      if(pPR->noise_power[i] > NOISE_POWER_MAX) pPR->noise_power[i] = NOISE_POWER_DEFAULT;
-      printf("NESZ: %f\n", pPR->noise_power[i]);
-   }
-   read_string    (pInputFile,    "forest_file",               pPR->ForestData);                                                                      /* Read the forest input fileanme form parameter file, mandatory */
-   read_string    (pInputFile,    "allometry_file",            pPR->SpeciesData);                                                                     /* Read the allometry input fileanme form parameter file, mandatory */
+   /* DEM inputs and controls */
+   read_integer   (pInputFile,   "input_dem",                  &(pPR->ExternalDEM_Flag), EXTERNAL_DEM_MIN, EXTERNAL_DEM_MAX, EXTERNAL_DEM_DEFAULT);   /* whether to read external dem       */
+   read_integer   (pInputFile,   "DEM_azimuth_pixels",         &(pPR->DEM_nx), DEM_NX_MIN, DEM_NX_MAX, DEM_NX_DEFAULT);
+   read_integer   (pInputFile,   "DEM_range_pixels",           &(pPR->DEM_ny), DEM_NY_MIN, DEM_NY_MAX, DEM_NY_DEFAULT);
+   read_double    (pInputFile,   "DEM_azimuth_resolution",     &(pPR->DEM_dx), DEM_DX_MIN, DEM_DX_MAX, DEM_DX_DEFAULT);   
+   read_double    (pInputFile,   "DEM_range_resolution",       &(pPR->DEM_dy), DEM_DY_MIN, DEM_DY_MAX, DEM_DY_DEFAULT);   
+   read_integer   (pInputFile,   "roughness_model",            &(DEM_model), DEM_MODEL_MIN, DEM_MODEL_MAX, DEM_MODEL_DEFAULT);
+   read_double    (pInputFile,   "ground_slope_azimuth",       &(pPR->slope_x), SLOPE_MIN, SLOPE_MAX, SLOPE_DEFAULT);   
+   read_double    (pInputFile,   "ground_slope_range",         &(pPR->slope_y), SLOPE_MIN, SLOPE_MAX, SLOPE_DEFAULT);
+   /* do some error checking of external DEM file inputs */
    if(pPR->ExternalDEM_Flag == READ_EXTERNAL_DEM){
-      read_string (pInputFile,    "external_DEM_file",         pPR->ExternalDEM_fname);                                                               /* Read the fileanme form parameter file */
+      read_string (pInputFile,   "external_DEM_file",          pPR->ExternalDEM_fname);                                 /* Read the fileanme form parameter file */
+      if ((pDEMFile = fopen(pPR->ExternalDEM_fname, "r")) == NULL) {
+         fprintf(pPR->pLogFile, "External DEM File I/O ERROR, will simulate flat surface only\n");
+         pPR->ExternalDEM_Flag = !READ_EXTERNAL_DEM;
+      }else{
+         fseek(pDEMFile, 0L, SEEK_END);
+         DEMFileSize = ftell(pDEMFile);
+         if(DEMFileSize != (long)(pPR->DEM_nx *pPR->DEM_ny*(sizeof(float)))){
+            printf("ERROR: Actual DEM file size: %ld, Size Specified in paramter file: %ld\n", DEMFileSize, (long)(pPR->DEM_nx *pPR->DEM_ny*(sizeof(float))));
+            printf("\tExternal DEM will not be used, check DEM_aximuth/range_pixel values in input file\n");
+            pPR->ExternalDEM_Flag = !READ_EXTERNAL_DEM;
+         }
+      }
+   }
+   /* Forest inputs and controls */
+   read_integer   (pInputFile,   "global_tree_species",        &(pPR->species), GLOBAL_SPECIES_MIN, GLOBAL_SPECIES_MAX, GLOBAL_SPECIES_DEFAULT);              
+   read_double    (pInputFile,   "global_tree_height",         &(pPR->mean_tree_height), GLOBAL_TREE_HEIGHT_MIN, GLOBAL_TREE_HEIGHT_MAX, GLOBAL_TREE_HEIGHT_DEFAULT);
+   read_double    (pInputFile,   "forest_stand_area",          &(pPR->Stand_Area), STAND_AREA_MIN, STAND_AREA_MAX, STAND_AREA_DEFAULT); 
+   read_integer   (pInputFile,   "stem_density",               &(pPR->req_trees_per_hectare), STEM_DENSITY_MIN, STEM_DENSITY_MAX, STEM_DENSITY_DEFAULT);   
+   read_integer   (pInputFile,   "input_forest",               &(pPR->ForestInput_Flag), INPUT_FOREST_MIN, INPUT_FOREST_MAX, INPUT_FOREST_DEFAULT);   /* whether to input forest primitives */
+   read_integer   (pInputFile,   "draw_forest",                &(pPR->ForestDraw_Flag), DRAW_FOREST_MIN, DRAW_FOREST_MAX, DRAW_FOREST_DEFAULT);       /* whether to draw forest             */
+   read_string    (pInputFile,   "allometry_file",             pPR->SpeciesData);                                                                     /* Read the allometry input fileanme form parameter file, mandatory */
+   if(pPR->ForestInput_Flag == EXTERNAL_FOREST_DEFINITION){
+      read_string (pInputFile,   "forest_file",                pPR->ForestData);                                                                      /* Read the forest input fileanme form parameter file, mandatory */
    }
    if(pPR->ForestInput_Flag != EXTERNAL_FOREST_DEFINITION){
-      read_string (pInputFile,    "forest_output",             pPR->ForestOutput);                                                                    /* Read the filename from parameter file */
+      read_string (pInputFile,   "forest_output",              pPR->ForestOutput);                                                                    /* Read the filename from parameter file */
    }
-   read_integer   (pInputFile,    "fast_mode",                 &(pPR->ForestFastMode_Flag), ENABLE_FAST_MODE_MIN, ENABLE_FAST_MODE_MAX, ENABLE_FAST_MODE_DEFAULT); /* whether to run in fast mode or not */
 
    /******************************************************************************************/
    /* Read in track dependent temporal change parameters for modeling temporal decorrelation */
@@ -884,6 +912,13 @@ int		Input_PolSARproSim_Record		(const char *filename, PolSARproSim_Record *pPR)
       }
    }
    
+   
+   /************************/
+   /* Close the input file */
+   /************************/
+   
+   fclose (pInputFile);
+
    /****************************/
    /* Set Fast/Slow mode flags */
    /****************************/
@@ -892,7 +927,6 @@ int		Input_PolSARproSim_Record		(const char *filename, PolSARproSim_Record *pPR)
    for (i = 0; i < pPR->Tracks; i++) {
       pPR->ForestFastMode[i]  = FOREST_FAST_MODE_OFF;
    }
-#ifdef ENABLE_THREADS
    for (i = 1; i < pPR->Tracks; i++) {
       if(pPR->ForestFastMode_Flag == FOREST_FAST_MODE_ON){
          if(pPR->Moisture_Change_Model[i] == CHANGE_MODEL_NONE){
@@ -901,14 +935,7 @@ int		Input_PolSARproSim_Record		(const char *filename, PolSARproSim_Record *pPR)
          }
       }
    }
-#endif
-   
-   /************************/
-   /* Close the input file */
-   /************************/
-   
-   fclose (pInputFile);
-   
+
    /***************************/
    /* Report input parameters */
    /***************************/
@@ -949,6 +976,10 @@ int		Input_PolSARproSim_Record		(const char *filename, PolSARproSim_Record *pPR)
       fprintf (pPR->pLogFile, "%d\t\t\t/* Moisture Change Model Type for track %d\t*/\n", pPR->Moisture_Change_Model[i],i);
       fprintf (pPR->pLogFile, "%.3f,%.3f,%.3f\t/* Moisture Change Model Coefficients for track %d\t*/\n", pPR->moisture_coeff_A[i], pPR->moisture_coeff_B[i], pPR->moisture_coeff_C[i], i);
    }
+   for(i=0;i<4;i++){
+      fprintf(pPR->pLogFile, "NESZ: %f\n", pPR->noise_power[i]);
+   }
+
    fprintf (pPR->pLogFile ,"\n\n");
    
    fflush (pPR->pLogFile);
@@ -990,6 +1021,7 @@ for (i = 0; i < pPR->Tracks; i++) {
       fprintf (pPR->pOutputFile, "%d\t\t\t/* Moisture Change Model Type for track %d\t*/\n", pPR->Moisture_Change_Model[i],i);
       fprintf (pPR->pOutputFile, "%.3f,%.3f,%.3f\t/* Moisture Change Model Coefficients for track %d\t*/\n", pPR->moisture_coeff_A[i], pPR->moisture_coeff_B[i], pPR->moisture_coeff_C[i], i);
    }
+
    fprintf (pPR->pOutputFile ,"\n\n");
    fflush (pPR->pOutputFile);
    
@@ -1079,7 +1111,6 @@ for (i = 0; i < pPR->Tracks; i++) {
       pPR->max_tree_height             = pPR->mean_tree_height; /* This is added to make changes in Attenuation_Map backward compatible --RAedit */
       pPR->max_tree_number             = (int) (max_packing_fraction*pPR->Area/(POLSARPROSIM_CROWN_OVERLAP_FACTOR*POLSARPROSIM_CROWN_OVERLAP_FACTOR*DPI_RAD*pPR->mean_crown_radius*pPR->mean_crown_radius));
       
-      printf("Mean crown radius: %f\n", pPR->mean_crown_radius);
       pPR->max_trees_per_hectare			= (int) ((double) pPR->max_tree_number/pPR->Hectares);
       if (pPR->req_trees_per_hectare > pPR->max_trees_per_hectare) {
          fprintf (pPR->pLogFile, "\nRequested stand density of %d Trees/Ha is too great.\n", pPR->req_trees_per_hectare);
@@ -1147,7 +1178,6 @@ for (i = 0; i < pPR->Tracks; i++) {
    pPR->ground_eps         = (Complex *)calloc(pPR->Tracks, sizeof(Complex));
    for (i=0; i<pPR->Tracks; i++) {
       pPR->ground_eps[i]= ground_permittivity (dry_density, ground_pf, sand_fraction, clay_fraction, ground_mv[i], pPR->frequency);
-      printf("inputMV = %f, gnd_mv = %f, epsr = %f %fi\n", GMV_model[i], ground_mv[i], pPR->ground_eps[i].x, pPR->ground_eps[i].y);
    }
       
    /**************************************************/
@@ -7226,6 +7256,65 @@ void		Add_Thermal_Noise		(PolSARproSim_Record *pPR)
          
       }
    }
+   return;
+}
+
+/******************************/
+/* Manage Ground surface,     */
+/* to declutter main()        */
+/******************************/
+void     Create_Ground_Surface            (PolSARproSim_Record *pPR)
+{
+
+   int retval;
+
+   /************************************/
+   /* If specified read External DEM   */
+   /************************************/
+   if(pPR->ExternalDEM_Flag == READ_EXTERNAL_DEM){
+      Create_SIM_Record             (&(pPR->Input_DEM));
+      /* read in the external DEM */
+      Read_FLOAT_BINARY_As_SIM_Record     (&(pPR->Input_DEM), pPR->ExternalDEM_fname, pPR->DEM_nx, pPR->DEM_ny, pPR->DEM_dx, pPR->DEM_dy);
+      /* do some error checking */
+      retval = Check_Input_DEM      (&(pPR->Input_DEM), pPR);
+      if(retval != NO_SIMPRIMITIVE_ERRORS){
+         printf("DEM from %s will not be used\n", pPR->ExternalDEM_fname);
+      }else{
+         /* trim the DEM */
+         Trim_SIM_Record(&(pPR->Input_DEM), pPR->Lx, pPR->Ly);
+         /* resample the DEM to simulation resolution */
+         Resample_Input_DEM(&(pPR->Input_DEM), pPR);
+         /* set slopes to zero */
+         pPR->slope_x = 0;
+         pPR->slope_y = 0;
+      }
+   }
+   /************************/
+   /* Create rough surface */
+   /************************/
+   Create_SIM_Record                (&(pPR->Ground_Height));
+   Ground_Surface_Generation        (pPR);
+   
+   /*****************************/
+   /* Add DEM and rough surface */
+   /*****************************/
+   if(pPR->ExternalDEM_Flag == READ_EXTERNAL_DEM){
+      Add_SIM_Records               (&(pPR->Ground_Height), &(pPR->Input_DEM));
+      Destroy_SIM_Record            (&(pPR->Input_DEM));
+   }
+      
+   /**********************************/
+   /* Create a map of shaded regions */
+   /**********************************/
+   Create_Shadow_Map                (&(pPR->Shadow_Map), pPR);
+   
+      
+   /****************************************************/
+   /* Initialize Max Height and Surface Normal Layers  */
+   /****************************************************/
+   Initialize_Max_Height_Map        (pPR);
+   Initialize_Surface_Normal_Layers (pPR);
+   
    return;
 }
 

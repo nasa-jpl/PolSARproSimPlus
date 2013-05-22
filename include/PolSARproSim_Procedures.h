@@ -155,6 +155,7 @@ int         Resample_Input_DEM            (SIM_Record *pDEM, PolSARproSim_Record
 int         Create_Shadow_Map             (SIM_Record *pSHADE, PolSARproSim_Record *pPR);
 double      shadow_height                 (PolSARproSim_Record *pPR, double x, double y);
 void        Add_Thermal_Noise             (PolSARproSim_Record *pPR);
+void        Create_Ground_Surface         (PolSARproSim_Record *pPR);
 /************************/
 /* TCLTK string parsing */
 /************************/

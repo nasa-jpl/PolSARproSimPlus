@@ -1122,7 +1122,7 @@ void		*Image_Short_Veg_Bounce_Stems		(void *threadarg)
    double				Sigma0VV       = 0.0;
    Complex           AvgShhvv       = xy_complex (0.0, 0.0);
    double				Sigma0_count	= 0.0;
-   d3Vector          n              = Cartesian_Assign_d3Vector (-pPR->slope_x, -pPR->slope_y, 1.0);
+   d3Vector          n;//              = Cartesian_Assign_d3Vector (-pPR->slope_x, -pPR->slope_y, 1.0);
    d3Vector          z              = Cartesian_Assign_d3Vector (0.0, 0.0, 1.0);
    d3Vector          ki, ks, kr, krm;
    d3Vector          hi,  vi,  hs,  vs,  hr,  vr,  hrm,  vrm;
@@ -1158,82 +1158,12 @@ void		*Image_Short_Veg_Bounce_Stems		(void *threadarg)
    Complex           Shh, Shv, Svh, Svv;
    Complex           zhhvv;
    double            randn;
+   d3Vector          lnorm; //local normal
    /*********************************/
    /* Reset random number generator */
    /*********************************/
    seed[0]        = pPR->seed+pTA->thread_id;
    randn          = erand48(seed);
-   /***********************************/
-   /* Normalise ground surface normal */
-   /***********************************/
-   d3Vector_insitu_normalise (&n);
-   nm          = d3Vector_double_multiply (n, -1.0);
-   /********************/
-   /* FSA wave vectors */
-   /********************/
-   ki          = Cartesian_Assign_d3Vector (0.0,  pPR->k0*sin_thetai, -pPR->k0*cos_thetai);
-   ks          = Cartesian_Assign_d3Vector (0.0,  -pPR->k0*sin_thetai, pPR->k0*cos_thetai);
-   kr          = d3Vector_reflect (ki, n);
-   krm         = d3Vector_double_multiply (kr, -1.0);
-   /****************************/
-   /* FSA polarisation vectors */
-   /****************************/
-   rtn_value	= Polarisation_Vectors (ki,  z, &hi,  &vi);
-   rtn_value	= Polarisation_Vectors (ks,  z, &hs,  &vs);
-   rtn_value	= Polarisation_Vectors (kr,  z, &hr,  &vr);
-   rtn_value	= Polarisation_Vectors (krm, z, &hrm, &vrm);
-   rtn_value	= Polarisation_Vectors (ki,  n, &hil,  &vil);
-   rtn_value	= Polarisation_Vectors (ks,  n, &hsl,  &vsl);
-   rtn_value	= Polarisation_Vectors (kr,  n, &hrl,  &vrl);
-   rtn_value	= Polarisation_Vectors (krm, n, &hrlm, &vrlm);
-   chi         = d3V2c3V (hi);
-   cvi         = d3V2c3V (vi);
-   chs         = d3V2c3V (hs);
-   cvs         = d3V2c3V (vs);
-   chr         = d3V2c3V (hr);
-   cvr         = d3V2c3V (vr);
-   chrm        = d3V2c3V (hrm);
-   cvrm        = d3V2c3V (vrm);
-   chil        = d3V2c3V (hil);
-   cvil        = d3V2c3V (vil);
-   chsl        = d3V2c3V (hsl);
-   cvsl        = d3V2c3V (vsl);
-   chrl        = d3V2c3V (hrl);
-   cvrl        = d3V2c3V (vrl);
-   chrlm       = d3V2c3V (hrlm);
-   cvrlm       = d3V2c3V (vrlm);
-   /*********************************/
-   /* Local reflection coefficients */
-   /*********************************/
-   k0z         = d3Vector_scalar_product (kr, n);
-   k0z2        = k0z*k0z;
-   k02         = pPR->k0*pPR->k0;
-   kro2        = k02 - k0z2;
-   kro         = sqrt(kro2);
-   k22         = complex_rmul (pPR->ground_eps[pPR->current_track], k02);
-   k2          = complex_sqrt (k22);
-   k2z2        = complex_sub  (k22, xy_complex (kro2, 0.0));
-   k2z         = complex_sqrt (k2z2);
-   koz2        = Copy_Complex (&(pPR->koz2_short));
-   kez2        = Copy_Complex (&(pPR->kez2_short));
-   koz         = Copy_Complex (&(pPR->koz_short));
-   kez         = Copy_Complex (&(pPR->kez_short));
-   ke2         = complex_add  (kez2, xy_complex (kro2, 0.0));
-   ke          = complex_sqrt (ke2);
-   kiz         = xy_complex   (k0z, 0.0);
-   k12         = complex_rmul (pPR->e11_short, k02);
-   k1          = complex_sqrt (k12);
-   Rhh         = complex_div (complex_sub (koz, k2z), complex_add (koz, k2z));
-   delta       = complex_add (complex_mul (kez, k22), complex_mul (k2z, k12));
-   Rvv         = complex_div (complex_sub (complex_mul (kez, k22), complex_mul(k2z, k12)), delta);
-   gf          = 4.0*std_h*std_h*k0z2;
-   Rg          = exp(-gf/2.0);
-   Rhh         = complex_rmul (Rhh, Rg);
-   Rvv         = complex_rmul (Rvv, Rg);
-   R1          = c33Matrix_Complex_product (c3Vector_dyadic_product (chrl, chil), Rhh);
-   R1          = c33Matrix_sum (R1, c33Matrix_Complex_product (c3Vector_dyadic_product (cvrl, cvil), Rvv));
-   R2          = c33Matrix_Complex_product (c3Vector_dyadic_product (chsl, chrlm), Rhh);
-   R2          = c33Matrix_sum (R2, c33Matrix_Complex_product (c3Vector_dyadic_product (cvsl, cvrlm), Rvv));
    
    /*************************/
    /* Assign stem variables */
@@ -1253,7 +1183,8 @@ void		*Image_Short_Veg_Bounce_Stems		(void *threadarg)
    Assign_Leaf       (&leaf_stem, stem_species, stem_d1, stem_d2, stem_d3, theta, phi, 
                       stem_moisture, stem_permittivity, stem_centre);
    stem_volume       = Leaf_Volume (&leaf_stem);
-   
+
+
    /****************************************/
    /* Stem direct backscatter contribution */
    /****************************************/
@@ -1263,10 +1194,88 @@ void		*Image_Short_Veg_Bounce_Stems		(void *threadarg)
       nr	= nc_stem;
    }
    Sa_scaling			= sqrt ((double)nc_stem/(double)nr);
-      
+
    for (j = 0; j < ny; j++) {
       yp	= (Ly - deltay)/2.0 - j*deltay;
       zp	= ground_height (pPR, xp, yp);
+      
+      /************************************/
+      /* Do some geometry                 */
+      /************************************/
+      //n              = Cartesian_Assign_d3Vector (-pPR->slope_x, -pPR->slope_y, 1.0);
+      n           = Lookup_Surface_Normal (pPR, xp,yp);
+      /***********************************/
+      /* Normalise ground surface normal */
+      /***********************************/
+      d3Vector_insitu_normalise (&n);
+      nm          = d3Vector_double_multiply (n, -1.0);
+      /********************/
+      /* FSA wave vectors */
+      /********************/
+      ki          = Cartesian_Assign_d3Vector (0.0,  pPR->k0*sin_thetai, -pPR->k0*cos_thetai);
+      ks          = Cartesian_Assign_d3Vector (0.0,  -pPR->k0*sin_thetai, pPR->k0*cos_thetai);
+      kr          = d3Vector_reflect (ki, n);
+      krm         = d3Vector_double_multiply (kr, -1.0);
+      /****************************/
+      /* FSA polarisation vectors */
+      /****************************/
+      rtn_value	= Polarisation_Vectors (ki,  z, &hi,  &vi);
+      rtn_value	= Polarisation_Vectors (ks,  z, &hs,  &vs);
+      rtn_value	= Polarisation_Vectors (kr,  z, &hr,  &vr);
+      rtn_value	= Polarisation_Vectors (krm, z, &hrm, &vrm);
+      rtn_value	= Polarisation_Vectors (ki,  n, &hil,  &vil);
+      rtn_value	= Polarisation_Vectors (ks,  n, &hsl,  &vsl);
+      rtn_value	= Polarisation_Vectors (kr,  n, &hrl,  &vrl);
+      rtn_value	= Polarisation_Vectors (krm, n, &hrlm, &vrlm);
+      chi         = d3V2c3V (hi);
+      cvi         = d3V2c3V (vi);
+      chs         = d3V2c3V (hs);
+      cvs         = d3V2c3V (vs);
+      chr         = d3V2c3V (hr);
+      cvr         = d3V2c3V (vr);
+      chrm        = d3V2c3V (hrm);
+      cvrm        = d3V2c3V (vrm);
+      chil        = d3V2c3V (hil);
+      cvil        = d3V2c3V (vil);
+      chsl        = d3V2c3V (hsl);
+      cvsl        = d3V2c3V (vsl);
+      chrl        = d3V2c3V (hrl);
+      cvrl        = d3V2c3V (vrl);
+      chrlm       = d3V2c3V (hrlm);
+      cvrlm       = d3V2c3V (vrlm);
+      /*********************************/
+      /* Local reflection coefficients */
+      /*********************************/
+      k0z         = d3Vector_scalar_product (kr, n);
+      k0z2        = k0z*k0z;
+      k02         = pPR->k0*pPR->k0;
+      kro2        = k02 - k0z2;
+      kro         = sqrt(kro2);
+      k22         = complex_rmul (pPR->ground_eps[pPR->current_track], k02);
+      k2          = complex_sqrt (k22);
+      k2z2        = complex_sub  (k22, xy_complex (kro2, 0.0));
+      k2z         = complex_sqrt (k2z2);
+      koz2        = Copy_Complex (&(pPR->koz2_short));
+      kez2        = Copy_Complex (&(pPR->kez2_short));
+      koz         = Copy_Complex (&(pPR->koz_short));
+      kez         = Copy_Complex (&(pPR->kez_short));
+      ke2         = complex_add  (kez2, xy_complex (kro2, 0.0));
+      ke          = complex_sqrt (ke2);
+      kiz         = xy_complex   (k0z, 0.0);
+      k12         = complex_rmul (pPR->e11_short, k02);
+      k1          = complex_sqrt (k12);
+      Rhh         = complex_div (complex_sub (koz, k2z), complex_add (koz, k2z));
+      delta       = complex_add (complex_mul (kez, k22), complex_mul (k2z, k12));
+      Rvv         = complex_div (complex_sub (complex_mul (kez, k22), complex_mul(k2z, k12)), delta);
+      gf          = 4.0*std_h*std_h*k0z2;
+      Rg          = exp(-gf/2.0);
+      Rhh         = complex_rmul (Rhh, Rg);
+      Rvv         = complex_rmul (Rvv, Rg);
+      R1          = c33Matrix_Complex_product (c3Vector_dyadic_product (chrl, chil), Rhh);
+      R1          = c33Matrix_sum (R1, c33Matrix_Complex_product (c3Vector_dyadic_product (cvrl, cvil), Rvv));
+      R2          = c33Matrix_Complex_product (c3Vector_dyadic_product (chsl, chrlm), Rhh);
+      R2          = c33Matrix_sum (R2, c33Matrix_Complex_product (c3Vector_dyadic_product (cvsl, cvrlm), Rvv));
+      
       for (k = 0; k < nr; k++) {
          /******************/
          /* Realise a stem */
@@ -1286,7 +1295,9 @@ void		*Image_Short_Veg_Bounce_Stems		(void *threadarg)
          /*****************************************/
          g                 = Cartesian_Assign_d3Vector (stem_x, stem_y, ground_height(pPR, stem_x, stem_y));
          if (stem_height > g.x[2]) {
-            Assign_Plane (&Pg, &g, pPR->slope_x, pPR->slope_y);
+            lnorm          = Lookup_Surface_Normal (pPR, stem_x,stem_y);
+            Assign_Plane (&Pg, &g, -lnorm.x[0]/lnorm.x[2], -lnorm.x[1]/lnorm.x[2]);
+            //Assign_Plane (&Pg, &g, pPR->slope_x, pPR->slope_y);
             Assign_Ray_d3V (&Rb, &stem_centre, &nm);
             rtn_value		= RayPlaneIntersection (&Rb, &Pg, &eff_bounce_centre, &bounce_distance);
             if ((rtn_value == 1) && (bounce_distance >= 0.0)) {
@@ -1379,7 +1390,7 @@ void		*Image_Short_Veg_Bounce_Stems		(void *threadarg)
                   /* populate Max Height image */
                   /*****************************/            
                   if(pPR->current_track == 0){
-//                     Max_Height_Generation     (focus_x, focus_y, stem_height, pPR);
+                     //                     Max_Height_Generation     (focus_x, focus_y, stem_height, pPR);
                      Max_Height_Generation     (stem_x, stem_y, stem_height, pPR);
                   }
                   weight_count	+= 1.0;
@@ -1457,7 +1468,7 @@ void		*Image_Short_Veg_Bounce_Leaves		(void *threadarg)
    double				Sigma0VV       = 0.0;
    Complex           AvgShhvv       = xy_complex (0.0, 0.0);
    double				Sigma0_count	= 0.0;
-   d3Vector          n              = Cartesian_Assign_d3Vector (-pPR->slope_x, -pPR->slope_y, 1.0);
+   d3Vector          n;//              = Cartesian_Assign_d3Vector (-pPR->slope_x, -pPR->slope_y, 1.0);
    d3Vector          z              = Cartesian_Assign_d3Vector (0.0, 0.0, 1.0);
    d3Vector          ki, ks, kr, krm;
    d3Vector          hi,  vi,  hs,  vs,  hr,  vr,  hrm,  vrm;
@@ -1493,82 +1504,12 @@ void		*Image_Short_Veg_Bounce_Leaves		(void *threadarg)
    Complex           Shh, Shv, Svh, Svv;
    Complex           zhhvv;
    double            randn;
+   d3Vector          lnorm;
    /************************************/
    /* seed for random number generator */
    /************************************/
    seed[0]     = pPR->seed+pTA->thread_id;   
    randn       = erand48(seed); // waste the first random number generated
-   /***********************************/
-   /* Normalise ground surface normal */
-   /***********************************/
-   d3Vector_insitu_normalise (&n);
-   nm			= d3Vector_double_multiply (n, -1.0);
-   /********************/
-   /* FSA wave vectors */
-   /********************/
-   ki          = Cartesian_Assign_d3Vector (0.0,  pPR->k0*sin_thetai, -pPR->k0*cos_thetai);
-   ks          = Cartesian_Assign_d3Vector (0.0,  -pPR->k0*sin_thetai, pPR->k0*cos_thetai);
-   kr          = d3Vector_reflect (ki, n);
-   krm         = d3Vector_double_multiply (kr, -1.0);   
-   /****************************/
-   /* FSA polarisation vectors */
-   /****************************/
-   rtn_value	= Polarisation_Vectors (ki,  z, &hi,  &vi);
-   rtn_value	= Polarisation_Vectors (ks,  z, &hs,  &vs);
-   rtn_value	= Polarisation_Vectors (kr,  z, &hr,  &vr);
-   rtn_value	= Polarisation_Vectors (krm, z, &hrm, &vrm);
-   rtn_value	= Polarisation_Vectors (ki,  n, &hil,  &vil);
-   rtn_value	= Polarisation_Vectors (ks,  n, &hsl,  &vsl);
-   rtn_value	= Polarisation_Vectors (kr,  n, &hrl,  &vrl);
-   rtn_value	= Polarisation_Vectors (krm, n, &hrlm, &vrlm);
-   chi         = d3V2c3V (hi);
-   cvi         = d3V2c3V (vi);
-   chs         = d3V2c3V (hs);
-   cvs         = d3V2c3V (vs);
-   chr         = d3V2c3V (hr);
-   cvr         = d3V2c3V (vr);
-   chrm        = d3V2c3V (hrm);
-   cvrm        = d3V2c3V (vrm);
-   chil        = d3V2c3V (hil);
-   cvil        = d3V2c3V (vil);
-   chsl        = d3V2c3V (hsl);
-   cvsl        = d3V2c3V (vsl);
-   chrl        = d3V2c3V (hrl);
-   cvrl        = d3V2c3V (vrl);
-   chrlm       = d3V2c3V (hrlm);
-   cvrlm       = d3V2c3V (vrlm);
-   /*********************************/
-   /* Local reflection coefficients */
-   /*********************************/
-   k0z         = d3Vector_scalar_product (kr, n);
-   k0z2        = k0z*k0z;
-   k02         = pPR->k0*pPR->k0;
-   kro2        = k02 - k0z2;
-   kro         = sqrt(kro2);
-   k22         = complex_rmul (pPR->ground_eps[pPR->current_track], k02);
-   k2          = complex_sqrt (k22);
-   k2z2        = complex_sub  (k22, xy_complex (kro2, 0.0));
-   k2z         = complex_sqrt (k2z2);
-   koz2        = Copy_Complex (&(pPR->koz2_short));
-   kez2        = Copy_Complex (&(pPR->kez2_short));
-   koz         = Copy_Complex (&(pPR->koz_short));
-   kez         = Copy_Complex (&(pPR->kez_short));
-   ke2         = complex_add  (kez2, xy_complex (kro2, 0.0));
-   ke          = complex_sqrt (ke2);
-   kiz         = xy_complex   (k0z, 0.0);
-   k12         = complex_rmul (pPR->e11_short, k02);
-   k1          = complex_sqrt (k12);
-   Rhh         = complex_div (complex_sub (koz, k2z), complex_add (koz, k2z));
-   delta       = complex_add (complex_mul (kez, k22), complex_mul (k2z, k12));
-   Rvv         = complex_div (complex_sub (complex_mul (kez, k22), complex_mul(k2z, k12)), delta);
-   gf          = 4.0*std_h*std_h*k0z2;
-   Rg          = exp(-gf/2.0);
-   Rhh         = complex_rmul (Rhh, Rg);
-   Rvv         = complex_rmul (Rvv, Rg);
-   R1          = c33Matrix_Complex_product (c3Vector_dyadic_product (chrl, chil), Rhh);
-   R1          = c33Matrix_sum (R1, c33Matrix_Complex_product (c3Vector_dyadic_product (cvrl, cvil), Rvv));
-   R2          = c33Matrix_Complex_product (c3Vector_dyadic_product (chsl, chrlm), Rhh);
-   R2          = c33Matrix_sum (R2, c33Matrix_Complex_product (c3Vector_dyadic_product (cvsl, cvrlm), Rvv));
    
    /*************************/
    /* Assign leaf variables */
@@ -1598,9 +1539,88 @@ void		*Image_Short_Veg_Bounce_Leaves		(void *threadarg)
       nr	= nc_leaf;
    }
    Sa_scaling			= sqrt ((double)nc_leaf/(double)nr);
+   
+   /* loop over range pixels */
    for (j = 0; j < ny; j++) {
       yp	= (Ly - deltay)/2.0 - j*deltay;
       zp	= ground_height (pPR, xp, yp);
+      /************************************/
+      /* Do some geometry                 */
+      /************************************/
+      //n              = Cartesian_Assign_d3Vector (-pPR->slope_x, -pPR->slope_y, 1.0);
+      n           = Lookup_Surface_Normal (pPR, xp,yp);
+      /***********************************/
+      /* Normalise ground surface normal */
+      /***********************************/
+      d3Vector_insitu_normalise (&n);
+      nm			= d3Vector_double_multiply (n, -1.0);
+      /********************/
+      /* FSA wave vectors */
+      /********************/
+      ki          = Cartesian_Assign_d3Vector (0.0,  pPR->k0*sin_thetai, -pPR->k0*cos_thetai);
+      ks          = Cartesian_Assign_d3Vector (0.0,  -pPR->k0*sin_thetai, pPR->k0*cos_thetai);
+      kr          = d3Vector_reflect (ki, n);
+      krm         = d3Vector_double_multiply (kr, -1.0);   
+      /****************************/
+      /* FSA polarisation vectors */
+      /****************************/
+      rtn_value	= Polarisation_Vectors (ki,  z, &hi,  &vi);
+      rtn_value	= Polarisation_Vectors (ks,  z, &hs,  &vs);
+      rtn_value	= Polarisation_Vectors (kr,  z, &hr,  &vr);
+      rtn_value	= Polarisation_Vectors (krm, z, &hrm, &vrm);
+      rtn_value	= Polarisation_Vectors (ki,  n, &hil,  &vil);
+      rtn_value	= Polarisation_Vectors (ks,  n, &hsl,  &vsl);
+      rtn_value	= Polarisation_Vectors (kr,  n, &hrl,  &vrl);
+      rtn_value	= Polarisation_Vectors (krm, n, &hrlm, &vrlm);
+      chi         = d3V2c3V (hi);
+      cvi         = d3V2c3V (vi);
+      chs         = d3V2c3V (hs);
+      cvs         = d3V2c3V (vs);
+      chr         = d3V2c3V (hr);
+      cvr         = d3V2c3V (vr);
+      chrm        = d3V2c3V (hrm);
+      cvrm        = d3V2c3V (vrm);
+      chil        = d3V2c3V (hil);
+      cvil        = d3V2c3V (vil);
+      chsl        = d3V2c3V (hsl);
+      cvsl        = d3V2c3V (vsl);
+      chrl        = d3V2c3V (hrl);
+      cvrl        = d3V2c3V (vrl);
+      chrlm       = d3V2c3V (hrlm);
+      cvrlm       = d3V2c3V (vrlm);
+      /*********************************/
+      /* Local reflection coefficients */
+      /*********************************/
+      k0z         = d3Vector_scalar_product (kr, n);
+      k0z2        = k0z*k0z;
+      k02         = pPR->k0*pPR->k0;
+      kro2        = k02 - k0z2;
+      kro         = sqrt(kro2);
+      k22         = complex_rmul (pPR->ground_eps[pPR->current_track], k02);
+      k2          = complex_sqrt (k22);
+      k2z2        = complex_sub  (k22, xy_complex (kro2, 0.0));
+      k2z         = complex_sqrt (k2z2);
+      koz2        = Copy_Complex (&(pPR->koz2_short));
+      kez2        = Copy_Complex (&(pPR->kez2_short));
+      koz         = Copy_Complex (&(pPR->koz_short));
+      kez         = Copy_Complex (&(pPR->kez_short));
+      ke2         = complex_add  (kez2, xy_complex (kro2, 0.0));
+      ke          = complex_sqrt (ke2);
+      kiz         = xy_complex   (k0z, 0.0);
+      k12         = complex_rmul (pPR->e11_short, k02);
+      k1          = complex_sqrt (k12);
+      Rhh         = complex_div (complex_sub (koz, k2z), complex_add (koz, k2z));
+      delta       = complex_add (complex_mul (kez, k22), complex_mul (k2z, k12));
+      Rvv         = complex_div (complex_sub (complex_mul (kez, k22), complex_mul(k2z, k12)), delta);
+      gf          = 4.0*std_h*std_h*k0z2;
+      Rg          = exp(-gf/2.0);
+      Rhh         = complex_rmul (Rhh, Rg);
+      Rvv         = complex_rmul (Rvv, Rg);
+      R1          = c33Matrix_Complex_product (c3Vector_dyadic_product (chrl, chil), Rhh);
+      R1          = c33Matrix_sum (R1, c33Matrix_Complex_product (c3Vector_dyadic_product (cvrl, cvil), Rvv));
+      R2          = c33Matrix_Complex_product (c3Vector_dyadic_product (chsl, chrlm), Rhh);
+      R2          = c33Matrix_sum (R2, c33Matrix_Complex_product (c3Vector_dyadic_product (cvsl, cvrlm), Rvv));
+      
       for (k = 0; k < nr; k++) {
          /******************/
          /* Realise a leaf */
@@ -1620,7 +1640,9 @@ void		*Image_Short_Veg_Bounce_Leaves		(void *threadarg)
          /*****************************************/
          g                 = Cartesian_Assign_d3Vector (leaf_x, leaf_y, ground_height(pPR, leaf_x, leaf_y)); 
          if (leaf_height > g.x[2]) {
-            Assign_Plane (&Pg, &g, pPR->slope_x, pPR->slope_y);
+            lnorm          = Lookup_Surface_Normal (pPR, leaf_x,leaf_y);
+            Assign_Plane (&Pg, &g, -lnorm.x[0]/lnorm.x[2], -lnorm.x[1]/lnorm.x[2]);
+            //Assign_Plane (&Pg, &g, pPR->slope_x, pPR->slope_y);
             Assign_Ray_d3V (&Rb, &leaf_centre, &nm);
             rtn_value		= RayPlaneIntersection (&Rb, &Pg, &eff_bounce_centre, &bounce_distance);
             if ((rtn_value == 1) && (bounce_distance >= 0.0)) {
@@ -1708,13 +1730,13 @@ void		*Image_Short_Veg_Bounce_Leaves		(void *threadarg)
                   /***************************************************/
                   /* Combine contribution into SAR image accumulator */
                   /***************************************************/
-                 // printf("%d) Leaf Shh,Shv,Svv = %f, %f,%f\n", pTA->thread_id, Shh.x, Shv.x, Svv.x);
+                  // printf("%d) Leaf Shh,Shv,Svv = %f, %f,%f\n", pTA->thread_id, Shh.x, Shv.x, Svv.x);
                   weight_average	+= Accumulate_SAR_Contribution (focus_x, focus_y, focus_srange, Shh, Shv, Svv, pPR, pPR->current_track, focus_angle);
                   /*****************************/
                   /* populate Max Height image */
                   /*****************************/            
                   if(pPR->current_track == 0){
-//                     Max_Height_Generation     (focus_x, focus_y, leaf_height, pPR);
+                     //                     Max_Height_Generation     (focus_x, focus_y, leaf_height, pPR);
                      Max_Height_Generation     (leaf_x, leaf_y, leaf_height, pPR);
                   }
                   weight_count	+= 1.0;
@@ -2103,7 +2125,7 @@ int		PolSARproSim_Short_Vegetation_Bounce		(PolSARproSim_Record *pPR)
    double				Sigma0VV       = 0.0;
    Complex           AvgShhvv       = xy_complex (0.0, 0.0);
    double				Sigma0_count	= 0.0;
-   d3Vector          n              = Cartesian_Assign_d3Vector (-pPR->slope_x, -pPR->slope_y, 1.0);
+   d3Vector          n;//              = Cartesian_Assign_d3Vector (-pPR->slope_x, -pPR->slope_y, 1.0);
    d3Vector          z              = Cartesian_Assign_d3Vector (0.0, 0.0, 1.0);
    d3Vector          ki, ks, kr, krm;
    d3Vector          hi,  vi,  hs,  vs,  hr,  vr,  hrm,  vrm;
@@ -2139,6 +2161,7 @@ int		PolSARproSim_Short_Vegetation_Bounce		(PolSARproSim_Record *pPR)
    c3Vector          Eh, Ev;
    Complex           Shh, Shv, Svh, Svv;
    Complex           zhhvv;
+   d3Vector          lnorm;
    /******************************************/
    /* Report call if running in VERBOSE mode */
    /******************************************/
@@ -2149,11 +2172,7 @@ int		PolSARproSim_Short_Vegetation_Bounce		(PolSARproSim_Record *pPR)
 #endif
    fprintf (pPR->pLogFile, "\nCall to PolSARproSim_Short_Vegetation_Bounce ... \n\n");
    fflush  (pPR->pLogFile);
-   /***********************************/
-   /* Normalise ground surface normal */
-   /***********************************/
-   d3Vector_insitu_normalise (&n);
-   nm			= d3Vector_double_multiply (n, -1.0);
+
    /*******************************/
    /* Initialise bounce variables */
    /*******************************/
@@ -2167,81 +2186,7 @@ int		PolSARproSim_Short_Vegetation_Bounce		(PolSARproSim_Record *pPR)
    }
    fprintf (pPR->pLogFile, "std_h\t\t= %lf  \n", std_h);
    fflush  (pPR->pLogFile);
-   /********************/
-   /* FSA wave vectors */
-   /********************/
-   ki          = Cartesian_Assign_d3Vector (0.0,  pPR->k0*sin_thetai, -pPR->k0*cos_thetai);
-   ks          = Cartesian_Assign_d3Vector (0.0,  -pPR->k0*sin_thetai, pPR->k0*cos_thetai);
-   kr          = d3Vector_reflect (ki, n);
-   krm         = d3Vector_double_multiply (kr, -1.0);
-   /****************************/
-   /* FSA polarisation vectors */
-   /****************************/
-   rtn_value	= Polarisation_Vectors (ki,  z, &hi,  &vi);
-   rtn_value	= Polarisation_Vectors (ks,  z, &hs,  &vs);
-   rtn_value	= Polarisation_Vectors (kr,  z, &hr,  &vr);
-   rtn_value	= Polarisation_Vectors (krm, z, &hrm, &vrm);
-   rtn_value	= Polarisation_Vectors (ki,  n, &hil,  &vil);
-   rtn_value	= Polarisation_Vectors (ks,  n, &hsl,  &vsl);
-   rtn_value	= Polarisation_Vectors (kr,  n, &hrl,  &vrl);
-   rtn_value	= Polarisation_Vectors (krm, n, &hrlm, &vrlm);
-   chi         = d3V2c3V (hi);
-   cvi         = d3V2c3V (vi);
-   chs         = d3V2c3V (hs);
-   cvs         = d3V2c3V (vs);
-   chr         = d3V2c3V (hr);
-   cvr         = d3V2c3V (vr);
-   chrm        = d3V2c3V (hrm);
-   cvrm        = d3V2c3V (vrm);
-   chil        = d3V2c3V (hil);
-   cvil        = d3V2c3V (vil);
-   chsl        = d3V2c3V (hsl);
-   cvsl        = d3V2c3V (vsl);
-   chrl        = d3V2c3V (hrl);
-   cvrl        = d3V2c3V (vrl);
-   chrlm       = d3V2c3V (hrlm);
-   cvrlm       = d3V2c3V (vrlm);
-   /*********************************/
-   /* Local reflection coefficients */
-   /*********************************/
-   k0z         = d3Vector_scalar_product (kr, n);
-   k0z2        = k0z*k0z;
-   k02         = pPR->k0*pPR->k0;
-   kro2        = k02 - k0z2;
-   kro         = sqrt(kro2);
-   k22         = complex_rmul (pPR->ground_eps[pPR->current_track], k02);
-   k2          = complex_sqrt (k22);
-   k2z2        = complex_sub  (k22, xy_complex (kro2, 0.0));
-   k2z         = complex_sqrt (k2z2);
-   koz2        = Copy_Complex (&(pPR->koz2_short));
-   kez2        = Copy_Complex (&(pPR->kez2_short));
-   koz         = Copy_Complex (&(pPR->koz_short));
-   kez         = Copy_Complex (&(pPR->kez_short));
-   ke2         = complex_add  (kez2, xy_complex (kro2, 0.0));
-   ke          = complex_sqrt (ke2);
-   kiz         = xy_complex   (k0z, 0.0);
-   k12         = complex_rmul (pPR->e11_short, k02);
-   k1          = complex_sqrt (k12);
-   Rhh         = complex_div (complex_sub (koz, k2z), complex_add (koz, k2z));
-   delta       = complex_add (complex_mul (kez, k22), complex_mul (k2z, k12));
-   Rvv         = complex_div (complex_sub (complex_mul (kez, k22), complex_mul(k2z, k12)), delta);
-   fprintf (pPR->pLogFile, "|Rhh|^2\t= %lf  \n", Rhh.r*Rhh.r);
-   fprintf (pPR->pLogFile, "|Rvv|^2\t= %lf  \n", Rvv.r*Rvv.r);
-   fflush  (pPR->pLogFile);
-   gf          = 4.0*std_h*std_h*k0z2;
-   Rg          = exp(-gf/2.0);
-   fprintf (pPR->pLogFile, "gf\t\t= %lf  \n", gf);
-   fprintf (pPR->pLogFile, "Rg\t\t= %lf  \n", Rg);
-   fflush  (pPR->pLogFile);
-   Rhh         = complex_rmul (Rhh, Rg);
-   Rvv         = complex_rmul (Rvv, Rg);
-   fprintf (pPR->pLogFile, "|Rhh|^2\t= %lf  \n", Rhh.r*Rhh.r);
-   fprintf (pPR->pLogFile, "|Rvv|^2\t= %lf  \n", Rvv.r*Rvv.r);
-   fflush  (pPR->pLogFile);
-   R1          = c33Matrix_Complex_product (c3Vector_dyadic_product (chrl, chil), Rhh);
-   R1          = c33Matrix_sum (R1, c33Matrix_Complex_product (c3Vector_dyadic_product (cvrl, cvil), Rvv));
-   R2          = c33Matrix_Complex_product (c3Vector_dyadic_product (chsl, chrlm), Rhh);
-   R2          = c33Matrix_sum (R2, c33Matrix_Complex_product (c3Vector_dyadic_product (cvsl, cvrlm), Rvv));
+
    /*********************************/
    /* Reset random number generator */
    /*********************************/
@@ -2311,6 +2256,93 @@ int		PolSARproSim_Short_Vegetation_Bounce		(PolSARproSim_Record *pPR)
       for (j = 0; j < ny; j++) {
          yp	= (Ly - deltay)/2.0 - j*deltay;
          zp	= ground_height (pPR, xp, yp);
+
+         /************************************/
+         /* Do some geometry                 */
+         /************************************/
+         //n              = Cartesian_Assign_d3Vector (-pPR->slope_x, -pPR->slope_y, 1.0);
+         n           = Lookup_Surface_Normal (pPR, xp,yp);
+         /***********************************/
+         /* Normalise ground surface normal */
+         /***********************************/
+         d3Vector_insitu_normalise (&n);
+         nm			= d3Vector_double_multiply (n, -1.0);
+         /********************/
+         /* FSA wave vectors */
+         /********************/
+         ki          = Cartesian_Assign_d3Vector (0.0,  pPR->k0*sin_thetai, -pPR->k0*cos_thetai);
+         ks          = Cartesian_Assign_d3Vector (0.0,  -pPR->k0*sin_thetai, pPR->k0*cos_thetai);
+         kr          = d3Vector_reflect (ki, n);
+         krm         = d3Vector_double_multiply (kr, -1.0);
+         /****************************/
+         /* FSA polarisation vectors */
+         /****************************/
+         rtn_value	= Polarisation_Vectors (ki,  z, &hi,  &vi);
+         rtn_value	= Polarisation_Vectors (ks,  z, &hs,  &vs);
+         rtn_value	= Polarisation_Vectors (kr,  z, &hr,  &vr);
+         rtn_value	= Polarisation_Vectors (krm, z, &hrm, &vrm);
+         rtn_value	= Polarisation_Vectors (ki,  n, &hil,  &vil);
+         rtn_value	= Polarisation_Vectors (ks,  n, &hsl,  &vsl);
+         rtn_value	= Polarisation_Vectors (kr,  n, &hrl,  &vrl);
+         rtn_value	= Polarisation_Vectors (krm, n, &hrlm, &vrlm);
+         chi         = d3V2c3V (hi);
+         cvi         = d3V2c3V (vi);
+         chs         = d3V2c3V (hs);
+         cvs         = d3V2c3V (vs);
+         chr         = d3V2c3V (hr);
+         cvr         = d3V2c3V (vr);
+         chrm        = d3V2c3V (hrm);
+         cvrm        = d3V2c3V (vrm);
+         chil        = d3V2c3V (hil);
+         cvil        = d3V2c3V (vil);
+         chsl        = d3V2c3V (hsl);
+         cvsl        = d3V2c3V (vsl);
+         chrl        = d3V2c3V (hrl);
+         cvrl        = d3V2c3V (vrl);
+         chrlm       = d3V2c3V (hrlm);
+         cvrlm       = d3V2c3V (vrlm);
+         /*********************************/
+         /* Local reflection coefficients */
+         /*********************************/
+         k0z         = d3Vector_scalar_product (kr, n);
+         k0z2        = k0z*k0z;
+         k02         = pPR->k0*pPR->k0;
+         kro2        = k02 - k0z2;
+         kro         = sqrt(kro2);
+         k22         = complex_rmul (pPR->ground_eps[pPR->current_track], k02);
+         k2          = complex_sqrt (k22);
+         k2z2        = complex_sub  (k22, xy_complex (kro2, 0.0));
+         k2z         = complex_sqrt (k2z2);
+         koz2        = Copy_Complex (&(pPR->koz2_short));
+         kez2        = Copy_Complex (&(pPR->kez2_short));
+         koz         = Copy_Complex (&(pPR->koz_short));
+         kez         = Copy_Complex (&(pPR->kez_short));
+         ke2         = complex_add  (kez2, xy_complex (kro2, 0.0));
+         ke          = complex_sqrt (ke2);
+         kiz         = xy_complex   (k0z, 0.0);
+         k12         = complex_rmul (pPR->e11_short, k02);
+         k1          = complex_sqrt (k12);
+         Rhh         = complex_div (complex_sub (koz, k2z), complex_add (koz, k2z));
+         delta       = complex_add (complex_mul (kez, k22), complex_mul (k2z, k12));
+         Rvv         = complex_div (complex_sub (complex_mul (kez, k22), complex_mul(k2z, k12)), delta);
+//         fprintf (pPR->pLogFile, "|Rhh|^2\t= %lf  \n", Rhh.r*Rhh.r);
+//         fprintf (pPR->pLogFile, "|Rvv|^2\t= %lf  \n", Rvv.r*Rvv.r);
+//         fflush  (pPR->pLogFile);
+         gf          = 4.0*std_h*std_h*k0z2;
+         Rg          = exp(-gf/2.0);
+//         fprintf (pPR->pLogFile, "gf\t\t= %lf  \n", gf);
+//         fprintf (pPR->pLogFile, "Rg\t\t= %lf  \n", Rg);
+//         fflush  (pPR->pLogFile);
+         Rhh         = complex_rmul (Rhh, Rg);
+         Rvv         = complex_rmul (Rvv, Rg);
+//         fprintf (pPR->pLogFile, "|Rhh|^2\t= %lf  \n", Rhh.r*Rhh.r);
+//         fprintf (pPR->pLogFile, "|Rvv|^2\t= %lf  \n", Rvv.r*Rvv.r);
+//         fflush  (pPR->pLogFile);
+         R1          = c33Matrix_Complex_product (c3Vector_dyadic_product (chrl, chil), Rhh);
+         R1          = c33Matrix_sum (R1, c33Matrix_Complex_product (c3Vector_dyadic_product (cvrl, cvil), Rvv));
+         R2          = c33Matrix_Complex_product (c3Vector_dyadic_product (chsl, chrlm), Rhh);
+         R2          = c33Matrix_sum (R2, c33Matrix_Complex_product (c3Vector_dyadic_product (cvsl, cvrlm), Rvv));
+
          for (k = 0; k < nr; k++) {
             /******************/
             /* Realise a stem */
@@ -2330,7 +2362,9 @@ int		PolSARproSim_Short_Vegetation_Bounce		(PolSARproSim_Record *pPR)
             /*****************************************/
             g                 = Cartesian_Assign_d3Vector (stem_x, stem_y, ground_height(pPR, stem_x, stem_y));
             if (stem_height > g.x[2]) {
-               Assign_Plane (&Pg, &g, pPR->slope_x, pPR->slope_y);
+               lnorm          = Lookup_Surface_Normal (pPR, stem_x,stem_y);
+               Assign_Plane (&Pg, &g, -lnorm.x[0]/lnorm.x[2], -lnorm.x[1]/lnorm.x[2]);
+               //Assign_Plane (&Pg, &g, pPR->slope_x, pPR->slope_y);
                Assign_Ray_d3V (&Rb, &stem_centre, &nm);
                rtn_value		= RayPlaneIntersection (&Rb, &Pg, &eff_bounce_centre, &bounce_distance);
                if ((rtn_value == 1) && (bounce_distance >= 0.0)) {
@@ -2445,6 +2479,92 @@ int		PolSARproSim_Short_Vegetation_Bounce		(PolSARproSim_Record *pPR)
       for (j = 0; j < ny; j++) {
          yp	= (Ly - deltay)/2.0 - j*deltay;
          zp	= ground_height (pPR, xp, yp);
+         /************************************/
+         /* Do some geometry                 */
+         /************************************/
+         //n              = Cartesian_Assign_d3Vector (-pPR->slope_x, -pPR->slope_y, 1.0);
+         n           = Lookup_Surface_Normal (pPR, xp,yp);
+         /***********************************/
+         /* Normalise ground surface normal */
+         /***********************************/
+         d3Vector_insitu_normalise (&n);
+         nm          = d3Vector_double_multiply (n, -1.0);
+         /********************/
+         /* FSA wave vectors */
+         /********************/
+         ki          = Cartesian_Assign_d3Vector (0.0,  pPR->k0*sin_thetai, -pPR->k0*cos_thetai);
+         ks          = Cartesian_Assign_d3Vector (0.0,  -pPR->k0*sin_thetai, pPR->k0*cos_thetai);
+         kr          = d3Vector_reflect (ki, n);
+         krm         = d3Vector_double_multiply (kr, -1.0);
+         /****************************/
+         /* FSA polarisation vectors */
+         /****************************/
+         rtn_value	= Polarisation_Vectors (ki,  z, &hi,  &vi);
+         rtn_value	= Polarisation_Vectors (ks,  z, &hs,  &vs);
+         rtn_value	= Polarisation_Vectors (kr,  z, &hr,  &vr);
+         rtn_value	= Polarisation_Vectors (krm, z, &hrm, &vrm);
+         rtn_value	= Polarisation_Vectors (ki,  n, &hil,  &vil);
+         rtn_value	= Polarisation_Vectors (ks,  n, &hsl,  &vsl);
+         rtn_value	= Polarisation_Vectors (kr,  n, &hrl,  &vrl);
+         rtn_value	= Polarisation_Vectors (krm, n, &hrlm, &vrlm);
+         chi         = d3V2c3V (hi);
+         cvi         = d3V2c3V (vi);
+         chs         = d3V2c3V (hs);
+         cvs         = d3V2c3V (vs);
+         chr         = d3V2c3V (hr);
+         cvr         = d3V2c3V (vr);
+         chrm        = d3V2c3V (hrm);
+         cvrm        = d3V2c3V (vrm);
+         chil        = d3V2c3V (hil);
+         cvil        = d3V2c3V (vil);
+         chsl        = d3V2c3V (hsl);
+         cvsl        = d3V2c3V (vsl);
+         chrl        = d3V2c3V (hrl);
+         cvrl        = d3V2c3V (vrl);
+         chrlm       = d3V2c3V (hrlm);
+         cvrlm       = d3V2c3V (vrlm);
+         /*********************************/
+         /* Local reflection coefficients */
+         /*********************************/
+         k0z         = d3Vector_scalar_product (kr, n);
+         k0z2        = k0z*k0z;
+         k02         = pPR->k0*pPR->k0;
+         kro2        = k02 - k0z2;
+         kro         = sqrt(kro2);
+         k22         = complex_rmul (pPR->ground_eps[pPR->current_track], k02);
+         k2          = complex_sqrt (k22);
+         k2z2        = complex_sub  (k22, xy_complex (kro2, 0.0));
+         k2z         = complex_sqrt (k2z2);
+         koz2        = Copy_Complex (&(pPR->koz2_short));
+         kez2        = Copy_Complex (&(pPR->kez2_short));
+         koz         = Copy_Complex (&(pPR->koz_short));
+         kez         = Copy_Complex (&(pPR->kez_short));
+         ke2         = complex_add  (kez2, xy_complex (kro2, 0.0));
+         ke          = complex_sqrt (ke2);
+         kiz         = xy_complex   (k0z, 0.0);
+         k12         = complex_rmul (pPR->e11_short, k02);
+         k1          = complex_sqrt (k12);
+         Rhh         = complex_div (complex_sub (koz, k2z), complex_add (koz, k2z));
+         delta       = complex_add (complex_mul (kez, k22), complex_mul (k2z, k12));
+         Rvv         = complex_div (complex_sub (complex_mul (kez, k22), complex_mul(k2z, k12)), delta);
+         //         fprintf (pPR->pLogFile, "|Rhh|^2\t= %lf  \n", Rhh.r*Rhh.r);
+         //         fprintf (pPR->pLogFile, "|Rvv|^2\t= %lf  \n", Rvv.r*Rvv.r);
+         //         fflush  (pPR->pLogFile);
+         gf          = 4.0*std_h*std_h*k0z2;
+         Rg          = exp(-gf/2.0);
+         //         fprintf (pPR->pLogFile, "gf\t\t= %lf  \n", gf);
+         //         fprintf (pPR->pLogFile, "Rg\t\t= %lf  \n", Rg);
+         //         fflush  (pPR->pLogFile);
+         Rhh         = complex_rmul (Rhh, Rg);
+         Rvv         = complex_rmul (Rvv, Rg);
+         //         fprintf (pPR->pLogFile, "|Rhh|^2\t= %lf  \n", Rhh.r*Rhh.r);
+         //         fprintf (pPR->pLogFile, "|Rvv|^2\t= %lf  \n", Rvv.r*Rvv.r);
+         //         fflush  (pPR->pLogFile);
+         R1          = c33Matrix_Complex_product (c3Vector_dyadic_product (chrl, chil), Rhh);
+         R1          = c33Matrix_sum (R1, c33Matrix_Complex_product (c3Vector_dyadic_product (cvrl, cvil), Rvv));
+         R2          = c33Matrix_Complex_product (c3Vector_dyadic_product (chsl, chrlm), Rhh);
+         R2          = c33Matrix_sum (R2, c33Matrix_Complex_product (c3Vector_dyadic_product (cvsl, cvrlm), Rvv));
+         
          for (k = 0; k < nr; k++) {
             /******************/
             /* Realise a leaf */
@@ -2464,7 +2584,9 @@ int		PolSARproSim_Short_Vegetation_Bounce		(PolSARproSim_Record *pPR)
             /*****************************************/
             g                 = Cartesian_Assign_d3Vector (leaf_x, leaf_y, ground_height(pPR, leaf_x, leaf_y));
             if (leaf_height > g.x[2]) {
-               Assign_Plane (&Pg, &g, pPR->slope_x, pPR->slope_y);
+               lnorm          = Lookup_Surface_Normal (pPR, leaf_x,leaf_y);
+               Assign_Plane (&Pg, &g, -lnorm.x[0]/lnorm.x[2], -lnorm.x[1]/lnorm.x[2]);
+               //Assign_Plane (&Pg, &g, pPR->slope_x, pPR->slope_y);
                Assign_Ray_d3V (&Rb, &leaf_centre, &nm);
                rtn_value		= RayPlaneIntersection (&Rb, &Pg, &eff_bounce_centre, &bounce_distance);
                if ((rtn_value == 1) && (bounce_distance >= 0.0)) {
@@ -2472,7 +2594,6 @@ int		PolSARproSim_Short_Vegetation_Bounce		(PolSARproSim_Record *pPR)
                   Assign_Ray_d3V (&Rb, &leaf_centre, &a);
                   rtn_value	= RayPlaneIntersection (&Rb, &Pg, &specular_point, &specular_distance);
                   if ((rtn_value == 1) && (specular_distance >= 0.0)) {
-
                      /*********************************************/
                      /* Calculate the ground-leaf centre of focus */
                      /*********************************************/

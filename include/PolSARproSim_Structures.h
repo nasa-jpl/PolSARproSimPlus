@@ -262,24 +262,12 @@ typedef struct polsarprosim_record_tag {
    /*******************************/
    /* Recovered forest properties */
    /*******************************/
-//   double			primary_branch_length;	/* Mean primary branch length estimate in metres               */
-//   double			primary_branch_radius;	/* Mean primary branch radius estimate in metres               */
-//   double			secondary_branch_length;/* Mean secondary branch length estimate in metres             */
-//   double			secondary_branch_radius;/* Mean secondary branch radius estimate in metres             */
-//   double			tertiary_branch_length;	/* Mean tertiary branch length estimate in metres              */
-//   double			tertiary_branch_radius;	/* Mean tertiary branch radius estimate in metres              */
    double			ShortVegi_stemL1;       /* Short vegetation depolarization factors for stems           */
    double			ShortVegi_stemL2;
    double			ShortVegi_stemL3;
    double			ShortVegi_leafL1;       /* Short vegetation depolarization factors for stems           */
    double			ShortVegi_leafL2;
    double			ShortVegi_leafL3;
-//   double			Tertiary_branchL1;      /* Tertiary branch depolarization factors (unused after edits) */
-//   double			Tertiary_branchL2;
-//   double			Tertiary_branchL3;
-//   double			Tertiary_leafL1;        /* Tertiary leaf depolarization factors                        */
-//   double			Tertiary_leafL2;
-//   double			Tertiary_leafL3;
    /****************************/
    /* Effective permittivities */
    /****************************/
@@ -379,9 +367,13 @@ typedef struct polsarprosim_record_tag {
    int            ForestFastMode_Flag;
    int            *ForestFastMode;     
    /*******************************************************************************************/
-   /* External DEM input Flag                                                                 */
+   /* External DEM contrls                                                                    */
    /*******************************************************************************************/
-   int            ExternalDEM_Flag;
+   int            ExternalDEM_Flag;       /* Flag for whether to use an external DEM or not              */
+   int            DEM_nx;                 /* number of azimuth pixels in external DEM                    */
+   int            DEM_ny;                 /* number or range pixels in external DEM                      */
+   double         DEM_dx;                 /* azimuth resolution for external DEM                         */
+   double         DEM_dy;                 /* range resolution for external DEM                           */
    /**************************/
    /* Temporal Decorrelation */
    /**************************/

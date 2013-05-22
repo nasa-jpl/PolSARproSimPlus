@@ -485,7 +485,7 @@ int		Write_SIM_Record_As_BINARY	(SIM_Record *pSIMR)
 /* Binary format input */
 /***********************/
 
-int		Read_BINARY_As_SIM_Record	(SIM_Record *pSIMR, const char *filename, int nx, int ny)
+int		Read_BINARY_As_SIM_Record	(SIM_Record *pSIMR, const char *filename, int nx, int ny, double dx, double dy)
 {
    SIM_Complex_Float	*column	= (SIM_Complex_Float*) calloc (ny, sizeof (SIM_Complex_Float));
    FILE				*pSBF;
@@ -494,7 +494,7 @@ int		Read_BINARY_As_SIM_Record	(SIM_Record *pSIMR, const char *filename, int nx,
    size_t				socf	= sizeof (SIM_Complex_Float);
    
    Destroy_SIM_Record (pSIMR);
-   Initialise_SIM_Record (pSIMR, filename, nx, ny, SIM_COMPLEX_FLOAT_TYPE, 1.0, 1.0, "Binary input"); 
+   Initialise_SIM_Record (pSIMR, filename, nx, ny, SIM_COMPLEX_FLOAT_TYPE, dx*(double)nx, dy*(double)ny, "Binary input"); 
    sp.simpixeltype	= pSIMR->pixel_type;
    pSBF	= fopen (pSIMR->filename, "rb");
    for (i=0; i<pSIMR->nx; i++) {
@@ -520,6 +520,33 @@ int		Read_BINARY_As_SIM_Record	(SIM_Record *pSIMR, const char *filename, int nx,
    free (column);
    return (NO_SIMPRIMITIVE_ERRORS);
 }
+
+int		Read_FLOAT_BINARY_As_SIM_Record	(SIM_Record *pSIMR, const char *filename, int nx, int ny, double dx, double dy)
+{
+   sim_float         *column	= (sim_float*) calloc (ny, sizeof (sim_float));
+   FILE              *pSBF;
+   int               i, j;
+   sim_pixel			sp;
+   size_t				socf	= sizeof (sim_float);
+   
+   Destroy_SIM_Record (pSIMR);
+   Initialise_SIM_Record (pSIMR, filename, nx, ny, SIM_FLOAT_TYPE, dx*(double)nx, dy*(double)ny, "Binary input"); 
+   sp.simpixeltype	= pSIMR->pixel_type;
+   pSBF	= fopen (pSIMR->filename, "rb");
+   for (i=0; i<pSIMR->nx; i++) {
+      fread (column, socf, ny, pSBF);
+      for (j=0; j<pSIMR->ny; j++) {
+         switch (sp.simpixeltype) {
+             case SIM_FLOAT_TYPE:          sp.data.f		= (sim_float) column[j];		break;
+         }
+         putSIMpixel (pSIMR, sp, i, pSIMR->ny-j-1);
+      }
+   }
+   fclose (pSBF);
+   free (column);
+   return (NO_SIMPRIMITIVE_ERRORS);
+}
+
 
 /*********************************************************/
 /* Image rotation for POLSARPRO range-azimuth convention */
@@ -650,6 +677,22 @@ int		Add_SIM_Records			(SIM_Record *pIMG1, SIM_Record *pIMG2)
       }
    }
    return (NO_SIMPRIMITIVE_ERRORS);
+}
+
+
+void     Print_SIM_Record            (SIM_Record *pSIMR)
+{
+      printf("Sim_Recrod header:\n");
+      printf("filename = %s\n", pSIMR->filename);	
+      printf("nx = %d\n", pSIMR->nx);				
+      printf("ny = %d\n", pSIMR->ny);			
+      printf("pixel_type = %d\n", pSIMR->pixel_type);		
+      printf("np = %ld\n", pSIMR->np);				
+      printf("Lx = %f\n", pSIMR->Lx);				
+      printf("Ly = %f\n", pSIMR->Ly);				
+      printf("dx = %f\n", pSIMR->dx);				
+      printf("dy = %f\n", pSIMR->dy);	
+     return;
 }
 
 
