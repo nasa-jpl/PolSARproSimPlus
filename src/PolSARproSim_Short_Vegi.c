@@ -1162,8 +1162,8 @@ void		*Image_Short_Veg_Bounce_Stems		(void *threadarg)
    /*********************************/
    /* Reset random number generator */
    /*********************************/
-   seed[0]        = pPR->seed+pTA->thread_id;
-   randn          = erand48(seed);
+   seed[0]           = pPR->seed+pTA->thread_id;
+   randn             = erand48(seed);
    
    /*************************/
    /* Assign stem variables */

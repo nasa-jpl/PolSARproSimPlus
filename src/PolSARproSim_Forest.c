@@ -286,10 +286,10 @@ int		Delete_SAR_Geometry			(SarGeometry *pSG)
 /***********************************************************************/
 /* Temporal Decorrelation Model implementation for branches and leaves */
 /***********************************************************************/
-int      Model_Change        (Tree *pT, PolSARproSim_Record *pPR, int current_track, d3Vector *motion, double *moisture, double obj_z)
+int      Model_Change        (Tree *pT, PolSARproSim_Record *pPR, int current_track, d3Vector *motion, double *moisture, double obj_z, unsigned short *pseed)
 {
    double      tree_altitude        = pT->base.x[2];     //tree altitutde (this includes ground height)
-   double      normalizestd         = 3.464101615;       // square root of 12, to normalize the standard deviation of a uniform RV to 1
+   //double      normalizestd         = 3.464101615;       // square root of 12, to normalize the standard deviation of a uniform RV to 1
    /* parameters to be computed */
    double      delta_x, delta_y, delta_z;                //motion offsets
    
@@ -322,9 +322,9 @@ int      Model_Change        (Tree *pT, PolSARproSim_Record *pPR, int current_tr
          change_stdev = 0.0;
       }
       /* realize position change */
-      delta_x  = Gaussian_drand(0.0, change_stdev, -3*change_stdev, 3*change_stdev);
-      delta_y  = Gaussian_drand(0.0, change_stdev, -3*change_stdev, 3*change_stdev);;      
-      delta_z  = Gaussian_drand(0.0, change_stdev, -3*change_stdev, 3*change_stdev);;
+      delta_x  = Gaussian_drand_r(0.0, change_stdev, -5*change_stdev, 5*change_stdev, pseed);
+      delta_y  = Gaussian_drand_r(0.0, change_stdev, -5*change_stdev, 5*change_stdev, pseed);      
+      delta_z  = Gaussian_drand_r(0.0, change_stdev, -5*change_stdev, 5*change_stdev, pseed);
       *motion  = Cartesian_Assign_d3Vector	(delta_x, delta_y, delta_z);
       
       /***************************/
@@ -347,7 +347,8 @@ int      Model_Change        (Tree *pT, PolSARproSim_Record *pPR, int current_tr
       }
       change_stdev   = change_mean * CHANGE_MOISTURE_STDEV_FACTOR;
       /*realize moisture change */
-      *moisture = (drand() - 0.5)*change_stdev*normalizestd + change_mean;
+      //*moisture = (drand() - 0.5)*change_stdev*normalizestd + change_mean;
+      *moisture = Gaussian_drand_r(change_mean, change_stdev, change_mean-5*change_stdev, change_mean+5*change_stdev, pseed);
    }
    return(NO_POLSARPROSIM_FOREST_ERRORS);
 }
@@ -1813,7 +1814,9 @@ int		Image_Tree		(Tree *pT, SarGeometry *pSGdirect, SarGeometry *pSGbounce, PolS
    double            moisture_offset;              // offset for adding moisture to a cylinder/leaf
    double            change_start_height;          // to allow re-computation of offsets to preserve vertical profiles
    c4Vector          *Sdirect, *Sbounce;
-   
+   unsigned short    seed[3];                      // seed for re-entrantly safe random number generators
+   seed[0]           = (unsigned short)(pPR->seed);
+  
    /************************/
    /* Initialise variables */
    /************************/
@@ -1843,12 +1846,12 @@ int		Image_Tree		(Tree *pT, SarGeometry *pSGdirect, SarGeometry *pSGbounce, PolS
          change_start_height  = pB->b0.x[2];
          for (track=0;track<pPR->Tracks;track++){
             /* compute initial change in branch properties (position and moisture) */
-            Model_Change (pT, pPR, track, &motion_offset, &moisture_offset, change_start_height);
+            Model_Change (pT, pPR, track, &motion_offset, &moisture_offset, change_start_height, &(seed[0]));
             for (i_section = 0; i_section < Nsections; i_section++) {
                rtn_value	= Cylinder_from_Branch (&cyl1, pB, i_section, Nsections);
                /* recompute changed properties if branch exceed a height level */
                if(cyl1.base.x[2] > change_start_height + pPR->change_height_delta) {
-                  Model_Change (pT, pPR, track, &motion_offset, &moisture_offset, cyl1.base.x[2]);
+                  Model_Change (pT, pPR, track, &motion_offset, &moisture_offset, cyl1.base.x[2], &(seed[0]));
                   change_start_height = cyl1.base.x[2];
                }
                /* change the cylinder properties */
@@ -1882,12 +1885,12 @@ int		Image_Tree		(Tree *pT, SarGeometry *pSGdirect, SarGeometry *pSGbounce, PolS
          change_start_height  = pB->b0.x[2];
          for (track=0;track<pPR->Tracks;track++){
             /* compute initial change in branch properties (position and moisture) */
-            Model_Change (pT, pPR, track, &motion_offset, &moisture_offset, change_start_height);
+            Model_Change (pT, pPR, track, &motion_offset, &moisture_offset, change_start_height, &(seed[0]));
             for (i_section = 0; i_section < Nsections; i_section++) {
                rtn_value	= Cylinder_from_Branch (&cyl1, pB, i_section, Nsections);
                /* recompute changed properties if branch exceed a height level */
                if(cyl1.base.x[2] > change_start_height + pPR->change_height_delta) {
-                  Model_Change (pT, pPR, track, &motion_offset, &moisture_offset, cyl1.base.x[2]);
+                  Model_Change (pT, pPR, track, &motion_offset, &moisture_offset, cyl1.base.x[2], &(seed[0]));
                   change_start_height = cyl1.base.x[2];
                }
                /* change the cylinder properties */
@@ -1916,12 +1919,12 @@ int		Image_Tree		(Tree *pT, SarGeometry *pSGdirect, SarGeometry *pSGbounce, PolS
          change_start_height  = pB->b0.x[2];
          for (track=0;track<pPR->Tracks;track++){
             /* compute initial change in branch properties (position and moisture) */
-            Model_Change (pT, pPR, track, &motion_offset, &moisture_offset, change_start_height);
+            Model_Change (pT, pPR, track, &motion_offset, &moisture_offset, change_start_height, &(seed[0]));
             for (i_section = 0; i_section < Nsections; i_section++) {
                rtn_value	= Cylinder_from_Branch (&cyl1, pB, i_section, Nsections);
                /* recompute changed properties if branch exceed a height level */
                if(cyl1.base.x[2] > change_start_height + pPR->change_height_delta) {
-                  Model_Change (pT, pPR, track, &motion_offset, &moisture_offset, cyl1.base.x[2]);
+                  Model_Change (pT, pPR, track, &motion_offset, &moisture_offset, cyl1.base.x[2], &(seed[0]));
                   change_start_height = cyl1.base.x[2];
                }
                /* change the cylinder properties */
@@ -1955,12 +1958,12 @@ int		Image_Tree		(Tree *pT, SarGeometry *pSGdirect, SarGeometry *pSGbounce, PolS
          change_start_height  = pB->b0.x[2];
          for (track=0;track<pPR->Tracks;track++){
             /* compute initial change in branch properties (position and moisture) */
-            Model_Change (pT, pPR, track, &motion_offset, &moisture_offset, change_start_height);
+            Model_Change (pT, pPR, track, &motion_offset, &moisture_offset, change_start_height, &(seed[0]));
             for (i_section = 0; i_section < Nsections; i_section++) {
                rtn_value	= Cylinder_from_Branch (&cyl1, pB, i_section, Nsections);
                /* recompute changed properties if branch exceed a height level */
                if(cyl1.base.x[2] > change_start_height + pPR->change_height_delta) {
-                  Model_Change (pT, pPR, track, &motion_offset, &moisture_offset, cyl1.base.x[2]);
+                  Model_Change (pT, pPR, track, &motion_offset, &moisture_offset, cyl1.base.x[2], &(seed[0]));
                   change_start_height = cyl1.base.x[2];
                }
                /* change the cylinder properties */
@@ -2002,12 +2005,12 @@ int		Image_Tree		(Tree *pT, SarGeometry *pSGdirect, SarGeometry *pSGbounce, PolS
          change_start_height  = pB->b0.x[2];
          for (track=0;track<pPR->Tracks;track++){
             /* compute initial change in branch properties (position and moisture) */
-            Model_Change (pT, pPR, track, &motion_offset, &moisture_offset, change_start_height);
+            Model_Change (pT, pPR, track, &motion_offset, &moisture_offset, change_start_height, &(seed[0]));
             for (i_section = 0; i_section < Nsections; i_section++) {
                rtn_value     = Cylinder_from_Branch (&cyl1, pB, i_section, Nsections);
                /* recompute changed properties if branch exceed a height level */
                if(cyl1.base.x[2] > change_start_height + pPR->change_height_delta) {
-                  Model_Change (pT, pPR, track, &motion_offset, &moisture_offset, cyl1.base.x[2]);
+                  Model_Change (pT, pPR, track, &motion_offset, &moisture_offset, cyl1.base.x[2], &(seed[0]));
                   change_start_height = cyl1.base.x[2];
                }
                /* change the cylinder properties */
@@ -2040,7 +2043,7 @@ int		Image_Tree		(Tree *pT, SarGeometry *pSGdirect, SarGeometry *pSGbounce, PolS
       Sbounce     = (c4Vector *)calloc(1, sizeof(c4Vector));
       for (iLeaf=0L; iLeaf < pT->Foliage.n; iLeaf++) {
          for (track=0;track<pPR->Tracks;track++){
-            Model_Change (pT, pPR, track, &motion_offset, &moisture_offset, pL->cl.x[2]);
+            Model_Change (pT, pPR, track, &motion_offset, &moisture_offset, pL->cl.x[2], &(seed[0]));
             Change_Leaf  (pL, pPR, motion_offset, moisture_offset, track); 
             weight_sum           += Image_Foliage_Direct (pL, &(pSGdirect[track]), pPR, flg_scaling, &Ldvec, &(Sdirect[0]));
             weight_sum2          += Image_Foliage_Bounce (pL, &(pSGbounce[track]), pPR, flg_scaling, &Ldvec, &(Sbounce[0]));
@@ -2269,6 +2272,8 @@ void		*Image_Tree_SMP		(void *threadarg)
    double            moisture_offset;              // offset for adding moisture to a cylinder/leaf
    double            change_start_height;          // to allow re-computation of offsets to preserve vertical profiles
    c4Vector          *Sdirect, *Sbounce;
+   unsigned short    seed[3];                      // seed for re-entrantly safe random number generators
+   seed[0]           = (unsigned short)(itree+pPR->seed);
    /************************/
    /* Initialise variables */
    /************************/
@@ -2298,12 +2303,12 @@ void		*Image_Tree_SMP		(void *threadarg)
          change_start_height  = pB->b0.x[2];
          for (track=0;track<pPR->Tracks;track++){
             /* compute initial change in branch properties (position and moisture) */
-            Model_Change (pT, pPR, track, &motion_offset, &moisture_offset, change_start_height);
+            Model_Change (pT, pPR, track, &motion_offset, &moisture_offset, change_start_height, &(seed[0]));
             for (i_section = 0; i_section < Nsections; i_section++) {
                rtn_value	= Cylinder_from_Branch (&cyl1, pB, i_section, Nsections);
                /* recompute changed properties if branch exceed a height level */
                if(cyl1.base.x[2] > change_start_height + pPR->change_height_delta) {
-                  Model_Change (pT, pPR, track, &motion_offset, &moisture_offset, cyl1.base.x[2]);
+                  Model_Change (pT, pPR, track, &motion_offset, &moisture_offset, cyl1.base.x[2], &(seed[0]));
                   change_start_height = cyl1.base.x[2];
                }
                /* change the cylinder properties */
@@ -2337,12 +2342,12 @@ void		*Image_Tree_SMP		(void *threadarg)
          change_start_height  = pB->b0.x[2];
          for (track=0;track<pPR->Tracks;track++){
             /* compute initial change in branch properties (position and moisture) */
-            Model_Change (pT, pPR, track, &motion_offset, &moisture_offset, change_start_height);
+            Model_Change (pT, pPR, track, &motion_offset, &moisture_offset, change_start_height, &(seed[0]));
             for (i_section = 0; i_section < Nsections; i_section++) {
                rtn_value	= Cylinder_from_Branch (&cyl1, pB, i_section, Nsections);
                /* recompute changed properties if branch exceed a height level */
                if(cyl1.base.x[2] > change_start_height + pPR->change_height_delta) {
-                  Model_Change (pT, pPR, track, &motion_offset, &moisture_offset, cyl1.base.x[2]);
+                  Model_Change (pT, pPR, track, &motion_offset, &moisture_offset, cyl1.base.x[2], &(seed[0]));
                   change_start_height = cyl1.base.x[2];
                }
                /* change the cylinder properties */
@@ -2371,12 +2376,12 @@ void		*Image_Tree_SMP		(void *threadarg)
          change_start_height  = pB->b0.x[2];
          for (track=0;track<pPR->Tracks;track++){
             /* compute initial change in branch properties (position and moisture) */
-            Model_Change (pT, pPR, track, &motion_offset, &moisture_offset, change_start_height);
+            Model_Change (pT, pPR, track, &motion_offset, &moisture_offset, change_start_height, &(seed[0]));
             for (i_section = 0; i_section < Nsections; i_section++) {
                rtn_value	= Cylinder_from_Branch (&cyl1, pB, i_section, Nsections);
                /* recompute changed properties if branch exceed a height level */
                if(cyl1.base.x[2] > change_start_height + pPR->change_height_delta) {
-                  Model_Change (pT, pPR, track, &motion_offset, &moisture_offset, cyl1.base.x[2]);
+                  Model_Change (pT, pPR, track, &motion_offset, &moisture_offset, cyl1.base.x[2], &(seed[0]));
                   change_start_height = cyl1.base.x[2];
                }
                /* change the cylinder properties */
@@ -2410,12 +2415,12 @@ void		*Image_Tree_SMP		(void *threadarg)
          change_start_height  = pB->b0.x[2];
          for (track=0;track<pPR->Tracks;track++){
             /* compute initial change in branch properties (position and moisture) */
-            Model_Change (pT, pPR, track, &motion_offset, &moisture_offset, change_start_height);
+            Model_Change (pT, pPR, track, &motion_offset, &moisture_offset, change_start_height, &(seed[0]));
             for (i_section = 0; i_section < Nsections; i_section++) {
                rtn_value	= Cylinder_from_Branch (&cyl1, pB, i_section, Nsections);
                /* recompute changed properties if branch exceed a height level */
                if(cyl1.base.x[2] > change_start_height + pPR->change_height_delta) {
-                  Model_Change (pT, pPR, track, &motion_offset, &moisture_offset, cyl1.base.x[2]);
+                  Model_Change (pT, pPR, track, &motion_offset, &moisture_offset, cyl1.base.x[2], &(seed[0]));
                   change_start_height = cyl1.base.x[2];
                }
                /* change the cylinder properties */
@@ -2457,12 +2462,12 @@ void		*Image_Tree_SMP		(void *threadarg)
          change_start_height  = pB->b0.x[2];
          for (track=0;track<pPR->Tracks;track++){
             /* compute initial change in branch properties (position and moisture) */
-            Model_Change (pT, pPR, track, &motion_offset, &moisture_offset, change_start_height);
+            Model_Change (pT, pPR, track, &motion_offset, &moisture_offset, change_start_height, &(seed[0]));
             for (i_section = 0; i_section < Nsections; i_section++) {
                rtn_value     = Cylinder_from_Branch (&cyl1, pB, i_section, Nsections);
                /* recompute changed properties if branch exceed a height level */
                if(cyl1.base.x[2] > change_start_height + pPR->change_height_delta) {
-                  Model_Change (pT, pPR, track, &motion_offset, &moisture_offset, cyl1.base.x[2]);
+                  Model_Change (pT, pPR, track, &motion_offset, &moisture_offset, cyl1.base.x[2], &(seed[0]));
                   change_start_height = cyl1.base.x[2];
                }
                /* change the cylinder properties */
@@ -2498,7 +2503,7 @@ void		*Image_Tree_SMP		(void *threadarg)
       Sbounce     = (c4Vector *)calloc(1, sizeof(c4Vector));
       for (iLeaf=0L; iLeaf < pT->Foliage.n; iLeaf++) {
          for (track=0;track<pPR->Tracks;track++){
-            Model_Change (pT, pPR, track, &motion_offset, &moisture_offset, pL->cl.x[2]);
+            Model_Change (pT, pPR, track, &motion_offset, &moisture_offset, pL->cl.x[2], &(seed[0]));
             Change_Leaf  (pL, pPR, motion_offset, moisture_offset, track); 
             weight_sum           += Image_Foliage_Direct (pL, &(pSGdirect[track]), pPR, flg_scaling, &Ldvec, &(Sdirect[0]));
             weight_sum2          += Image_Foliage_Bounce (pL, &(pSGbounce[track]), pPR, flg_scaling, &Ldvec, &(Sbounce[0]));

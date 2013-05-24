@@ -61,6 +61,29 @@ double Normal_Distribution   (void)
  return (g-6.0);
 }
 
+
+double		Gaussian_drand_r			(double a_bar, double a_std, double a_min, double a_max, unsigned short *pseed)
+{
+   double	x		= Normal_Distribution_r (pseed);
+   double	xmin	= (a_min-a_bar)/a_std;
+   double	xmax	= (a_max-a_bar)/a_std;
+   while ((x>xmax) || (x<xmin)) {
+      x		= Normal_Distribution_r (pseed);
+   }
+   return ((x*a_std) + a_bar);
+}
+
+double Normal_Distribution_r   (unsigned short *pseed)
+{
+   double g = erand48(pseed);
+   int i;
+   for (i=0;i<12;i++) {
+      g +=  erand48(pseed);
+   }
+   return (g-6.0);
+}
+
+
 double erand (double x)
 {
  double r	= 0.0;

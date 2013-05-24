@@ -35,10 +35,12 @@
 #include	<float.h>
 
 double		drand                (void);
-double		drand_r              (unsigned int *pseed);
+double		drand_r              (unsigned int *pseed); /* thread safe version of drand() */
 double		Gaussian_drand			(double a_bar, double a_std, double a_min, double a_max);
 double		Normal_Distribution	(void);
+double		Gaussian_drand_r		(double a_bar, double a_std, double a_min, double a_max, unsigned short *pseed); /* thread safe version of Gaussian_drand() */
+double      Normal_Distribution_r(unsigned short *pseed); /* thread safe version of Normal_Distribution() */
 double		erand                (double x);
-double		erand_r              (double x, unsigned int *pseed);
+double		erand_r              (double x, unsigned int *pseed); /* thread safe version of erand() */
 
 #endif
