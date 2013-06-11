@@ -1,0 +1,249 @@
+<?xml version="1.0" encoding="ISO-8859-15"?>
+<allometry>
+	<species_list>													<!-- MANDATORY list of species					-->
+		<name				units="none">	HEDGE		</name>					<!-- 0: The hedge						-->
+		<name				units="none">	TSCA		</name>					<!-- 1: Tsuga Canadensis, Eastern Hemlock			-->
+		<name				units="none">	PIRE		</name>					<!-- 2: Pinus Resinosa, Red Pine				-->
+		<name				units="none">	BEPA		</name>					<!-- 3: Betula Papyrifera, Paper/White Birch			-->
+		<name				units="none">	ACRU		</name>					<!-- 4: Acer Rubrum, Red Maple					-->
+		<name				units="none">	ACSA		</name>					<!-- 5: Acer Saccarum, Sugar Maple				-->
+		<name				units="none">	ACPE		</name>					<!-- 6: Acer Pennsylvanicum, Striped Maple			-->
+		<name				units="none">	BEAL		</name>					<!-- 7: Betula Alleghensis,  Yellow Birch			-->
+		<name				units="none">	BELE		</name>					<!-- 8: Betula Lenta, Black Birch 				-->
+		<name				units="none">	BEPO		</name>					<!-- 9: Betula Populifolia, Grey Birch				-->
+		<name				units="none">	FAGR		</name>					<!-- 10: Fagus Grandifolia, American Beach			-->
+		<name				units="none">	OSVI		</name>					<!-- 11: Ostrya Virginiana, Hophornbeam				-->
+		<name				units="none">	PIRU		</name>					<!-- 12: Picea Rubens, Red Spruce  				-->
+		<name				units="none">	PIST		</name>					<!-- 13: Pinus Strobus, White Pine 				-->
+		<name				units="none">	PRSE		</name>					<!-- 14: Prunus Serotina, Black Cherry				-->
+		<name				units="none">	QUAL		</name>					<!-- 15: Quercus Alba, White Oak   				-->
+		<name				units="none">	QURU		</name>					<!-- 16: Quercus Rubra, Red Oak    				-->
+		<name				units="none">	SNAG		</name>					<!-- 17: Unknown snaggy stuff					-->
+	</species_list>
+	<category_list>													<!-- MANDATORY list of categories				-->
+		<name				units="none">	deciduous	</name>					<!-- Broadleaf, deciduous trees					-->
+		<name				units="none">	coniferous	</name>					<!-- Needled, evergreen coniferous trees			-->
+	</category_list>
+	<deciduous>													<!-- All fields MANDATORY if category defined in category_list 	-->
+		<crown_live_shape		units="none">	spheroid	</crown_live_shape>			<!-- shape of living crown (conical/spheroid/cylindrical)	-->
+		<crown_dry_shape		units="none">	none		</crown_dry_shape>			<!-- shape of dry crown (concial/spheroid/cylindrical/none)	-->
+		<crown_live_depth_factor	units="none">	0.5		</crown_live_depth_factor>		<!-- fraction of live crown depth at which crown radius is max.	-->  
+		<crown_dry_depth_factor		units="none">	0.5		</crown_dry_depth_factor>		<!-- fraction of dry crown depth at which crown radius is max.	-->  
+		<crown_live_alpha		units="none">	0.410		</crown_live_alpha>			<!-- to est. live crown depth (unless forest primitives used)	-->  
+		<crown_dry_alpha		units="none">	0.000		</crown_dry_alpha>			<!-- to est. dry crown depth (unless forest primitives used)	-->  
+		<crown_radius_factor		units="none">	0.410		</crown_radius_factor>			<!-- to est. crown radius (unless forest primitives used)	-->  
+		<stem_start_radius_factor	units="none">	0.7925		</stem_start_radius_factor>		<!-- to est. stem start radius (unless forest primitives used)	-->  
+		<stem_maximum_polar_angle	units="deg">  	10.0		</stem_maximum_polar_angle>		<!-- maximum stem angle (from vertical) 			--> 
+		<stem_radius_end_factor		units="none">	0.7345		</stem_radius_end_factor>		<!-- factor to determine stem end radius as function of height	-->
+		<stem_tropism_factor		units="none">	0.2		</stem_tropism_factor>			<!-- factor to determine stem tropism or curvature		-->
+		<stem_lamdacx_stdev		units="none">	0.25		</stem_lamdacx_stdev>			<!-- std dev of stem curvature wavelength function in x-dim.	-->
+		<stem_lamdacx_mean		units="none">	0.75		</stem_lamdacx_mean>			<!-- mean of stem curvature wavelength function in x-dim.	-->
+		<stem_lamdacy_stdev		units="none">	0.25		</stem_lamdacy_stdev>			<!-- std dev of stem curvature wavelength function in y-dim.	-->
+		<stem_lamdacy_mean		units="none">	0.75		</stem_lamdacy_mean>			<!-- mean of stem curvature wavelength function in y-dim.	-->
+		<stem_gamma_stdev		units="none">	0.015		</stem_gamma_stdev>			<!-- std dev of stem curvature scale-factor function 		-->
+		<stem_gamma_mean		units="none">	0.045		</stem_gamma_mean>			<!-- mean of stem curvature scale-factor function		-->
+		<stem_moisture			units="none">	0.370		</stem_moisture>			<!-- gravimetric moisture content of stem 0<Mg<0.7		-->
+		<stem_tropism_polar_angle	units="deg">	0.0		</stem_tropism_polar_angle>		<!-- Polar angle (theta) of the stem tropism direction 		-->
+		<stem_tropism_azimuth_angle	units="deg">	0.0		</stem_tropism_azimuth_angle>		<!-- Azimuthal angle (phi) of the stem tropism direction 	-->
+		<primary_polar_angle_mean	units="deg">  	50.0		</primary_polar_angle_mean>		<!-- Average primary branch polar angle (from vertical) 	--> 
+		<primary_polar_angle_stdev	units="deg">  	25.0		</primary_polar_angle_stdev>		<!-- Std. dev. of primary branch polar angle (from vertical) 	--> 
+		<primary_layer_density		units="none">  	1.01		</primary_layer_density>		<!-- Primary layer density per unit depth (of canopy)		--> 
+		<primary_sections		units="none">  	1		</primary_sections>			<!-- Average no. of sections per layer of primary branches	--> 
+		<primary_azimuth_factor		units="deg">  	90		</primary_azimuth_factor>		<!-- Azimuth angle std. factor for primary branches		--> 
+		<primary_radius_quadratic_coeff	units="none">  	0.0		</primary_radius_quadratic_coeff>	<!-- Quadratic parameter for the primary start radius function	--> 
+		<primary_radius_linear_coeff	units="none">  	-0.3465		</primary_radius_linear_coeff>		<!-- Linear parameter for the primary start radius function	--> 
+		<primary_radius_constant_coeff	units="none">  	0.693		</primary_radius_constant_coeff>	<!-- Constant parameter for the primary start radius function	--> 
+		<primary_tropism_factor		units="none">	0.3		</primary_tropism_factor>		<!-- factor to determine primary tropism 			-->
+		<primary_tropism_polar_angle 	units="deg">	0.0		</primary_tropism_polar_angle>		<!-- Polar angle (theta) of the primary tropism direction 	-->
+		<primary_tropism_azimuth_angle	units="deg">	0.0		</primary_tropism_azimuth_angle>	<!-- Azimuthal angle (phi) of the primary tropism direction 	-->
+		<primary_lamdacx_stdev		units="none">	0.25		</primary_lamdacx_stdev>		<!-- std dev of primary curvature wavelength function in x-dim.	-->
+		<primary_lamdacx_mean		units="none">	0.75		</primary_lamdacx_mean>			<!-- mean of primary curvature wavelength function in x-dim.	-->
+		<primary_lamdacy_stdev		units="none">	0.25		</primary_lamdacy_stdev>		<!-- std dev of primary curvature wavelength function in y-dim.	-->
+		<primary_lamdacy_mean		units="none">	0.75		</primary_lamdacy_mean>			<!-- mean of primary curvature wavelength function in y-dim.	-->
+		<primary_gamma_stdev		units="none">	0.0025		</primary_gamma_stdev>			<!-- std dev of primary curvature scale-factor function		-->
+		<primary_gamma_mean		units="none">	0.0075		</primary_gamma_mean>			<!-- mean of primary curvature scale-factor function		-->
+		<primary_live_moisture 		units="none">	0.424		</primary_live_moisture>		<!-- gravimetric moisture of live primary branches 0<Mg<0.7	-->
+		<primary_dry_moisture 		units="none">	0.100		</primary_dry_moisture>			<!-- gravimetric moisture of dry primary branches 0<Mg<0.7	-->
+		<primary_dry_layer_density	units="none">  	0.00		</primary_dry_layer_density>		<!-- Dry primary layer density per unit depth (of dry canopy)	--> 
+		<primary_dry_sections		units="none">  	0		</primary_dry_sections>			<!-- Number of sections per layer of dry primary branches	--> 
+		<secondary_number_intercept	units="none">	0		</secondary_number_intercept>		<!-- Intercept of function determining secondary branch numbers	--> 
+		<secondary_number_slope		units="none">	1.045		</secondary_number_slope>		<!-- Slope of function determining secondary branch numbers	--> 
+		<secondary_offset_fraction	units="none">	0.35		</secondary_offset_fraction>		<!-- Fractional offset for the starting location of secondaries	--> 
+		<secondary_polar_angle_mean	units="deg">  	45.00		</secondary_polar_angle_mean>		<!-- Average secondary branch polar angle (from primary) 	--> 
+		<secondary_polar_angle_stdev	units="deg">  	20.00		</secondary_polar_angle_stdev>		<!-- Std. dev. of secondary branch polar angle (from primary) 	--> 
+		<secondary_radius_factor	units="none">  	0.75		</secondary_radius_factor>		<!-- Secondary start radius as a factor of the primary radius 	--> 
+		<secondary_tropism_factor	units="none">	0.6		</secondary_tropism_factor>		<!-- factor to determine secondary tropism 			-->
+		<secondary_tropism_polar_angle 	units="deg">	0.0		</secondary_tropism_polar_angle>	<!-- Polar angle (theta) of the secondary tropism direction 	-->
+		<secondary_tropism_azimuth_angle units="deg">	0.0		</secondary_tropism_azimuth_angle>	<!-- Azimuthal angle (phi) of the secondary tropism direction 	-->
+		<secondary_lamdacx_stdev	units="none">	0.25		</secondary_lamdacx_stdev>		<!-- std dev of secondary curvature wavelength function x-dim.	-->
+		<secondary_lamdacx_mean		units="none">	0.75		</secondary_lamdacx_mean>		<!-- mean of secondary curvature wavelength function in x-dim.	-->
+		<secondary_lamdacy_stdev	units="none">	0.25		</secondary_lamdacy_stdev>		<!-- std dev of secondary curvature wavelength function y-dim.	-->
+		<secondary_lamdacy_mean		units="none">	0.75		</secondary_lamdacy_mean>		<!-- mean of secondary curvature wavelength function in y-dim.	-->
+		<secondary_gamma_stdev		units="none">	0.025		</secondary_gamma_stdev>		<!-- std dev of secondary curvature scale-factor function	-->
+		<secondary_gamma_mean		units="none">	0.075		</secondary_gamma_mean>			<!-- mean of secondary curvature scale-factor function		-->
+		<tertiary_minimum_length	units="m">	0.0		</tertiary_minimum_length>		<!-- minimum length of tertiary branches			-->
+		<tertiary_minimum_radius	units="m">	0.0		</tertiary_minimum_radius>		<!-- minimum radius of tertiary branches			-->
+		<tertiary_volume_fraction	units="none">	0.001		</tertiary_volume_fraction>		<!-- Fraction of crown volume occupied by tertiary branches	-->
+		<tertiary_number_factor		units="none">	120.0		</tertiary_number_factor>		<!-- Factor to scale the number of tertiary branches imaged	-->
+		<tertiary_moisture		units="none">	0.4735		</tertiary_moisture>			<!-- gravimetric moisture of tertiary branches 0<Mg<0.7		-->
+		<leaf_shape			units="none">	broadleaf	</leaf_shape>				<!-- shape of tree leaves (broadleaf/needle)			-->
+		<leaf_width_mean		units="m">	0.060		</leaf_width_mean>			<!-- mean leaf width 						-->
+		<leaf_width_stdev		units="m">	0.030		</leaf_width_stdev>			<!-- leaf width standard deviation				-->
+		<leaf_height_mean		units="m">	0.040		</leaf_height_mean>			<!-- mean leaf height 						-->
+		<leaf_height_stdev		units="m">	0.020		</leaf_height_stdev>			<!-- leaf height standard deviation				-->
+		<leaf_thickness_mean		units="m">	0.001		</leaf_thickness_mean>			<!-- mean leaf thickness 					-->
+		<leaf_thickness_stdev		units="m">	0.001		</leaf_thickness_stdev>			<!-- leaf thickness standard deviation				-->
+		<leaf_volume_fraction		units="none">	0.00025		</leaf_volume_fraction>			<!-- Fraction of crown volume occupied by leaves		-->
+		<leaf_number_factor		units="none">	30.0		</leaf_number_factor>			<!-- Factor to scale the number of leaves imaged 		-->
+		<leaf_moisture			units="none">	0.5500		</leaf_moisture>			<!-- gravimetric moisture content of leaves 0<Mg<0.7		-->
+	</deciduous>
+	<coniferous>													<!-- All fields MANDATORY if category defined in category_list 	-->
+		<crown_live_shape		units="none">	conical		</crown_live_shape>			<!-- shape of living crown (conical/spheroid/cylindrical)	-->
+		<crown_dry_shape		units="none">	cylindrical	</crown_dry_shape>			<!-- shape of dry crown (concial/spheroid/cylindrical/none)	-->
+		<crown_live_depth_factor	units="none">	1		</crown_live_depth_factor>		<!-- fraction of live crown depth at which crown radius is max.	-->  
+		<crown_dry_depth_factor		units="none">	1		</crown_dry_depth_factor>		<!-- fraction of dry crown depth at which crown radius is max.	-->  
+		<crown_live_alpha		units="none">	0.4693		</crown_live_alpha>			<!-- to est. live crown depth (unless forest primitives used)	-->  
+		<crown_dry_alpha		units="none">	0.4147		</crown_dry_alpha>			<!-- to est. dry crown depth (unless forest primitives used)	-->  
+		<crown_radius_factor		units="none">	0.4221		</crown_radius_factor>			<!-- to est. crown radius (unless forest primitives used)	-->  
+		<stem_start_radius_factor	units="none">	0.5721		</stem_start_radius_factor>		<!-- to est. stem start radius (unless forest primitives used)	-->  
+		<stem_maximum_polar_angle	units="deg">  	1.0		</stem_maximum_polar_angle>		<!-- maximum stem angle (from vertical) 			--> 
+		<stem_radius_end_factor		units="none">	0.5302		</stem_radius_end_factor>		<!-- factor to determine stem end radius as function of height	-->
+		<stem_tropism_factor		units="none">	0.1		</stem_tropism_factor>			<!-- factor to determine stem tropism or curvature		-->
+		<stem_lamdacx_stdev		units="none">	0.25		</stem_lamdacx_stdev>			<!-- std dev of stem curvature wavelength function in x-dim.	-->
+		<stem_lamdacx_mean		units="none">	0.75		</stem_lamdacx_mean>			<!-- mean of stem curvature wavelength function in x-dim.	-->
+		<stem_lamdacy_stdev		units="none">	0.25		</stem_lamdacy_stdev>			<!-- std dev of stem curvature wavelength function in y-dim.	-->
+		<stem_lamdacy_mean		units="none">	0.75		</stem_lamdacy_mean>			<!-- mean of stem curvature wavelength function in y-dim.	-->
+		<stem_gamma_stdev		units="none">	0.0025		</stem_gamma_stdev>			<!-- std dev of stem curvature scale-factor function 		-->
+		<stem_gamma_mean		units="none">	0.0075		</stem_gamma_mean>			<!-- mean of stem curvature scale-factor function		-->
+		<stem_moisture			units="none">	0.370		</stem_moisture>			<!-- gravimetric moisture content of stem 0<Mg<0.7		-->
+		<stem_tropism_polar_angle 	units="deg">	0.0		</stem_tropism_polar_angle>		<!-- Polar angle (theta) of the stem tropism direction 		-->
+		<stem_tropism_azimuth_angle	units="deg">	0.0		</stem_tropism_azimuth_angle>		<!-- Azimuthal angle (phi) of the stem tropism direction 	-->
+		<primary_polar_angle_mean	units="deg">  	81.75		</primary_polar_angle_mean>		<!-- Average primary branch polar angle (from vertical) 	--> 
+		<primary_polar_angle_stdev	units="deg">  	21.25		</primary_polar_angle_stdev>		<!-- Std. dev. of primary branch polar angle (from vertical) 	--> 
+		<primary_layer_density		units="none">  	4.015		</primary_layer_density>		<!-- Primary layer density per unit depth (of canopy)		--> 
+		<primary_sections		units="none">  	6		</primary_sections>			<!-- Average no. of sections per layer of primary branches	--> 
+		<primary_azimuth_factor		units="deg">  	90		</primary_azimuth_factor>		<!-- Azimuth angle std. factor for primary branches		--> 
+		<primary_radius_quadratic_coeff	units="none">  	-0.51523	</primary_radius_quadratic_coeff>	<!-- Quadratic parameter for the primary start radius function	--> 
+		<primary_radius_linear_coeff	units="none">  	0.53288		</primary_radius_linear_coeff>		<!-- Linear parameter for the primary start radius function	--> 
+		<primary_radius_constant_coeff	units="none">  	0.038638	</primary_radius_constant_coeff>	<!-- Constant parameter for the primary start radius function	--> 
+		<primary_tropism_factor		units="none">	0.3		</primary_tropism_factor>		<!-- factor to determine primary tropism 			-->
+		<primary_tropism_polar_angle 	units="deg">	0.0		</primary_tropism_polar_angle>		<!-- Polar angle (theta) of the primary tropism direction 	-->
+		<primary_tropism_azimuth_angle	units="deg">	0.0		</primary_tropism_azimuth_angle>	<!-- Azimuthal angle (phi) of the primary tropism direction 	-->
+		<primary_lamdacx_stdev		units="none">	0.25		</primary_lamdacx_stdev>		<!-- std dev of primary curvature wavelength function in x-dim.	-->
+		<primary_lamdacx_mean		units="none">	0.75		</primary_lamdacx_mean>			<!-- mean of primary curvature wavelength function in x-dim.	-->
+		<primary_lamdacy_stdev		units="none">	0.25		</primary_lamdacy_stdev>		<!-- std dev of primary curvature wavelength function in y-dim.	-->
+		<primary_lamdacy_mean		units="none">	0.75		</primary_lamdacy_mean>			<!-- mean of primary curvature wavelength function in y-dim.	-->
+		<primary_gamma_stdev		units="none">	0.0025		</primary_gamma_stdev>			<!-- std dev of primary curvature scale-factor function		-->
+		<primary_gamma_mean		units="none">	0.0075		</primary_gamma_mean>			<!-- mean of primary curvature scale-factor function		-->
+		<primary_live_moisture 		units="none">	0.424		</primary_live_moisture>		<!-- gravimetric moisture of live primary branches 0<Mg<0.7	-->
+		<primary_dry_moisture 		units="none">	0.100		</primary_dry_moisture>			<!-- gravimetric moisture of dry primary branches 0<Mg<0.7	-->
+		<primary_dry_layer_density	units="none">  	4.01		</primary_dry_layer_density>		<!-- Dry primary layer density per unit depth (of dry canopy)	--> 
+		<primary_dry_sections		units="none">  	4		</primary_dry_sections>			<!-- Number of sections per layer of dry primary branches	--> 
+		<secondary_number_intercept	units="none">	-4.26094	</secondary_number_intercept>		<!-- Intercept of function determining secondary branch numbers	--> 
+		<secondary_number_slope		units="none">	18.95864	</secondary_number_slope>		<!-- Slope of function determining secondary branch numbers	--> 
+		<secondary_offset_fraction	units="none">	0.08		</secondary_offset_fraction>		<!-- Fractional offset for the starting location of secondaries	--> 
+		<secondary_polar_angle_mean	units="deg">  	61.75		</secondary_polar_angle_mean>		<!-- Average secondary branch polar angle (from primary) 	--> 
+		<secondary_polar_angle_stdev	units="deg">  	12.65		</secondary_polar_angle_stdev>		<!-- Std. dev. of secondary branch polar angle (from primary) 	--> 
+		<secondary_radius_factor	units="none">  	0.5		</secondary_radius_factor>		<!-- Secondary start radius as a factor of the primary radius 	--> 
+		<secondary_tropism_factor	units="none">	0.6		</secondary_tropism_factor>		<!-- factor to determine secondary tropism 			-->
+		<secondary_tropism_polar_angle 	units="deg">	0.0		</secondary_tropism_polar_angle>	<!-- Polar angle (theta) of the secondary tropism direction 	-->
+		<secondary_tropism_azimuth_angle units="deg">	0.0		</secondary_tropism_azimuth_angle>	<!-- Azimuthal angle (phi) of the secondary tropism direction 	-->
+		<secondary_lamdacx_stdev	units="none">	0.25		</secondary_lamdacx_stdev>		<!-- std dev of secondary curvature wavelength function x-dim.	-->
+		<secondary_lamdacx_mean		units="none">	0.75		</secondary_lamdacx_mean>		<!-- mean of secondary curvature wavelength function in x-dim.	-->
+		<secondary_lamdacy_stdev	units="none">	0.25		</secondary_lamdacy_stdev>		<!-- std dev of secondary curvature wavelength function y-dim.	-->
+		<secondary_lamdacy_mean		units="none">	0.75		</secondary_lamdacy_mean>		<!-- mean of secondary curvature wavelength function in y-dim.	-->
+		<secondary_gamma_stdev		units="none">	0.025		</secondary_gamma_stdev>		<!-- std dev of secondary curvature scale-factor function	-->
+		<secondary_gamma_mean		units="none">	0.075		</secondary_gamma_mean>			<!-- mean of secondary curvature scale-factor function		-->
+		<tertiary_minimum_length	units="m">	0.0		</tertiary_minimum_length>		<!-- minimum length of tertiary branches			-->
+		<tertiary_minimum_radius	units="m">	0.0		</tertiary_minimum_radius>		<!-- minimum radius of tertiary branches			-->
+		<tertiary_volume_fraction	units="none">	0.001		</tertiary_volume_fraction>		<!-- Fraction of crown volume occupied by tertiary branches	-->
+		<tertiary_number_factor		units="none">	120.0		</tertiary_number_factor>		<!-- Factor to scale the number of tertiary branches imaged	-->
+		<tertiary_moisture		units="none">	0.4735		</tertiary_moisture>			<!-- gravimetric moisture of tertiary branches 0<Mg<0.7		-->
+		<leaf_shape			units="none">	needle		</leaf_shape>				<!-- shape of tree leaves (broadleaf/needle)			-->
+		<leaf_width_mean		units="m">	0.020		</leaf_width_mean>			<!-- mean leaf width 						-->
+		<leaf_width_stdev		units="m">	0.010		</leaf_width_stdev>			<!-- leaf width standard deviation				-->
+		<leaf_height_mean		units="m">	0.010		</leaf_height_mean>			<!-- mean leaf height 						-->
+		<leaf_height_stdev		units="m">	0.005		</leaf_height_stdev>			<!-- leaf height standard deviation				-->
+		<leaf_thickness_mean		units="m">	0.001		</leaf_thickness_mean>			<!-- mean leaf thickness 					-->
+		<leaf_thickness_stdev		units="m">	0.0005		</leaf_thickness_stdev>			<!-- leaf thickness standard deviation				-->
+		<leaf_volume_fraction		units="none">	0.00025		</leaf_volume_fraction>			<!-- Fraction of crown volume occupied by leaves		-->
+		<leaf_number_factor		units="none">	30.0		</leaf_number_factor>			<!-- Factor to scale the number of leaves imaged 		-->
+		<leaf_moisture			units="none">	0.5500		</leaf_moisture>			<!-- gravimetric moisture content of leaves 0<Mg<0.7		-->
+	</coniferous>
+	<ACRU>
+		<category			units="none">	deciduous	</category>				<!-- MANDATORY category of trees (unused if all fields defined)	-->
+	</ACRU>
+	<PIRE>
+		<category			units="none">	coniferous	</category>				<!-- MANDATORY category of trees (unused if all fields defined)	-->
+	</PIRE>
+	<TSCA>
+		<category			units="none">	coniferous	</category>				<!-- MANDATORY category of trees (unused if all fields defined)	-->
+		<crown_live_shape		units="none">	spheroid	</crown_live_shape>			<!-- shape of living crown (conical/spheroid/cylindrical)	-->
+	</TSCA>
+	<BEPA>
+		<category			units="none">	deciduous	</category>				<!-- MANDATORY category of trees (unused if all fields defined)	-->
+	</BEPA>
+	<ACSA>
+		<category			units="none">	deciduous	</category>				<!-- MANDATORY category of trees (unused if all fields defined)	-->
+	</ACSA>
+	<BEAL>
+		<category			units="none">	deciduous	</category>				<!-- MANDATORY category of trees (unused if all fields defined)	-->
+	</BEAL>
+	<BELE>
+		<category			units="none">	deciduous	</category>				<!-- MANDATORY category of trees (unused if all fields defined)	-->
+	</BELE>
+	<BEPO>
+		<category			units="none">	deciduous	</category>				<!-- MANDATORY category of trees (unused if all fields defined)	-->
+	</BEPO>
+	<FAGR>
+		<category			units="none">	deciduous	</category>				<!-- MANDATORY category of trees (unused if all fields defined)	-->
+	</FAGR>
+	<OSVI>
+		<category			units="none">	deciduous	</category>				<!-- MANDATORY category of trees (unused if all fields defined)	-->
+	</OSVI>
+	<PIRU>
+		<category			units="none">	coniferous	</category>				<!-- MANDATORY category of trees (unused if all fields defined)	-->
+		<crown_live_shape		units="none">	spheroid	</crown_live_shape>			<!-- shape of living crown (conical/spheroid/cylindrical)	-->
+	</PIRU>
+	<PIST>
+		<category			units="none">	coniferous	</category>				<!-- MANDATORY category of trees (unused if all fields defined)	-->
+	</PIST>
+	<PRSE>
+		<category			units="none">	deciduous 	</category>				<!-- MANDATORY category of trees (unused if all fields defined)	-->
+	</PRSE>
+	<QUAL>
+		<category			units="none">	deciduous	</category>				<!-- MANDATORY category of trees (unused if all fields defined)	-->
+	</QUAL>
+	<QURU>
+		<category			units="none">	deciduous	</category>				<!-- MANDATORY category of trees (unused if all fields defined)	-->
+	</QURU>
+	<SNAG>
+		<category			units="none">	deciduous	</category>				<!-- MANDATORY category of trees (unused if all fields defined)	-->
+	</SNAG>
+	<ACPE>
+		<category			units="none">	deciduous	</category>				<!-- MANDATORY category of trees (unused if all fields defined)	-->
+	</ACPE>
+	<HEDGE>
+		<category			units="none">	deciduous 	</category>				<!-- MANDATORY category of trees (unused if all fields defined)	-->
+		<crown_live_shape		units="none">	cylindrical	</crown_live_shape>			<!-- shape of living crown (conical/spheroid/cylindrical)	-->
+		<crown_live_depth_factor	units="none">	1		</crown_live_depth_factor>		<!-- fraction of live crown depth at which crown radius is max.	-->  
+		<stem_maximum_polar_angle	units="deg">  	1.0		</stem_maximum_polar_angle>		<!-- maximum stem angle (from vertical) 			--> 
+		<primary_dry_layer_density	units="none">  	0.00		</primary_dry_layer_density>		<!-- Dry primary layer density per unit depth (of dry canopy)	--> 
+		<primary_dry_sections		units="none">  	0		</primary_dry_sections>			<!-- Number of sections per layer of dry primary branches	--> 
+		<secondary_number_intercept	units="none">	0.0		</secondary_number_intercept>		<!-- Intercept of function determining secondary branch numbers	--> 
+		<secondary_number_slope		units="none">	0.0		</secondary_number_slope>		<!-- Slope of function determining secondary branch numbers	--> 
+		<tertiary_minimum_length	units="m">	0.5		</tertiary_minimum_length>		<!-- minimum length of tertiary branches			-->
+		<tertiary_minimum_radius	units="m">	0.011		</tertiary_minimum_radius>		<!-- minimum radius of tertiary branches			-->
+		<tertiary_volume_fraction	units="none">	0.004		</tertiary_volume_fraction>		<!-- Fraction of crown volume occupied by tertiary branches	-->
+		<tertiary_number_factor		units="none">	120.0		</tertiary_number_factor>		<!-- Factor to scale the number of tertiary branches imaged	-->
+		<leaf_width_mean		units="m">	0.090		</leaf_width_mean>			<!-- mean leaf width 						-->
+		<leaf_width_stdev		units="m">	0.010		</leaf_width_stdev>			<!-- leaf width standard deviation				-->
+		<leaf_height_mean		units="m">	0.090		</leaf_height_mean>			<!-- mean leaf height 						-->
+		<leaf_height_stdev		units="m">	0.040		</leaf_height_stdev>			<!-- leaf height standard deviation				-->
+		<leaf_thickness_mean		units="m">	0.001		</leaf_thickness_mean>			<!-- mean leaf thickness 					-->
+		<leaf_thickness_stdev		units="m">	0.0005		</leaf_thickness_stdev>			<!-- leaf thickness standard deviation				-->
+		<leaf_volume_fraction		units="none">	0.000125	</leaf_volume_fraction>			<!-- Fraction of crown volume occupied by leaves		-->
+		<leaf_number_factor		units="none">	30.0		</leaf_number_factor>			<!-- Factor to scale the number of leaves imaged 		-->
+		<leaf_moisture			units="none">	0.5500		</leaf_moisture>			<!-- gravimetric moisture content of leaves 0<Mg<0.7		-->
+	</HEDGE>
+</allometry>
