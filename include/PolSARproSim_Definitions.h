@@ -413,6 +413,8 @@
 /***************************************************/
 /* Temporal Decorrelation Model                    */
 /***************************************************/
+#define  CHANGE_REFERENCE_GROUND             0        /* use ground as reference height for change models */
+#define  CHANGE_REFERENCE_CANOPY             1        /* use canopy bottom as reference height for change models */
 #define  CHANGE_MODEL_NONE                   0        /* model type none - no changes */
 #define  CHANGE_MODEL_POLYNOMIAL             1        /* polynomial, i.e change = A * h.^2 + B * h + C */
 #define  CHANGE_MODEL_EXPONENTIAL            2        /* exponential, i.e. change = A * exp(B * h) + C */
@@ -420,7 +422,7 @@
 #define  CHANGE_HEIGHT_DELTA                 2.0      /* if branch grows taller than this delta, recompute change parameters */
 #define  CHANGE_MOISTURE_MIN                 0.0      /* minimum value of the gravimetric moisture content */
 #define  CHANGE_MOISTURE_MAX                 0.7      /* maximum value of the gravimetric moisture content, (see Ulaby, El-Rayes 1987) */
-#define  CHANGE_MOISTURE_STDEV_FACTOR        0.1     /* stdev of applied moisture change = (mean applied offset ) * this factor */
+#define  CHANGE_MOISTURE_STDEV_FACTOR        0.1      /* stdev of applied moisture change = (mean applied offset ) * this factor */
 /**********************************************/
 /* PARAMETER FILE MIN/MAX/DEFAULTS            */
 /**********************************************/
@@ -499,6 +501,10 @@
 #define  CHANGE_MODEL_TYPE_MIN         0              /* no change */
 #define  CHANGE_MODEL_TYPE_MAX         2              /* 1 = polynomial, 2 = exponential etc... */
 #define  CHANGE_MODEL_TYPE_DEFAULT     0              /* no change by default */
+
+#define  CHANGE_REFERENCE_TYPE_MIN     CHANGE_REFERENCE_GROUND              /* ground reference height */
+#define  CHANGE_REFERENCE_TYPE_MAX     CHANGE_REFERENCE_CANOPY              /* canopy bottom as reference height */
+#define  CHANGE_REFERENCE_TYPE_DEF     CHANGE_REFERENCE_GROUND              /* ground reference by default */
 
 #define  ENABLE_FAST_MODE_MIN          0              
 #define  ENABLE_FAST_MODE_MAX          1              

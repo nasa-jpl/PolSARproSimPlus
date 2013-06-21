@@ -806,6 +806,7 @@ void	drawTree	(Tree *pT, Graphic_Record *pGR, SIM_Record *pZb, Drawing_Record *p
          pB	= pB->next;
       }
    }
+   
    /*****************************/
    /* Draw the living primaries */
    /*****************************/
@@ -942,16 +943,16 @@ void	drawTree	(Tree *pT, Graphic_Record *pGR, SIM_Record *pZb, Drawing_Record *p
             b1	= Branch_Centre (pB, t1);
             z	= d3Vector_difference (b1, b0);
             branch_section_length	= z.r;
-            d3Vector_insitu_normalise (&z);
+            if(&z != NULL) d3Vector_insitu_normalise (&z);
             if (fabs(1.0-fabs(d3Vector_scalar_product (z, zg))) < FLT_EPSILON) {
                x	= Cartesian_Assign_d3Vector (1.0, 0.0, 0.0);
                y	= Cartesian_Assign_d3Vector (0.0, 1.0, 0.0);
             } else {
                x	= d3Vector_cross_product (zg, z);
-               d3Vector_insitu_normalise (&x);
+               if(&x != NULL) d3Vector_insitu_normalise (&x);
                y	= d3Vector_cross_product (x, z);
             }
-            for (i_azimuth = 0; i_azimuth < Nazimuth; i_azimuth++) {
+            for (i_azimuth = 0; i_azimuth < Nazimuth-1; i_azimuth++) {
                theta0		= i_azimuth * dtheta;
                theta1		= theta0 + dtheta;
                costheta0	= rn*cos(theta0);
@@ -1005,6 +1006,7 @@ void	drawTree	(Tree *pT, Graphic_Record *pGR, SIM_Record *pZb, Drawing_Record *p
          pB	= pB->next;
       }
    }
+   
 #endif
    
    /************************/
@@ -1830,7 +1832,6 @@ void		Forest_Graphic					(PolSARproSim_Record *pPR)
    Create_Tree (&tree1);
    for (itree=0; itree<pPR->Trees; itree++) {
       Realise_Tree	(&tree1, itree, pPR);
-      //printf("Realised the Tree %d, %d\n", itree, tree1.species);
       drawTree		(&tree1, &Forest_Image, &Zbuffer, &dRec);
    }
    Destroy_Tree (&tree1);

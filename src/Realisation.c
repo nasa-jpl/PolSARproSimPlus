@@ -64,6 +64,8 @@ void		Realise_Crown (Tree *pT, PolSARproSim_Record *pPR)
    double      d3;      /* truncation length of crown    */
    double      live_crown_depth_factor; /* canopy depth factor      */
    double      dry_crown_depth_factor;
+   double      dry_crown_offset_factor;
+   double      offset;
    d3Vector    base;    /* location of crown base */
    d3Vector    axis;    /* crown axis */
    
@@ -75,7 +77,7 @@ void		Realise_Crown (Tree *pT, PolSARproSim_Record *pPR)
    dry_crown_shape         = pPR->SpeciesDataBase[pT->species].dry_crown_shape;  /* shape of dry crown   */
    live_crown_depth_factor = pPR->SpeciesDataBase[pT->species].live_crown_depth_factor; /* cdf * depth = height of max radius */
    dry_crown_depth_factor  = pPR->SpeciesDataBase[pT->species].dry_crown_depth_factor; /* cdf * depth = height of max radius */
-
+   dry_crown_offset_factor = pPR->SpeciesDataBase[pT->species].dry_crown_offset_factor; /* 0 = begin at end of dry crown, 1 = sit on the ground */
    /* determine the axis of the stem */
    axis  = Stem_Direction (pT, pPR);
 
@@ -133,6 +135,9 @@ void		Realise_Crown (Tree *pT, PolSARproSim_Record *pPR)
    d2		= e*sin(beta);
    
    base              = d3Vector_sum (pT->base, d3Vector_double_multiply (axis, pT->height-c.d3-d3));
+   /* compute the offset for dry crown */
+   offset            = dry_crown_offset_factor * (base.x[2] - pT->base.x[2]);
+   base.x[2]         = base.x[2] - offset;
    Assign_Crown		(&c, dry_crown_shape, beta, d1, d2, d3, base, axis, pPR->slope_x, pPR->slope_y);
 
    /* if crown shape is valid, add this crown to the tail of the list */
@@ -273,9 +278,9 @@ void		Realise_Primaries	(Tree *pT, PolSARproSim_Record *pPR)
       t1          = t0 + pC->d3/pT->height;
 
       /* read polar angle statistics from species database */
-      theta_avg   = DEG_TO_RAD * pPR->SpeciesDataBase[pT->species].primary_avg_polar_angle; 
-      theta_dlt   = DEG_TO_RAD * pPR->SpeciesDataBase[pT->species].primary_std_polar_angle;
-      theta       = theta_avg + theta_dlt; //basically the primary maximum polar angle so I don't have to code extra parameters
+      theta_avg   = DEG_TO_RAD * pPR->SpeciesDataBase[pT->species].primary_dry_avg_polar_angle; 
+      theta_dlt   = DEG_TO_RAD * pPR->SpeciesDataBase[pT->species].primary_dry_std_polar_angle;
+      //theta       = theta_avg + theta_dlt; //basically the primary maximum polar angle so I don't have to code extra parameters
  
       
       /* calculate the number of layers based on layer density */
@@ -298,6 +303,8 @@ void		Realise_Primaries	(Tree *pT, PolSARproSim_Record *pPR)
          for (i_section=0; i_section<Nsections; i_section++) {
             tb             = t0 + (i_layer+1)*delta_t - drand()*delta_t;
             b0             = Branch_Centre (pT->Stem.head, tb);
+            theta          = theta_avg;
+            theta          += (tbar-tb)*theta_dlt/(tbar-t0);
             phi            = i_section*delta_phi + delta_phi/2.0;
             //phi          += POLSARPROSIM_PINE001_PRIMARY_AZIMUTH_FACTOR*delta_phi*(drand()-0.5);
             phi            += az_factor*delta_phi*(drand()-0.5);

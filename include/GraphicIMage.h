@@ -96,9 +96,9 @@ void			putGraphicpixel_periodic_alphab		(Graphic_Record *pGR, graphic_pixel p, i
 /* BITMAP image format output */
 /******************************/
 
-#ifndef _WIN32
-#define			GRI_SWAP_BMP
-#endif
+//#ifndef _WIN32
+//#define			GRI_SWAP_BMP
+//#endif
 
 void			Write_GRIasRGBbmp					(const char *s, Graphic_Record *pGR);
 

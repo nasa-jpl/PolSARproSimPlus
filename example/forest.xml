@@ -2,18 +2,18 @@
 <?xml-stylesheet type="text/xsl" href="forest.xsl"?>
 <forest>
 	<meta>
-		<num_trees	units="none">	     1214	</num_trees>		<!-- The total number of trees in this file			-->
+		<num_trees	units="none">	    1214	</num_trees>		<!-- The total number of trees in this file			-->
 		<biome		units="none">	temperate	</biome>		<!-- The biome this forest belongs to				-->
 		<area		units="ha">	   1.0000	</area>			<!-- The total area of the forest 				-->
 	</meta>
 	<tree>
-		<species	units="none">	     PIRE	</species>		<!-- (see allometry file)					-->
+		<species	units="none">	     QURU	</species>		<!-- (see allometry file)					-->
 		<x_location	units="meters">	   1.1400	</x_location>		<!-- X-axis location of tree, scene center is 0.00		-->
 		<y_location	units="meters">	   1.0000	</y_location>		<!-- Y-axis location of tree, scene center is 0.00		-->
-		<tree_height	units="meters">	  10.0000	</tree_height>		<!-- Vertical extent from tree base to canopy top		-->
+		<tree_height	units="meters">	  15.0000	</tree_height>		<!-- Vertical extent from tree base to canopy top		-->
 		<canopy_radius	units="meters">	   2.2990	</canopy_radius>	<!-- The largest horizontal radius of the canopy		-->
-		<canopy_depth	units="meters">	   5.8240	</canopy_depth>		<!-- The depth of the live part of the canopy			-->
-		<dry_depth	units="meters">	   0.8320	</dry_depth>		<!-- The depth of the dry part of the canopy			-->
+		<canopy_depth	units="meters">	   6.8240	</canopy_depth>		<!-- The depth of the live part of the canopy			-->
+		<dry_depth	units="meters">	   4.8320	</dry_depth>		<!-- The depth of the dry part of the canopy			-->
 		<stem_diameter	units="meters">	   0.3734	</stem_diameter>	<!-- Diameter of trunk at breast height (dbh)			-->
 	</tree>
 	<tree>
@@ -27,13 +27,13 @@
 		<stem_diameter	units="meters">	   0.2352	</stem_diameter>	<!-- Diameter of trunk at breast height (dbh)			-->
 	</tree>
 	<tree>
-		<species	units="none">	     PIRE	</species>		<!-- (see allometry file)					-->
+		<species	units="none">	     RHMA	</species>		<!-- (see allometry file)					-->
 		<x_location	units="meters">	   7.8400	</x_location>		<!-- X-axis location of tree, scene center is 0.00		-->
 		<y_location	units="meters">	   2.0000	</y_location>		<!-- Y-axis location of tree, scene center is 0.00		-->
 		<tree_height	units="meters">	  24.0900	</tree_height>		<!-- Vertical extent from tree base to canopy top		-->
 		<canopy_radius	units="meters">	   3.8770	</canopy_radius>	<!-- The largest horizontal radius of the canopy		-->
 		<canopy_depth	units="meters">	  14.0990	</canopy_depth>		<!-- The depth of the live part of the canopy			-->
-		<dry_depth	units="meters">	   2.0141	</dry_depth>		<!-- The depth of the dry part of the canopy			-->
+		<dry_depth	units="meters">	   6.0141	</dry_depth>		<!-- The depth of the dry part of the canopy			-->
 		<stem_diameter	units="meters">	   0.2243	</stem_diameter>	<!-- Diameter of trunk at breast height (dbh)			-->
 	</tree>
 	<tree>

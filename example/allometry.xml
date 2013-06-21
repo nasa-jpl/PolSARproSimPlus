@@ -2,23 +2,24 @@
 <allometry>
 	<species_list>													<!-- MANDATORY list of species					-->
 		<name				units="none">	HEDGE		</name>					<!-- 0: The hedge						-->
-		<name				units="none">	TSCA		</name>					<!-- 1: Tsuga Canadensis, Eastern Hemlock			-->
-		<name				units="none">	PIRE		</name>					<!-- 2: Pinus Resinosa, Red Pine				-->
-		<name				units="none">	BEPA		</name>					<!-- 3: Betula Papyrifera, Paper/White Birch			-->
-		<name				units="none">	ACRU		</name>					<!-- 4: Acer Rubrum, Red Maple					-->
-		<name				units="none">	ACSA		</name>					<!-- 5: Acer Saccarum, Sugar Maple				-->
-		<name				units="none">	ACPE		</name>					<!-- 6: Acer Pennsylvanicum, Striped Maple			-->
-		<name				units="none">	BEAL		</name>					<!-- 7: Betula Alleghensis,  Yellow Birch			-->
-		<name				units="none">	BELE		</name>					<!-- 8: Betula Lenta, Black Birch 				-->
-		<name				units="none">	BEPO		</name>					<!-- 9: Betula Populifolia, Grey Birch				-->
-		<name				units="none">	FAGR		</name>					<!-- 10: Fagus Grandifolia, American Beach			-->
-		<name				units="none">	OSVI		</name>					<!-- 11: Ostrya Virginiana, Hophornbeam				-->
-		<name				units="none">	PIRU		</name>					<!-- 12: Picea Rubens, Red Spruce  				-->
-		<name				units="none">	PIST		</name>					<!-- 13: Pinus Strobus, White Pine 				-->
-		<name				units="none">	PRSE		</name>					<!-- 14: Prunus Serotina, Black Cherry				-->
-		<name				units="none">	QUAL		</name>					<!-- 15: Quercus Alba, White Oak   				-->
-		<name				units="none">	QURU		</name>					<!-- 16: Quercus Rubra, Red Oak    				-->
+		<name				units="none">	TSCA		</name>					<!-- 1: Tsuga canadensis, Eastern Hemlock			-->
+		<name				units="none">	PIRE		</name>					<!-- 2: Pinus resinosa, Red Pine				-->
+		<name				units="none">	BEPA		</name>					<!-- 3: Betula papyrifera, Paper/White Birch			-->
+		<name				units="none">	ACRU		</name>					<!-- 4: Acer rubrum, Red Maple					-->
+		<name				units="none">	ACSA		</name>					<!-- 5: Acer saccarum, Sugar Maple				-->
+		<name				units="none">	ACPE		</name>					<!-- 6: Acer pennsylvanicum, Striped Maple			-->
+		<name				units="none">	BEAL		</name>					<!-- 7: Betula alleghensis,  Yellow Birch			-->
+		<name				units="none">	BELE		</name>					<!-- 8: Betula lenta, Black Birch 				-->
+		<name				units="none">	BEPO		</name>					<!-- 9: Betula populifolia, Grey Birch				-->
+		<name				units="none">	FAGR		</name>					<!-- 10: Fagus grandifolia, American Beach			-->
+		<name				units="none">	OSVI		</name>					<!-- 11: Ostrya virginiana, Hophornbeam				-->
+		<name				units="none">	PIRU		</name>					<!-- 12: Picea rubens, Red Spruce  				-->
+		<name				units="none">	PIST		</name>					<!-- 13: Pinus strobus, White Pine 				-->
+		<name				units="none">	PRSE		</name>					<!-- 14: Prunus serotina, Black Cherry				-->
+		<name				units="none">	QUAL		</name>					<!-- 15: Quercus alba, White Oak   				-->
+		<name				units="none">	QURU		</name>					<!-- 16: Quercus rubra, Red Oak    				-->
 		<name				units="none">	SNAG		</name>					<!-- 17: Unknown snaggy stuff					-->
+		<name				units="none">	RHMA		</name>					<!-- 17: Rhizophora mangle, Red Mangrove			-->
 	</species_list>
 	<category_list>													<!-- MANDATORY list of categories				-->
 		<name				units="none">	deciduous	</name>					<!-- Broadleaf, deciduous trees					-->
@@ -29,6 +30,7 @@
 		<crown_dry_shape		units="none">	none		</crown_dry_shape>			<!-- shape of dry crown (concial/spheroid/cylindrical/none)	-->
 		<crown_live_depth_factor	units="none">	0.5		</crown_live_depth_factor>		<!-- fraction of live crown depth at which crown radius is max.	-->  
 		<crown_dry_depth_factor		units="none">	0.5		</crown_dry_depth_factor>		<!-- fraction of dry crown depth at which crown radius is max.	-->  
+		<crown_dry_offset_factor	units="none">	0		</crown_dry_offset_factor>		<!-- offset dry crown from live by a fraction of the bare stem.	-->  
 		<crown_live_alpha		units="none">	0.410		</crown_live_alpha>			<!-- to est. live crown depth (unless forest primitives used)	-->  
 		<crown_dry_alpha		units="none">	0.000		</crown_dry_alpha>			<!-- to est. dry crown depth (unless forest primitives used)	-->  
 		<crown_radius_factor		units="none">	0.410		</crown_radius_factor>			<!-- to est. crown radius (unless forest primitives used)	-->  
@@ -47,8 +49,8 @@
 		<stem_tropism_azimuth_angle	units="deg">	0.0		</stem_tropism_azimuth_angle>		<!-- Azimuthal angle (phi) of the stem tropism direction 	-->
 		<primary_polar_angle_mean	units="deg">  	50.0		</primary_polar_angle_mean>		<!-- Average primary branch polar angle (from vertical) 	--> 
 		<primary_polar_angle_stdev	units="deg">  	25.0		</primary_polar_angle_stdev>		<!-- Std. dev. of primary branch polar angle (from vertical) 	--> 
-		<primary_layer_density		units="none">  	1.01		</primary_layer_density>		<!-- Primary layer density per unit depth (of canopy)		--> 
-		<primary_sections		units="none">  	1		</primary_sections>			<!-- Average no. of sections per layer of primary branches	--> 
+		<primary_layer_density		units="none">  	2.01		</primary_layer_density>		<!-- Primary layer density per unit depth (of canopy)		--> 
+		<primary_sections		units="none">  	2		</primary_sections>			<!-- Average no. of sections per layer of primary branches	--> 
 		<primary_azimuth_factor		units="deg">  	90		</primary_azimuth_factor>		<!-- Azimuth angle std. factor for primary branches		--> 
 		<primary_radius_quadratic_coeff	units="none">  	0.0		</primary_radius_quadratic_coeff>	<!-- Quadratic parameter for the primary start radius function	--> 
 		<primary_radius_linear_coeff	units="none">  	-0.3465		</primary_radius_linear_coeff>		<!-- Linear parameter for the primary start radius function	--> 
@@ -60,12 +62,14 @@
 		<primary_lamdacx_mean		units="none">	0.75		</primary_lamdacx_mean>			<!-- mean of primary curvature wavelength function in x-dim.	-->
 		<primary_lamdacy_stdev		units="none">	0.25		</primary_lamdacy_stdev>		<!-- std dev of primary curvature wavelength function in y-dim.	-->
 		<primary_lamdacy_mean		units="none">	0.75		</primary_lamdacy_mean>			<!-- mean of primary curvature wavelength function in y-dim.	-->
-		<primary_gamma_stdev		units="none">	0.0025		</primary_gamma_stdev>			<!-- std dev of primary curvature scale-factor function		-->
-		<primary_gamma_mean		units="none">	0.0075		</primary_gamma_mean>			<!-- mean of primary curvature scale-factor function		-->
+		<primary_gamma_stdev		units="none">	0.025		</primary_gamma_stdev>			<!-- std dev of primary curvature scale-factor function		-->
+		<primary_gamma_mean		units="none">	0.075		</primary_gamma_mean>			<!-- mean of primary curvature scale-factor function		-->
 		<primary_live_moisture 		units="none">	0.424		</primary_live_moisture>		<!-- gravimetric moisture of live primary branches 0<Mg<0.7	-->
 		<primary_dry_moisture 		units="none">	0.100		</primary_dry_moisture>			<!-- gravimetric moisture of dry primary branches 0<Mg<0.7	-->
 		<primary_dry_layer_density	units="none">  	0.00		</primary_dry_layer_density>		<!-- Dry primary layer density per unit depth (of dry canopy)	--> 
 		<primary_dry_sections		units="none">  	0		</primary_dry_sections>			<!-- Number of sections per layer of dry primary branches	--> 
+		<primary_dry_polar_angle_mean	units="deg">  	50.0		</primary_dry_polar_angle_mean>		<!-- Average dry primary branch polar angle (from vertical) 	--> 
+		<primary_dry_polar_angle_stdev	units="deg">  	25.0		</primary_dry_polar_angle_stdev>	<!-- Stdev of dry primary branch polar angle (from vertical) 	--> 
 		<secondary_number_intercept	units="none">	0		</secondary_number_intercept>		<!-- Intercept of function determining secondary branch numbers	--> 
 		<secondary_number_slope		units="none">	1.045		</secondary_number_slope>		<!-- Slope of function determining secondary branch numbers	--> 
 		<secondary_offset_fraction	units="none">	0.35		</secondary_offset_fraction>		<!-- Fractional offset for the starting location of secondaries	--> 
@@ -102,6 +106,7 @@
 		<crown_dry_shape		units="none">	cylindrical	</crown_dry_shape>			<!-- shape of dry crown (concial/spheroid/cylindrical/none)	-->
 		<crown_live_depth_factor	units="none">	1		</crown_live_depth_factor>		<!-- fraction of live crown depth at which crown radius is max.	-->  
 		<crown_dry_depth_factor		units="none">	1		</crown_dry_depth_factor>		<!-- fraction of dry crown depth at which crown radius is max.	-->  
+		<crown_dry_offset_factor	units="none">	0		</crown_dry_offset_factor>		<!-- offset dry crown from live by a fraction of the bare stem.	-->  
 		<crown_live_alpha		units="none">	0.4693		</crown_live_alpha>			<!-- to est. live crown depth (unless forest primitives used)	-->  
 		<crown_dry_alpha		units="none">	0.4147		</crown_dry_alpha>			<!-- to est. dry crown depth (unless forest primitives used)	-->  
 		<crown_radius_factor		units="none">	0.4221		</crown_radius_factor>			<!-- to est. crown radius (unless forest primitives used)	-->  
@@ -139,6 +144,8 @@
 		<primary_dry_moisture 		units="none">	0.100		</primary_dry_moisture>			<!-- gravimetric moisture of dry primary branches 0<Mg<0.7	-->
 		<primary_dry_layer_density	units="none">  	4.01		</primary_dry_layer_density>		<!-- Dry primary layer density per unit depth (of dry canopy)	--> 
 		<primary_dry_sections		units="none">  	4		</primary_dry_sections>			<!-- Number of sections per layer of dry primary branches	--> 
+		<primary_dry_polar_angle_mean	units="deg">  	50.0		</primary_dry_polar_angle_mean>		<!-- Average dry primary branch polar angle (from vertical) 	--> 
+		<primary_dry_polar_angle_stdev	units="deg">  	25.0		</primary_dry_polar_angle_stdev>	<!-- Stdev of dry primary branch polar angle (from vertical) 	--> 
 		<secondary_number_intercept	units="none">	-4.26094	</secondary_number_intercept>		<!-- Intercept of function determining secondary branch numbers	--> 
 		<secondary_number_slope		units="none">	18.95864	</secondary_number_slope>		<!-- Slope of function determining secondary branch numbers	--> 
 		<secondary_offset_fraction	units="none">	0.08		</secondary_offset_fraction>		<!-- Fractional offset for the starting location of secondaries	--> 
@@ -246,4 +253,17 @@
 		<leaf_number_factor		units="none">	30.0		</leaf_number_factor>			<!-- Factor to scale the number of leaves imaged 		-->
 		<leaf_moisture			units="none">	0.5500		</leaf_moisture>			<!-- gravimetric moisture content of leaves 0<Mg<0.7		-->
 	</HEDGE>
+	<RHMA>
+		<category			units="none">	deciduous	</category>				<!-- MANDATORY category of trees (unused if all fields defined)	-->
+		<crown_dry_shape		units="none">	spheroid	</crown_dry_shape>			<!-- shape of dry crown (concial/spheroid/cylindrical/none)	-->
+		<crown_dry_depth_factor		units="none">	1		</crown_dry_depth_factor>		<!-- fraction of dry crown depth at which crown radius is max.	-->  
+		<crown_dry_offset_factor	units="none">	1		</crown_dry_offset_factor>		<!-- offset dry crown from live by a fraction of the bare stem.	-->  
+		<primary_layer_density		units="none">  	3.015		</primary_layer_density>		<!-- Primary layer density per unit depth (of canopy)		--> 
+		<primary_sections		units="none">  	4		</primary_sections>			<!-- Average no. of sections per layer of primary branches	--> 
+		<primary_dry_moisture 		units="none">	0.300		</primary_dry_moisture>			<!-- gravimetric moisture of dry primary branches 0<Mg<0.7	-->
+		<primary_dry_layer_density	units="none">  	3.00		</primary_dry_layer_density>		<!-- Dry primary layer density per unit depth (of dry canopy)	--> 
+		<primary_dry_sections		units="none">  	3		</primary_dry_sections>			<!-- Number of sections per layer of dry primary branches	--> 
+		<primary_dry_polar_angle_mean	units="deg">  	135.0		</primary_dry_polar_angle_mean>		<!-- Average dry primary branch polar angle (from vertical) 	--> 
+		<primary_dry_polar_angle_stdev	units="deg">  	25.0		</primary_dry_polar_angle_stdev>	<!-- Stdev of dry primary branch polar angle (from vertical) 	--> 
+	</RHMA>
 </allometry>

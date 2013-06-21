@@ -865,7 +865,8 @@ int		Input_PolSARproSim_Record		(const char *filename, PolSARproSim_Record *pPR)
    if(pPR->ForestInput_Flag != EXTERNAL_FOREST_DEFINITION){
       read_string (pInputFile,   "forest_output",              pPR->ForestOutput);                                                                    /* Read the filename from parameter file */
    }
-
+   
+   read_integer   (pInputFile,   "change_height_reference",           &(pPR->Change_Height_Reference), CHANGE_REFERENCE_TYPE_MIN, CHANGE_REFERENCE_TYPE_MAX, CHANGE_REFERENCE_TYPE_DEF); /* which height to use as reference */
    /******************************************************************************************/
    /* Read in track dependent temporal change parameters for modeling temporal decorrelation */
    /******************************************************************************************/
@@ -7191,7 +7192,7 @@ void		Add_Thermal_Noise		(PolSARproSim_Record *pPR)
    Complex        cs, noise;
    int            track;
    double         noise_amp[4];
-   double         min_noise_amp = pow(10, (NOISE_POWER_MIN/20));
+   double         min_noise_amp = -pow(10, (NOISE_POWER_MAX/20));//pow(10, (NOISE_POWER_MIN/20));
    double         max_noise_amp = pow(10, (NOISE_POWER_MAX/20));
    double         noise_real, noise_imag;
 

@@ -46,6 +46,7 @@ void getSpeciesData (xmlDocPtr doc, xmlNodePtr cur, PolSARproSim_Record *pPR, in
    int      dry_crown_shape            = CROWN_NULL_SHAPE;
    double   live_crown_depth_factor    = 1;
    double   dry_crown_depth_factor     = 1;
+   double   dry_crown_offset_factor    = 0;
    double   crown_live_alpha           = 0.4693;
    double   crown_dry_alpha            = 0.4147;
    double   crown_radius_factor        = 0.4221;
@@ -83,6 +84,8 @@ void getSpeciesData (xmlDocPtr doc, xmlNodePtr cur, PolSARproSim_Record *pPR, in
    double   primary_dry_moisture       = 0.100;
    double   primary_dry_density        = 4.015;
    int      primary_dry_sections       = 4;
+   double   primary_dry_avg_polar_angle= 90.0;
+   double   primary_dry_std_polar_angle= 10.0;
    double   secondary_number_intercept = -4.26094;
    double   secondary_number_slope     = 18.95864;
    double   secondary_offset_fraction  = 0.08;
@@ -120,6 +123,7 @@ void getSpeciesData (xmlDocPtr doc, xmlNodePtr cur, PolSARproSim_Record *pPR, in
    int      dry_crown_shape_errflag             = XML_READ_ERROR;
    int      lcrown_depthfactor_errflag          = XML_READ_ERROR;
    int      dcrown_depthfactor_errflag          = XML_READ_ERROR;
+   int      dcrown_offsetfactor_errflag         = XML_READ_ERROR;
    int      crown_live_alpha_errflag            = XML_READ_ERROR;
    int      crown_dry_alpha_errflag             = XML_READ_ERROR;
    int      crown_radius_factor_errflag         = XML_READ_ERROR;
@@ -157,6 +161,8 @@ void getSpeciesData (xmlDocPtr doc, xmlNodePtr cur, PolSARproSim_Record *pPR, in
    int      primary_dry_moisture_errflag        = XML_READ_ERROR;
    int      primary_dry_density_errflag         = XML_READ_ERROR;
    int      primary_dry_sections_errflag        = XML_READ_ERROR;
+   int      primary_dry_avg_polar_angle_errflag = XML_READ_ERROR;
+   int      primary_dry_std_polar_angle_errflag = XML_READ_ERROR;
    int      secondary_number_intercept_errflag  = XML_READ_ERROR;
    int      secondary_number_slope_errflag      = XML_READ_ERROR;
    int      secondary_offset_fraction_errflag   = XML_READ_ERROR;
@@ -252,6 +258,16 @@ void getSpeciesData (xmlDocPtr doc, xmlNodePtr cur, PolSARproSim_Record *pPR, in
          dry_crown_depth_factor = (double) atof((const char*)key);
          if(dry_crown_depth_factor > MAX_DRY_CROWN_DEPTH_FACTOR || dry_crown_depth_factor < MIN_DRY_CROWN_DEPTH_FACTOR){
             dcrown_depthfactor_errflag = XML_READ_ERROR;
+         }
+         xmlFree(key);
+      }
+      /* look for dry crown offset factor, this will offset the dry crown from the live crown, 0 means it abuts the live crown, 1 means it sits on the ground */
+      if ((!xmlStrcmp(cur->name, (const xmlChar *)DRY_CROWN_OFFSET_FACTOR_XMLTAG))) {
+         dcrown_offsetfactor_errflag = XML_READ_SUCCESS;
+         key = xmlNodeListGetString(doc, cur->xmlChildrenNode, 1);
+         dry_crown_offset_factor = (double) atof((const char*)key);
+         if(dry_crown_offset_factor > MAX_DRY_CROWN_OFFSET_FACTOR || dry_crown_offset_factor < MIN_DRY_CROWN_OFFSET_FACTOR){
+            dcrown_offsetfactor_errflag = XML_READ_ERROR;
          }
          xmlFree(key);
       }
@@ -415,7 +431,7 @@ void getSpeciesData (xmlDocPtr doc, xmlNodePtr cur, PolSARproSim_Record *pPR, in
          }
          xmlFree(key);
       }
-      /* look for average secondary polar angle, theta */
+      /* look for average primary polar angle, theta */
       if ((!xmlStrcmp(cur->name, (const xmlChar *)PRIMARY_AVG_POLAR_ANGLE_XMLTAG))) {
          primary_avg_polar_angle_errflag = XML_READ_SUCCESS;
          key = xmlNodeListGetString(doc, cur->xmlChildrenNode, 1);
@@ -622,6 +638,26 @@ void getSpeciesData (xmlDocPtr doc, xmlNodePtr cur, PolSARproSim_Record *pPR, in
          primary_dry_sections = (double) atoi((const char*)key);
          if(primary_dry_sections > MAX_PRIMARY_DRY_SECTIONS || primary_dry_sections < MIN_PRIMARY_DRY_SECTIONS){
             primary_dry_sections_errflag = XML_READ_ERROR;
+         }
+         xmlFree(key);
+      }
+      /* look for average dry primary polar angle, theta */
+      if ((!xmlStrcmp(cur->name, (const xmlChar *)PRIMARY_DRY_AVG_POLAR_ANGLE_XMLTAG))) {
+         primary_dry_avg_polar_angle_errflag = XML_READ_SUCCESS;
+         key = xmlNodeListGetString(doc, cur->xmlChildrenNode, 1);
+         primary_dry_avg_polar_angle = (double) atof((const char*)key);
+         if(primary_dry_avg_polar_angle > MAX_PRIMARY_DRY_AVG_POLAR_ANGLE || primary_dry_avg_polar_angle < MIN_PRIMARY_DRY_AVG_POLAR_ANGLE){
+            primary_dry_avg_polar_angle_errflag = XML_READ_ERROR;
+         }
+         xmlFree(key);
+      }
+      /* look for the standard deviation of the dry primary polar angle (theta) */
+      if ((!xmlStrcmp(cur->name, (const xmlChar *)PRIMARY_DRY_STD_POLAR_ANGLE_XMLTAG))) {
+         primary_dry_std_polar_angle_errflag = XML_READ_SUCCESS;
+         key = xmlNodeListGetString(doc, cur->xmlChildrenNode, 1);
+         primary_dry_std_polar_angle = (double) atof((const char*)key);
+         if(primary_dry_std_polar_angle > MAX_PRIMARY_STD_POLAR_ANGLE || primary_std_polar_angle < MIN_PRIMARY_DRY_STD_POLAR_ANGLE){
+            primary_dry_std_polar_angle_errflag = XML_READ_ERROR;
          }
          xmlFree(key);
       }
@@ -960,6 +996,10 @@ void getSpeciesData (xmlDocPtr doc, xmlNodePtr cur, PolSARproSim_Record *pPR, in
       fprintf(pPR->pLogFile,"WARNING: Dry crown depth factor not specified or not between %f and %f for species '%s' in Species database file, reading in default value from the %s category\n", MIN_DRY_CROWN_DEPTH_FACTOR, MAX_DRY_CROWN_DEPTH_FACTOR, pPR->SpeciesDataBase[ispecies].species_name, category_string);
       dry_crown_depth_factor = pPR->CategoryDataBase[category].dry_crown_depth_factor;
    }
+   if(dcrown_offsetfactor_errflag == XML_READ_ERROR){
+      fprintf(pPR->pLogFile,"WARNING: Dry crown offset factor not specified or not between %f and %f for species '%s' in Species database file, reading in default value from the %s category\n", MIN_DRY_CROWN_OFFSET_FACTOR, MAX_DRY_CROWN_OFFSET_FACTOR, pPR->SpeciesDataBase[ispecies].species_name, category_string);
+      dry_crown_offset_factor = pPR->CategoryDataBase[category].dry_crown_offset_factor;
+   }
    if(crown_live_alpha_errflag == XML_READ_ERROR){
       fprintf(pPR->pLogFile,"WARNING: Live crown alpha not specified or not between %f and %f for species '%s' in Species database file, reading in default value from the %s category\n", MIN_CROWN_LIVE_ALPHA, MAX_CROWN_LIVE_ALPHA, pPR->SpeciesDataBase[ispecies].species_name, category_string);
       crown_live_alpha = pPR->CategoryDataBase[category].crown_live_alpha;
@@ -1108,6 +1148,14 @@ void getSpeciesData (xmlDocPtr doc, xmlNodePtr cur, PolSARproSim_Record *pPR, in
       fprintf(pPR->pLogFile,"WARNING: Dry Primary sections not specified or not between %f and %f for species '%s' in Species database file, reading in default value from the %s category\n", MIN_PRIMARY_DRY_SECTIONS, MAX_PRIMARY_DRY_SECTIONS, pPR->SpeciesDataBase[ispecies].species_name, category_string);
       primary_dry_sections = pPR->CategoryDataBase[category].primary_dry_sections;
    }
+   if(primary_dry_avg_polar_angle_errflag == XML_READ_ERROR){
+      fprintf(pPR->pLogFile,"WARNING: Average dry primary polar angle (theta) not specified or not between %f and %f for species '%s' in Species database file, reading in default value from the %s category\n", MIN_PRIMARY_DRY_AVG_POLAR_ANGLE, MAX_PRIMARY_DRY_AVG_POLAR_ANGLE, pPR->SpeciesDataBase[ispecies].species_name, category_string);
+      primary_dry_avg_polar_angle = pPR->CategoryDataBase[category].primary_dry_avg_polar_angle;
+   }
+   if(primary_dry_std_polar_angle_errflag == XML_READ_ERROR){
+      fprintf(pPR->pLogFile,"WARNING: Std. of dry Primary polar angle (theta) not specified or not between %f and %f for species '%s' in Species database file, reading in default value from the %s category\n", MIN_PRIMARY_DRY_STD_POLAR_ANGLE, MAX_PRIMARY_DRY_STD_POLAR_ANGLE, pPR->SpeciesDataBase[ispecies].species_name, category_string);
+      primary_dry_std_polar_angle = pPR->CategoryDataBase[category].primary_dry_std_polar_angle;
+   }
    if(secondary_number_slope_errflag == XML_READ_ERROR){
       fprintf(pPR->pLogFile,"WARNING: Slope of function to determine number of secondaries not specified or not between %f and %f for species '%s' in Species database file, reading in default value from the %s category\n", MIN_SECONDARY_NUMBER_SLOPE, MAX_SECONDARY_NUMBER_SLOPE, pPR->SpeciesDataBase[ispecies].species_name, category_string);
       secondary_number_slope = pPR->CategoryDataBase[category].secondary_number_slope;
@@ -1239,6 +1287,7 @@ void getSpeciesData (xmlDocPtr doc, xmlNodePtr cur, PolSARproSim_Record *pPR, in
    pPR->SpeciesDataBase[ispecies].dry_crown_shape              = dry_crown_shape;
    pPR->SpeciesDataBase[ispecies].live_crown_depth_factor      = live_crown_depth_factor;
    pPR->SpeciesDataBase[ispecies].dry_crown_depth_factor       = dry_crown_depth_factor;
+   pPR->SpeciesDataBase[ispecies].dry_crown_offset_factor      = dry_crown_offset_factor;
    pPR->SpeciesDataBase[ispecies].crown_live_alpha             = crown_live_alpha;
    pPR->SpeciesDataBase[ispecies].crown_dry_alpha              = crown_dry_alpha;
    pPR->SpeciesDataBase[ispecies].crown_radius_factor          = crown_radius_factor;
@@ -1276,6 +1325,8 @@ void getSpeciesData (xmlDocPtr doc, xmlNodePtr cur, PolSARproSim_Record *pPR, in
    pPR->SpeciesDataBase[ispecies].primary_dry_moisture         = primary_dry_moisture;
    pPR->SpeciesDataBase[ispecies].primary_dry_density          = primary_dry_density;
    pPR->SpeciesDataBase[ispecies].primary_dry_sections         = primary_dry_sections;
+   pPR->SpeciesDataBase[ispecies].primary_dry_avg_polar_angle  = primary_dry_avg_polar_angle;
+   pPR->SpeciesDataBase[ispecies].primary_dry_std_polar_angle  = primary_dry_std_polar_angle;
    pPR->SpeciesDataBase[ispecies].secondary_number_slope       = secondary_number_slope;
    pPR->SpeciesDataBase[ispecies].secondary_number_intercept   = secondary_number_intercept;
    pPR->SpeciesDataBase[ispecies].secondary_offset_fraction    = secondary_offset_fraction;
@@ -1515,6 +1566,7 @@ void getCategoryData (xmlDocPtr doc, xmlNodePtr cur, PolSARproSim_Record *pPR, i
    int      dry_crown_shape            = CROWN_NULL_SHAPE;
    double   live_crown_depth_factor    = 1;
    double   dry_crown_depth_factor     = 1;
+   double   dry_crown_offset_factor    = 0;
    double   crown_live_alpha           = 0.4693;
    double   crown_dry_alpha            = 0.4147;
    double   crown_radius_factor        = 0.4221;
@@ -1552,6 +1604,8 @@ void getCategoryData (xmlDocPtr doc, xmlNodePtr cur, PolSARproSim_Record *pPR, i
    double   primary_dry_moisture       = 0.100;
    double   primary_dry_density        = 4.015;
    int      primary_dry_sections       = 4;
+   double   primary_dry_avg_polar_angle= 90.0;
+   double   primary_dry_std_polar_angle= 10.0;
    double   secondary_number_slope     = 18.95864;
    double   secondary_number_intercept = -4.26094;
    double   secondary_offset_fraction  = 0.08;
@@ -1588,6 +1642,7 @@ void getCategoryData (xmlDocPtr doc, xmlNodePtr cur, PolSARproSim_Record *pPR, i
    int      dry_crown_shape_errflag             = XML_READ_ERROR;
    int      lcrown_depthfactor_errflag          = XML_READ_ERROR;
    int      dcrown_depthfactor_errflag          = XML_READ_ERROR;
+   int      dcrown_offsetfactor_errflag         = XML_READ_ERROR;
    int      crown_live_alpha_errflag            = XML_READ_ERROR;
    int      crown_dry_alpha_errflag             = XML_READ_ERROR;
    int      crown_radius_factor_errflag         = XML_READ_ERROR;
@@ -1625,6 +1680,8 @@ void getCategoryData (xmlDocPtr doc, xmlNodePtr cur, PolSARproSim_Record *pPR, i
    int      primary_dry_moisture_errflag        = XML_READ_ERROR;
    int      primary_dry_density_errflag         = XML_READ_ERROR;
    int      primary_dry_sections_errflag        = XML_READ_ERROR;
+   int      primary_dry_avg_polar_angle_errflag = XML_READ_ERROR;
+   int      primary_dry_std_polar_angle_errflag = XML_READ_ERROR;
    int      secondary_number_slope_errflag      = XML_READ_ERROR;
    int      secondary_number_intercept_errflag  = XML_READ_ERROR;
    int      secondary_offset_fraction_errflag   = XML_READ_ERROR;
@@ -1707,6 +1764,16 @@ void getCategoryData (xmlDocPtr doc, xmlNodePtr cur, PolSARproSim_Record *pPR, i
          dry_crown_depth_factor = (double) atof((const char*)key);
          if(dry_crown_depth_factor > MAX_DRY_CROWN_DEPTH_FACTOR || dry_crown_depth_factor < MIN_DRY_CROWN_DEPTH_FACTOR){
             dcrown_depthfactor_errflag = XML_READ_ERROR;
+         }
+         xmlFree(key);
+      }
+      /* look for dry crown offset factor, this will offset the dry crown from the live crown, 0 means it abuts the live crown, 1 means it sits on the ground */
+      if ((!xmlStrcmp(cur->name, (const xmlChar *)DRY_CROWN_OFFSET_FACTOR_XMLTAG))) {
+         dcrown_offsetfactor_errflag = XML_READ_SUCCESS;
+         key = xmlNodeListGetString(doc, cur->xmlChildrenNode, 1);
+         dry_crown_offset_factor = (double) atof((const char*)key);
+         if(dry_crown_offset_factor > MAX_DRY_CROWN_OFFSET_FACTOR || dry_crown_offset_factor < MIN_DRY_CROWN_OFFSET_FACTOR){
+            dcrown_offsetfactor_errflag = XML_READ_ERROR;
          }
          xmlFree(key);
       }
@@ -2081,6 +2148,26 @@ void getCategoryData (xmlDocPtr doc, xmlNodePtr cur, PolSARproSim_Record *pPR, i
          }
          xmlFree(key);
       }
+      /* look for average dry primary polar angle, theta */
+      if ((!xmlStrcmp(cur->name, (const xmlChar *)PRIMARY_DRY_AVG_POLAR_ANGLE_XMLTAG))) {
+         primary_dry_avg_polar_angle_errflag = XML_READ_SUCCESS;
+         key = xmlNodeListGetString(doc, cur->xmlChildrenNode, 1);
+         primary_dry_avg_polar_angle = (double) atof((const char*)key);
+         if(primary_dry_avg_polar_angle > MAX_PRIMARY_DRY_AVG_POLAR_ANGLE || primary_dry_avg_polar_angle < MIN_PRIMARY_DRY_AVG_POLAR_ANGLE){
+            primary_dry_avg_polar_angle_errflag = XML_READ_ERROR;
+         }
+         xmlFree(key);
+      }
+      /* look for the standard deviation of the dry primary polar angle (theta) */
+      if ((!xmlStrcmp(cur->name, (const xmlChar *)PRIMARY_DRY_STD_POLAR_ANGLE_XMLTAG))) {
+         primary_dry_std_polar_angle_errflag = XML_READ_SUCCESS;
+         key = xmlNodeListGetString(doc, cur->xmlChildrenNode, 1);
+         primary_dry_std_polar_angle = (double) atof((const char*)key);
+         if(primary_dry_std_polar_angle > MAX_PRIMARY_STD_POLAR_ANGLE || primary_std_polar_angle < MIN_PRIMARY_DRY_STD_POLAR_ANGLE){
+            primary_dry_std_polar_angle_errflag = XML_READ_ERROR;
+         }
+         xmlFree(key);
+      }
       /* look for the slope of the linear function to determine number of secondary branches */
       if ((!xmlStrcmp(cur->name, (const xmlChar *)SECONDARY_NUMBER_SLOPE_XMLTAG))) {
          secondary_number_slope_errflag = XML_READ_SUCCESS;
@@ -2407,6 +2494,10 @@ void getCategoryData (xmlDocPtr doc, xmlNodePtr cur, PolSARproSim_Record *pPR, i
       fprintf(stderr,"ERROR: Dry crown depth factor not specified or not between %f and %f for category '%s' in Species database file\n", MIN_DRY_CROWN_DEPTH_FACTOR, MAX_DRY_CROWN_DEPTH_FACTOR, pPR->CategoryDataBase[icategories].species_name);
       exit(0);
    }
+   if(dcrown_offsetfactor_errflag == XML_READ_ERROR){
+      fprintf(stderr,"ERROR: Dry crown offset factor not specified or not between %f and %f for category '%s' in Species database file\n", MIN_DRY_CROWN_OFFSET_FACTOR, MAX_DRY_CROWN_OFFSET_FACTOR, pPR->CategoryDataBase[icategories].species_name);
+      exit(0);
+   }
    if(crown_live_alpha_errflag == XML_READ_ERROR){
       fprintf(stderr,"ERROR: Live crown alpha not specified or not between %f and %f for category '%s' in Species database file\n", MIN_CROWN_LIVE_ALPHA, MAX_CROWN_LIVE_ALPHA, pPR->CategoryDataBase[icategories].species_name);
       exit(0);
@@ -2563,6 +2654,14 @@ void getCategoryData (xmlDocPtr doc, xmlNodePtr cur, PolSARproSim_Record *pPR, i
       fprintf(stderr,"ERROR: Dry primary sections not specified or not between %f and %f for category '%s' in Species database file\n", MIN_PRIMARY_DRY_SECTIONS, MAX_PRIMARY_DRY_SECTIONS, pPR->CategoryDataBase[icategories].species_name);
       exit(0);
    }
+   if(primary_dry_avg_polar_angle_errflag == XML_READ_ERROR){
+      fprintf(stderr,"ERROR: Average dry primary polar angle (theta) not specified or not between %f and %f for category '%s' in Species database file\n", MIN_PRIMARY_DRY_AVG_POLAR_ANGLE, MAX_PRIMARY_DRY_AVG_POLAR_ANGLE, pPR->CategoryDataBase[icategories].species_name);
+      exit(0);
+   }
+   if(primary_dry_std_polar_angle_errflag == XML_READ_ERROR){
+      fprintf(stderr,"ERROR: Std. of dry Primary polar angle (theta) not specified or not between %f and %f for category '%s' in Species database file\n", MIN_PRIMARY_DRY_STD_POLAR_ANGLE, MAX_PRIMARY_DRY_STD_POLAR_ANGLE, pPR->CategoryDataBase[icategories].species_name);
+      exit(0);
+   }
    if(secondary_number_slope_errflag == XML_READ_ERROR){
       fprintf(stderr,"ERROR: Slope of function to determine number of secondary branches not specified or not between %f and %f for category '%s' in Species database file\n", MIN_SECONDARY_NUMBER_SLOPE, MAX_SECONDARY_NUMBER_SLOPE, pPR->CategoryDataBase[icategories].species_name);
       exit(0);
@@ -2689,6 +2788,7 @@ void getCategoryData (xmlDocPtr doc, xmlNodePtr cur, PolSARproSim_Record *pPR, i
    pPR->CategoryDataBase[icategories].dry_crown_shape             = dry_crown_shape;
    pPR->CategoryDataBase[icategories].live_crown_depth_factor     = live_crown_depth_factor;
    pPR->CategoryDataBase[icategories].dry_crown_depth_factor      = dry_crown_depth_factor;
+   pPR->CategoryDataBase[icategories].dry_crown_offset_factor     = dry_crown_offset_factor;
    pPR->CategoryDataBase[icategories].crown_live_alpha            = crown_live_alpha;
    pPR->CategoryDataBase[icategories].crown_dry_alpha             = crown_dry_alpha;
    pPR->CategoryDataBase[icategories].crown_radius_factor         = crown_radius_factor;
@@ -2726,6 +2826,8 @@ void getCategoryData (xmlDocPtr doc, xmlNodePtr cur, PolSARproSim_Record *pPR, i
    pPR->CategoryDataBase[icategories].primary_dry_moisture        = primary_dry_moisture;
    pPR->CategoryDataBase[icategories].primary_dry_density         = primary_dry_density;
    pPR->CategoryDataBase[icategories].primary_dry_sections        = primary_dry_sections;
+   pPR->CategoryDataBase[icategories].primary_dry_avg_polar_angle = primary_dry_avg_polar_angle;
+   pPR->CategoryDataBase[icategories].primary_dry_std_polar_angle = primary_dry_std_polar_angle;
    pPR->CategoryDataBase[icategories].secondary_number_slope      = secondary_number_slope;
    pPR->CategoryDataBase[icategories].secondary_number_intercept  = secondary_number_intercept;
    pPR->CategoryDataBase[icategories].secondary_offset_fraction   = secondary_offset_fraction;
@@ -2929,6 +3031,7 @@ void Report_PolSARproSim_Allometry(PolSARproSim_Record *pPR)
       }
       fprintf(pPR->pLogFile, "\tLive Crown Depth Factor:          \t%12f\n", pPR->SpeciesDataBase[ispecies].live_crown_depth_factor);
       fprintf(pPR->pLogFile, "\tDry Crown Depth Factor:           \t%12f\n", pPR->SpeciesDataBase[ispecies].dry_crown_depth_factor);
+      fprintf(pPR->pLogFile, "\tDry Crown Offset Factor:          \t%12f\n", pPR->SpeciesDataBase[ispecies].dry_crown_offset_factor);
       fprintf(pPR->pLogFile, "\tLive Crown Alpha:                 \t%12f\n", pPR->SpeciesDataBase[ispecies].crown_live_alpha);
       fprintf(pPR->pLogFile, "\tDry Crown Alpha:                  \t%12f\n", pPR->SpeciesDataBase[ispecies].crown_dry_alpha);
       fprintf(pPR->pLogFile, "\tCrown Radius Factor:              \t%12f\n", pPR->SpeciesDataBase[ispecies].crown_radius_factor);
@@ -2966,6 +3069,8 @@ void Report_PolSARproSim_Allometry(PolSARproSim_Record *pPR)
       fprintf(pPR->pLogFile, "\tPrimary Dry Fractional Moisture:  \t%12f\n", pPR->SpeciesDataBase[ispecies].primary_dry_moisture);
       fprintf(pPR->pLogFile, "\tPrimary Dry Layer Density:        \t%12f\n", pPR->SpeciesDataBase[ispecies].primary_dry_density);
       fprintf(pPR->pLogFile, "\tPrimary Dry Layer Sections:       \t%12d\n", pPR->SpeciesDataBase[ispecies].primary_dry_sections);
+      fprintf(pPR->pLogFile, "\tPrimary Dry Polar Angle Mean:     \t%12f\n", pPR->SpeciesDataBase[ispecies].primary_dry_avg_polar_angle);
+      fprintf(pPR->pLogFile, "\tPrimary Dry Polar Angle Stdev:    \t%12f\n", pPR->SpeciesDataBase[ispecies].primary_dry_std_polar_angle);
       fprintf(pPR->pLogFile, "\tSecondary Number Linear Coeff.    \t%12f\n", pPR->SpeciesDataBase[ispecies].secondary_number_slope);
       fprintf(pPR->pLogFile, "\tSecondary Number Constant Coeff.  \t%12f\n", pPR->SpeciesDataBase[ispecies].secondary_number_intercept);
       fprintf(pPR->pLogFile, "\tSecondary Offset Fraction         \t%12f\n", pPR->SpeciesDataBase[ispecies].secondary_offset_fraction);

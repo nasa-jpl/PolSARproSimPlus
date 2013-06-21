@@ -28,14 +28,12 @@
  */
 #include	"PolSARproSim.h"
 
-int main(int argv, char *argc[])
+int main(int argc, char *argv[])
 {
    /**************************************/
    /* Miscellaneous variable definitions */
    /**************************************/
-   char                 *passed_input_directory_plus_prefix;
    char                 *passed_master_directory;
-   char                 *input_directory;
    char                 *master_directory;
 #ifdef _WIN32
    const char				ddlim	= '\\';
@@ -43,7 +41,7 @@ int main(int argv, char *argc[])
    const char				ddlim	= '/';
 #endif
    char                 *prefix;
-   int                  n,nmax,i,ilen;
+   int                  nmax;
    char                 *input_string;
    char                 *output_string;
    char                 *logfile_string;
@@ -62,16 +60,23 @@ int main(int argv, char *argc[])
    /* Check command line argument list length */
    /*******************************************/
       
-   if (argv < 3) {
-      printf ("\nUse: pspsim_dev <input_directory_plus_prefix> <data_directory> \n");
-      printf ("\te.g. [pspsim_dev ./run1 slcs/], the software will choose ./run1.sar as input and write output files as slcs/run1_*.* \n");
+   if (argc < 4) {
+      printf ("\nUse: pspsim_dev <parameter_file> <output_prefix> <output_directory> \n");
+      printf ("\te.g. [pspsim_dev input.sar run1 slcs/], the software will choose input.sar as input and write output files as slcs/run1_*.* \n");
       printf ("\nCAUTION: This version of PolSARproSim has been heavily edited\n");
       printf ("\t if it doesn't work, its not Mark Williams' fault. Good luck!\n");
       printf ("\t\t\t\t\t--Razi Ahmed\n\n");
       exit (1);
    } else {
-      passed_input_directory_plus_prefix			= argc[1];
-      passed_master_directory                   = argc[2];
+      /*****************************/
+      /* Read in command line args */
+      /*****************************/
+      input_string            = (char*) calloc (strlen(argv[1]), sizeof(char));
+      sscanf(argv[1],"%s", input_string);   
+      prefix                  = (char*) calloc (strlen(argv[2]), sizeof(char));
+      sscanf(argv[2],"%s",prefix);   
+      passed_master_directory = (char*) calloc (strlen(argv[3]), sizeof(char));
+      sscanf(argv[3],"%s",passed_master_directory);   
    }
    
    /* start total time counter */
@@ -84,33 +89,7 @@ int main(int argv, char *argc[])
    /***********************************************/
    /* Parse string arguments for TCLTK convention */
    /***********************************************/
-   
-   tcltk_parser	(passed_input_directory_plus_prefix);
    tcltk_parser	(passed_master_directory);
-   
-   /***************************/
-   /* Extract filename prefix */
-   /***************************/
-   
-   i		= 0;
-   nmax	= strlen (passed_input_directory_plus_prefix);
-   for (n=0; n<nmax; n++) {
-      if (passed_input_directory_plus_prefix[n] == ddlim) {
-         i = n;
-      }
-   }
-   ilen	= nmax - i;
-   ilen++;
-   prefix	= (char*) calloc (ilen, sizeof(char));
-   strcpy (prefix, &(passed_input_directory_plus_prefix[i+1]));
-   
-   /************************************************/
-   /* Extract delimiter terminated Input directory */
-   /************************************************/
-   
-   input_directory	= (char*) calloc (i+2, sizeof(char));
-   strncat (input_directory, passed_input_directory_plus_prefix, i+1);
-   input_directory[i+1]	= '\0';
    
    /*************************************************/
    /* Extract delimiter terminated Master directory */
@@ -129,11 +108,6 @@ int main(int argv, char *argc[])
    /************************/
    /* Calculate file names */
    /************************/
-   
-   input_string	= (char*) calloc (strlen(input_directory)+strlen(prefix)+6, sizeof(char));
-   strcpy  (input_string, input_directory);
-   strncat (input_string, prefix, strlen(prefix));
-   strncat (input_string, ".sar", 4);
    output_string	= (char*) calloc (strlen(master_directory)+strlen(prefix)+6, sizeof(char));
    strcpy  (output_string, master_directory);
    strncat (output_string, prefix, strlen(prefix));
@@ -143,7 +117,6 @@ int main(int argv, char *argc[])
    strncat (logfile_string, prefix, strlen(prefix));
    strncat (logfile_string, ".log", 4);
    Master_Record.pFilenamePrefix	= prefix;
-   Master_Record.pInputDirectory	= input_directory;
    Master_Record.pMasterDirectory	= master_directory;
    call_string	= (char*) calloc (strlen(master_directory)+strlen(prefix)+11, sizeof(char));
    strcpy  (call_string, master_directory);
@@ -157,25 +130,23 @@ int main(int argv, char *argc[])
       printf ("Unable to open call file %s.\n", call_string);
       return (!NO_POLSARPROSIM_ERRORS);
    } else {
-      fprintf (pCF, "\nArguments:\n%s\n%s\n%s\n", argc[1], argc[2], argc[3]);
-      fprintf (pCF, "\nInput_directory     %s\n", input_directory);
-      fprintf (pCF, "\nMaster_directory    %s\n", master_directory);
-      fprintf (pCF, "\nReading input from  %s\n", input_string);
-      fprintf (pCF, "\nWriting output to   %s\n", output_string);
-      fprintf (pCF, "\nWriting log to      %s\n\n", logfile_string);
+      fprintf (pCF, "\nArguments:\t%s\t%s\t%s\n", argv[1], argv[2], argv[3]);
+      fprintf (pCF, "Master_directory    %s\n", master_directory);
+      fprintf (pCF, "Reading input from  %s\n", input_string);
+      fprintf (pCF, "Writing output to   %s\n", output_string);
+      fprintf (pCF, "Writing log to      %s\n\n", logfile_string);
       fclose (pCF);
    }
    
 #ifdef VERBOSE_POLSARPROSIM
-   printf ("\nArguments:\n%s\n%s\n%s\n", argc[1], argc[2], argc[3]);
-   printf ("\nInput_directory     %s\n", input_directory);
-   printf ("\nMaster_directory    %s\n", master_directory);
-   printf ("\nReading input from  %s\n", input_string);
-   printf ("\nWriting output to   %s\n", output_string);
-   printf ("\nWriting log to      %s\n", logfile_string);
+   printf ("\nArguments:\t%s\t%s\t%s\n", argv[1], argv[2], argv[3]);
+   printf ("Master_directory    %s\n", master_directory);
+   printf ("Reading input from  %s\n", input_string);
+   printf ("Writing output to   %s\n", output_string);
+   printf ("Writing log to      %s\n", logfile_string);
    
 #endif
-      
+            
    /********************************/
    /* Attempt to open output files */
    /********************************/
@@ -260,6 +231,7 @@ int main(int argv, char *argc[])
    if(Master_Record.ForestDraw_Flag == DRAW_FOREST_IMAGE){
       Forest_Graphic                (&Master_Record);
    }
+   
    
    /*************************************************************/
    /*                                                           */
@@ -384,6 +356,7 @@ int main(int argv, char *argc[])
 #ifdef   OUTPUT_SHADOW_MAP_ON
    Write_SIM_Record_As_POLSARPRO_BINARY         (&(Master_Record.Shadow_Map));
 #endif
+
 
    /******************************/
    /* Tidy up before leaving     */

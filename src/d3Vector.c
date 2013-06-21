@@ -145,7 +145,7 @@ void		d3Vector_insitu_double_divide	(d3Vector *p_d3v, double x)
 void		d3Vector_insitu_normalise		(d3Vector *p_d3v)
 {
  if (fabs(p_d3v->r) < DBL_EPSILON) {
-  printf ("\nERROR: d3Vector_insitu_normalise attempted on null vector.\n");
+ // printf ("\nERROR: d3Vector_insitu_normalise attempted on null vector.\n");
  } else {
   p_d3v->x[0]	/= p_d3v->r;
   p_d3v->x[1]	/= p_d3v->r;

@@ -41,6 +41,7 @@ d3Vector	Perspective_Global2Screen	(Perspective *pPersR, d3Vector	rg)
 
  z		= rg.x[1];
  Create_d3Vector (&v);
+ if(&rg == NULL) printf("RG is null\n");
  d3Vector_insitu_normalise (&rg);
  alpha	= pPersR->Znear/rg.x[1];
  x		= alpha*rg.x[0];

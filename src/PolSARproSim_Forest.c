@@ -288,16 +288,27 @@ int		Delete_SAR_Geometry			(SarGeometry *pSG)
 /***********************************************************************/
 int      Model_Change        (Tree *pT, PolSARproSim_Record *pPR, int current_track, d3Vector *motion, double *moisture, double obj_z, unsigned short *pseed)
 {
-   double      tree_altitude        = pT->base.x[2];     //tree altitutde (this includes ground height)
+   double      tree_altitude  = pT->base.x[2];           //tree altitutde (this includes ground height)
    //double      normalizestd         = 3.464101615;       // square root of 12, to normalize the standard deviation of a uniform RV to 1
    /* parameters to be computed */
    double      delta_x, delta_y, delta_z;                //motion offsets
-   
    double      change_stdev;                             //standard deviation of the amount of change 
    double      change_mean;                              //mean of the amount of change
-   double      obj_height     = obj_z - tree_altitude;   //height of cylinder (branch approximation) that needs to be moved
-   double      damping_factor = 1;//branch_radius/pT->dbh/2; //damp the motion by branch radius         
+   double      obj_height;//, obj_height2;                               //height of cylinder (branch approximation) that needs to be moved
+   double      damping_factor = 1;                       //branch_radius/pT->dbh/2; //damp the motion by branch radius         
+   Crown       *pC            = pT->CrownVolume.head;
 
+
+   if(pPR->Change_Height_Reference == CHANGE_REFERENCE_GROUND){
+      obj_height     = obj_z - tree_altitude; 
+   }else{
+      obj_height     = obj_z - tree_altitude - pC->base.x[2];
+   }
+   if(obj_height < 0){ 
+      obj_height = 0.0;
+   }
+      
+      
    //seed the random number generator
    //this is deliberately keep thread-unsafe to preserve randomness of applied change between tracks
    //srand(rand());
@@ -322,9 +333,9 @@ int      Model_Change        (Tree *pT, PolSARproSim_Record *pPR, int current_tr
          change_stdev = 0.0;
       }
       /* realize position change */
-      delta_x  = Gaussian_drand_r(0.0, change_stdev, -5*change_stdev, 5*change_stdev, pseed);
-      delta_y  = Gaussian_drand_r(0.0, change_stdev, -5*change_stdev, 5*change_stdev, pseed);      
-      delta_z  = Gaussian_drand_r(0.0, change_stdev, -5*change_stdev, 5*change_stdev, pseed);
+      delta_x  = Gaussian_drand_r(0.0, change_stdev, -9*change_stdev, 9*change_stdev, pseed);
+      delta_y  = Gaussian_drand_r(0.0, change_stdev, -9*change_stdev, 9*change_stdev, pseed);      
+      delta_z  = Gaussian_drand_r(0.0, change_stdev, -9*change_stdev, 9*change_stdev, pseed);
       *motion  = Cartesian_Assign_d3Vector	(delta_x, delta_y, delta_z);
       
       /***************************/

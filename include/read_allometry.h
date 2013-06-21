@@ -68,6 +68,7 @@
 #define  DRY_CROWN_SHAPE_XMLTAG              "crown_dry_shape"
 #define  LIVE_CROWN_DEPTH_FACTOR_XMLTAG      "crown_live_depth_factor"
 #define  DRY_CROWN_DEPTH_FACTOR_XMLTAG       "crown_dry_depth_factor"
+#define  DRY_CROWN_OFFSET_FACTOR_XMLTAG      "crown_dry_offset_factor"
 #define  CROWN_LIVE_ALPHA_XMLTAG             "crown_live_alpha"
 #define  CROWN_DRY_ALPHA_XMLTAG              "crown_dry_alpha"
 #define  CROWN_RADIUS_FACTOR_XMLTAG          "crown_radius_factor"
@@ -107,6 +108,8 @@
 #define  PRIMARY_DRY_MOISTURE_XMLTAG         "primary_dry_moisture"
 #define  PRIMARY_DRY_LAYER_DENSITY_XMLTAG    "primary_dry_layer_density"
 #define  PRIMARY_DRY_SECTIONS_XMLTAG         "primary_dry_sections"
+#define  PRIMARY_DRY_AVG_POLAR_ANGLE_XMLTAG  "primary_dry_polar_angle_mean"
+#define  PRIMARY_DRY_STD_POLAR_ANGLE_XMLTAG  "primary_dry_polar_angle_stdev"
 /* secondary parameters */
 #define  SECONDARY_NUMBER_SLOPE_XMLTAG       "secondary_number_slope"
 #define  SECONDARY_NUMBER_INTERCEPT_XMLTAG   "secondary_number_intercept"
@@ -157,16 +160,20 @@
 #define NULL_CATEGORY                     -1
 
 /* range of allowed values */
+/* crown parameters */
 #define MIN_LIVE_CROWN_DEPTH_FACTOR       0.0
 #define MAX_LIVE_CROWN_DEPTH_FACTOR       1.0
 #define MIN_DRY_CROWN_DEPTH_FACTOR        0.0
 #define MAX_DRY_CROWN_DEPTH_FACTOR        1.0
+#define MIN_DRY_CROWN_OFFSET_FACTOR       0.0
+#define MAX_DRY_CROWN_OFFSET_FACTOR       1.0
 #define MIN_CROWN_LIVE_ALPHA              0.0
 #define MAX_CROWN_LIVE_ALPHA              1.0
 #define MIN_CROWN_DRY_ALPHA               0.0
 #define MAX_CROWN_DRY_ALPHA               1.0
 #define MIN_CROWN_RADIUS_FACTOR           0.0
 #define MAX_CROWN_RADIUS_FACTOR           1.0
+/* stem parameters */
 #define MIN_STEM_START_RADIUS_FACTOR      0.0
 #define MAX_STEM_START_RADIUS_FACTOR      1.0
 #define MIN_STEM_ANGLE                    0.0
@@ -193,6 +200,7 @@
 #define MAX_STEM_TROPISM_THETA            180.0
 #define MIN_STEM_TROPISM_PHI              0.0
 #define MAX_STEM_TROPISM_PHI              360.0
+/*primary branch parameters */
 #define MIN_PRIMARY_AVG_POLAR_ANGLE       0.0
 #define MAX_PRIMARY_AVG_POLAR_ANGLE       180.0
 #define MIN_PRIMARY_STD_POLAR_ANGLE       0.0
@@ -235,6 +243,11 @@
 #define MAX_PRIMARY_DRY_LAYER_DENSITY     10.0
 #define MIN_PRIMARY_DRY_SECTIONS          0.0
 #define MAX_PRIMARY_DRY_SECTIONS          10.0
+#define MIN_PRIMARY_DRY_AVG_POLAR_ANGLE   0.0
+#define MAX_PRIMARY_DRY_AVG_POLAR_ANGLE   180.0
+#define MIN_PRIMARY_DRY_STD_POLAR_ANGLE   0.0
+#define MAX_PRIMARY_DRY_STD_POLAR_ANGLE   90.0
+/* secondary branch parameters */
 #define MIN_SECONDARY_NUMBER_SLOPE        -20.0
 #define MAX_SECONDARY_NUMBER_SLOPE        20.0
 #define MIN_SECONDARY_NUMBER_INTERCEPT    -5.0
@@ -265,6 +278,7 @@
 #define MAX_SECONDARY_GAMMA_STDEV         1.0
 #define MIN_SECONDARY_GAMMA_MEAN          0.0
 #define MAX_SECONDARY_GAMMA_MEAN          1.0
+/* tertiary branch parameters */
 #define MIN_TERTIARY_MIN_RADIUS           0.0
 #define MAX_TERTIARY_MIN_RADIUS           1.0
 #define MIN_TERTIARY_MIN_LENGTH           0.0
@@ -275,6 +289,7 @@
 #define MAX_TERTIARY_NUMBER_FACTOR        200.0
 #define MIN_TERTIARY_MOISTURE             0.0
 #define MAX_TERTIARY_MOISTURE             0.7
+/* foliage parameters */
 #define MIN_LEAF_WIDTH_MEAN               0.0
 #define MAX_LEAF_WIDTH_MEAN               10.0
 #define MIN_LEAF_WIDTH_STDEV              0.0

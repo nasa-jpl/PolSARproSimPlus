@@ -89,6 +89,7 @@ typedef struct allometry_tag {
    int            dry_crown_shape;           /* Shape fo the dry crown (Conical/Spheroid/Cylindrical)       */
    double         live_crown_depth_factor;   /* fraction of live crown depth at which crown radius is max.  */
    double         dry_crown_depth_factor;    /* fraction of dry crown depth at which crown radius is max.   */
+   double         dry_crown_offset_factor;   /* offset dry crown from live crown as factor of bare stem     */
    double         crown_live_alpha;          /* to est. lcdepth as fn of hgt (unused if given in treeloc)   */
    double         crown_dry_alpha;           /* to est. dcdepth as fn of hgt (unused if given in treeloc)   */
    double         crown_radius_factor;       /* to est. cr. rad. as fn of hgt (unused if given in treeloc)  */
@@ -126,6 +127,8 @@ typedef struct allometry_tag {
    double         primary_dry_moisture;      /* fractional moisture of dry primary branches                 */
    double         primary_dry_density;       /* number of dry primary layers per unit dry canopy depth      */
    int            primary_dry_sections;      /* number of sections per layer of dry primary branches        */
+   double         primary_dry_avg_polar_angle;   /* mean polar angle (theta) of the primary branches            */
+   double         primary_dry_std_polar_angle;   /* standard deviation of primary polar angle                   */
    double         secondary_number_slope;    /* slope of linear fn. determining no. of secondary branch     */
    double         secondary_number_intercept;/* intercept of linear fn. determining no. of secondary branch */
    double         secondary_offset_fraction; /* fractional offset of secondary start location (tmin)        */
@@ -338,7 +341,6 @@ typedef struct polsarprosim_record_tag {
    /***********************/
    /* File name variables */
    /***********************/
-   char           *pInputDirectory;		/* Name of directory in which input parameter file is located		*/
    char           *pMasterDirectory;	/* Name of directory in which data output is written              */
    char           *pFilenamePrefix;		/* Filename prefix for input, output and log files                */
    char           *HH_string;				/* Full filename for current track                                */
@@ -377,6 +379,7 @@ typedef struct polsarprosim_record_tag {
    /**************************/
    /* Temporal Decorrelation */
    /**************************/
+   int            Change_Height_Reference;/* Height reference for change models, ground or canopy        */
    int            *Position_Change_Model; /* Type of model (linear, quadratic etc) for scatterer motion  */
    int            *Moisture_Change_Model; /* Type of mdoel for change of scatterer moisture              */
    double         *motion_coeff_A;        /***************************************************************/
