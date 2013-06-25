@@ -755,7 +755,7 @@ int		Input_PolSARproSim_Record		(const char *filename, PolSARproSim_Record *pPR)
 
    double			psf_azextent;
    double			psf_srextent;
-   
+   char           *speccode;
    /**********************************/
    /* Attempt to open the input file */
    /**********************************/
@@ -774,7 +774,8 @@ int		Input_PolSARproSim_Record		(const char *filename, PolSARproSim_Record *pPR)
    pPR->SpeciesData        = (char *)calloc(MAX_STR, sizeof(char));     /* Initialize the string containing the path & filename of species database */
    pPR->ForestOutput       = (char *)calloc(MAX_STR, sizeof(char));     /* Initialize the string containing the path & filename of forest output */
    pPR->ExternalDEM_fname  = (char *)calloc(MAX_STR, sizeof(char));     /* Initialize the string containing the path & filename of external DEM */
-   
+   speccode                = (char *)calloc(MAX_STR, sizeof(char));     /* Initialize the string containing the path & filename of external DEM */
+
    /********************/
    /* Input parameters */
    /********************/
@@ -852,7 +853,7 @@ int		Input_PolSARproSim_Record		(const char *filename, PolSARproSim_Record *pPR)
       }
    }
    /* Forest inputs and controls */
-   read_integer   (pInputFile,   "global_tree_species",        &(pPR->species), GLOBAL_SPECIES_MIN, GLOBAL_SPECIES_MAX, GLOBAL_SPECIES_DEFAULT);              
+   read_string    (pInputFile,   "global_tree_species",        speccode);                                 /* Read the global tree species identifier */   
    read_double    (pInputFile,   "global_tree_height",         &(pPR->mean_tree_height), GLOBAL_TREE_HEIGHT_MIN, GLOBAL_TREE_HEIGHT_MAX, GLOBAL_TREE_HEIGHT_DEFAULT);
    read_double    (pInputFile,   "forest_stand_area",          &(pPR->Stand_Area), STAND_AREA_MIN, STAND_AREA_MAX, STAND_AREA_DEFAULT); 
    read_integer   (pInputFile,   "stem_density",               &(pPR->req_trees_per_hectare), STEM_DENSITY_MIN, STEM_DENSITY_MAX, STEM_DENSITY_DEFAULT);   
@@ -1043,13 +1044,11 @@ for (i = 0; i < pPR->Tracks; i++) {
    /* Resolution, sampling and impulse response function */
    /******************************************************/
    
-//   pPR->f_azimuth                   = DEFAULT_RESOLUTION_SAMPLING_FACTOR;
    pPR->deltax                      = pPR->azimuth_resolution*pPR->f_azimuth;
    pPR->ground_range_resolution		= (double*) calloc (pPR->Tracks, sizeof (double));
    for (pPR->current_track  = 0; pPR->current_track < pPR->Tracks; pPR->current_track++) {
       pPR->ground_range_resolution[pPR->current_track]	= pPR->slant_range_resolution/sin(pPR->incidence_angle[pPR->current_track]);
    }
-//   pPR->f_ground_range              = DEFAULT_RESOLUTION_SAMPLING_FACTOR;
    pPR->deltay                      = pPR->ground_range_resolution[0]*pPR->f_ground_range;
    
    /******************************************************/
@@ -1058,7 +1057,6 @@ for (i = 0; i < pPR->Tracks; i++) {
    
    Input_PolSARproSim_Allometry(pPR);     /* Read in the species database first */
    Report_PolSARproSim_Allometry(pPR);    /* Report the Specie Database         */
-   
    
    /******************************************************/
    /* If input_forest flag of Master Record is set       */
@@ -1073,12 +1071,12 @@ for (i = 0; i < pPR->Tracks; i++) {
       
    } else {
       
-      /* first check if the species specified in the parameter file is valid */
-      if(pPR->species > pPR->Nspecies || pPR->species < 0){
-         fprintf(stderr, "Global species identifier, %d, is not valid. Either species code in the SAR input file is wrong or that number of species aren't defined in the species database file\n", pPR->species);
-         exit(0);
-      }
-      
+      /* match the global species identifier with the correct database entry */
+      pPR->species = GLOBAL_SPECIES_DEFAULT; 
+      for(i=0;i<pPR->Nspecies;i++)
+         if(!strcmp(speccode, pPR->SpeciesDataBase[i].species_name))
+            pPR->species = i;
+            
       /******************************************************/
       /* User supplies area, for trees this is assumed much */
       /* greater than a crown area, but for the hedge ...   */
@@ -3087,7 +3085,8 @@ void		Effective_Permittivities	(PolSARproSim_Record *pPR)
    stem_d1                 = POLSARPROSIM_SHORTV_STEM_LENGTH;
    stem_d2                 = POLSARPROSIM_SHORTV_STEM_RADIUS;
    stem_d3                 = POLSARPROSIM_SHORTV_STEM_RADIUS;
-   stem_moisture           = Leaf_Moisture	(pPR->species, pPR);
+   //stem_moisture           = Leaf_Moisture	(pPR->species, pPR);
+   stem_moisture           = Leaf_Moisture	(stem_species, pPR);
    stem_permittivity       = vegetation_permittivity (stem_moisture, pPR->frequency);
    Assign_Leaf (&leaf1, stem_species, stem_d1, stem_d2, stem_d3, theta, phi, stem_moisture, stem_permittivity, stem_centre);
    Leaf_Depolarization_Factors (&leaf1, &stemL1, &stemL2, &stemL3);
@@ -3101,7 +3100,8 @@ void		Effective_Permittivities	(PolSARproSim_Record *pPR)
    leaf_d1                 = POLSARPROSIM_SHORTV_LEAF_LENGTH;
    leaf_d2                 = POLSARPROSIM_SHORTV_LEAF_WIDTH;
    leaf_d3                 = POLSARPROSIM_SHORTV_LEAF_THICKNESS;
-   leaf_moisture           = Leaf_Moisture	(pPR->species, pPR);
+   //leaf_moisture           = Leaf_Moisture	(pPR->species, pPR);
+   leaf_moisture           = Leaf_Moisture	(leaf_species, pPR);
    leaf_permittivity       = vegetation_permittivity (leaf_moisture, pPR->frequency);
    Assign_Leaf	(&leaf1, leaf_species, leaf_d1, leaf_d2, leaf_d3, theta, phi, leaf_moisture, leaf_permittivity, leaf_centre);
    Leaf_Depolarization_Factors (&leaf1, &leafL1, &leafL2, &leafL3);
@@ -3123,7 +3123,8 @@ void		Effective_Permittivities	(PolSARproSim_Record *pPR)
          /**********************/
          /* Stem contribution  */
          /**********************/
-         stem_moisture		= Leaf_Moisture (pPR->species, pPR);
+         //stem_moisture		= Leaf_Moisture (pPR->species, pPR);
+         stem_moisture		= Leaf_Moisture (stem_species, pPR);
          stem_permittivity	= vegetation_permittivity (stem_moisture, pPR->frequency);
          stem_epsm1			= xy_complex (stem_permittivity.x-1.0, stem_permittivity.y);
          Assign_Leaf (&leaf1, stem_species, stem_d1, stem_d2, stem_d3, theta, phi, stem_moisture, stem_permittivity, stem_centre);
@@ -3132,7 +3133,8 @@ void		Effective_Permittivities	(PolSARproSim_Record *pPR)
          /*********************/
          /* Leaf contribution */
          /*********************/
-         leaf_moisture		= Leaf_Moisture (pPR->species, pPR);
+         //leaf_moisture		= Leaf_Moisture (pPR->species, pPR);
+         leaf_moisture		= Leaf_Moisture (leaf_species, pPR);
          leaf_permittivity	= vegetation_permittivity (leaf_moisture, pPR->frequency);
          leaf_epsm1			= xy_complex (leaf_permittivity.x-1.0, leaf_permittivity.y);
          Assign_Leaf (&leaf1, leaf_species, leaf_d1, leaf_d2, leaf_d3, theta, phi, leaf_moisture, leaf_permittivity, leaf_centre);
@@ -3949,7 +3951,8 @@ void		Effective_Permittivities_SMP	(PolSARproSim_Record *pPR)
    stem_d1                 = POLSARPROSIM_SHORTV_STEM_LENGTH;
    stem_d2                 = POLSARPROSIM_SHORTV_STEM_RADIUS;
    stem_d3                 = POLSARPROSIM_SHORTV_STEM_RADIUS;
-   stem_moisture           = Leaf_Moisture	(pPR->species, pPR);
+   //stem_moisture           = Leaf_Moisture	(pPR->species, pPR);
+   stem_moisture           = Leaf_Moisture	(stem_species, pPR);
    stem_permittivity       = vegetation_permittivity (stem_moisture, pPR->frequency);
    Assign_Leaf (&leaf1, stem_species, stem_d1, stem_d2, stem_d3, theta, phi, stem_moisture, stem_permittivity, stem_centre);
    Leaf_Depolarization_Factors (&leaf1, &stemL1, &stemL2, &stemL3);
@@ -3963,7 +3966,8 @@ void		Effective_Permittivities_SMP	(PolSARproSim_Record *pPR)
    leaf_d1                 = POLSARPROSIM_SHORTV_LEAF_LENGTH;
    leaf_d2                 = POLSARPROSIM_SHORTV_LEAF_WIDTH;
    leaf_d3                 = POLSARPROSIM_SHORTV_LEAF_THICKNESS;
-   leaf_moisture           = Leaf_Moisture	(pPR->species, pPR);
+   //leaf_moisture           = Leaf_Moisture	(pPR->species, pPR);
+   leaf_moisture           = Leaf_Moisture	(leaf_species, pPR);
    leaf_permittivity       = vegetation_permittivity (leaf_moisture, pPR->frequency);
    Assign_Leaf	(&leaf1, leaf_species, leaf_d1, leaf_d2, leaf_d3, theta, phi, leaf_moisture, leaf_permittivity, leaf_centre);
    Leaf_Depolarization_Factors (&leaf1, &leafL1, &leafL2, &leafL3);
@@ -3985,7 +3989,8 @@ void		Effective_Permittivities_SMP	(PolSARproSim_Record *pPR)
          /**********************/
          /* Stem contribution  */
          /**********************/
-         stem_moisture		= Leaf_Moisture (pPR->species, pPR);
+//         stem_moisture		= Leaf_Moisture (pPR->species, pPR);
+         stem_moisture		= Leaf_Moisture (stem_species, pPR);
          stem_permittivity	= vegetation_permittivity (stem_moisture, pPR->frequency);
          stem_epsm1			= xy_complex (stem_permittivity.x-1.0, stem_permittivity.y);
          Assign_Leaf (&leaf1, stem_species, stem_d1, stem_d2, stem_d3, theta, phi, stem_moisture, stem_permittivity, stem_centre);
@@ -3994,7 +3999,9 @@ void		Effective_Permittivities_SMP	(PolSARproSim_Record *pPR)
          /*********************/
          /* Leaf contribution */
          /*********************/
-         leaf_moisture		= Leaf_Moisture (pPR->species, pPR);
+         leaf_moisture		= Leaf_Moisture (leaf_species, pPR);
+        // leaf_moisture		= Leaf_Moisture (pPR->species, pPR);
+
          leaf_permittivity	= vegetation_permittivity (leaf_moisture, pPR->frequency);
          leaf_epsm1			= xy_complex (leaf_permittivity.x-1.0, leaf_permittivity.y);
          Assign_Leaf (&leaf1, leaf_species, leaf_d1, leaf_d2, leaf_d3, theta, phi, leaf_moisture, leaf_permittivity, leaf_centre);
@@ -7192,7 +7199,7 @@ void		Add_Thermal_Noise		(PolSARproSim_Record *pPR)
    Complex        cs, noise;
    int            track;
    double         noise_amp[4];
-   double         min_noise_amp = -pow(10, (NOISE_POWER_MAX/20));//pow(10, (NOISE_POWER_MIN/20));
+   double         min_noise_amp = -pow(10, (NOISE_POWER_MAX/20));
    double         max_noise_amp = pow(10, (NOISE_POWER_MAX/20));
    double         noise_real, noise_imag;
 

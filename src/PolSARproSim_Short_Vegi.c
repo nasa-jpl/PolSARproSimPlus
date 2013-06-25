@@ -111,7 +111,8 @@ void		*Image_Short_Veg_Direct_Stems		(void *threadarg)
    stem_d1           = POLSARPROSIM_SHORTV_STEM_LENGTH;
    stem_d2           = POLSARPROSIM_SHORTV_STEM_RADIUS;
    stem_d3           = POLSARPROSIM_SHORTV_STEM_RADIUS;
-   stem_moisture		= Leaf_Moisture	(pPR->species, pPR);
+   //stem_moisture		= Leaf_Moisture	(pPR->species, pPR);
+   stem_moisture		= Leaf_Moisture	(stem_species, pPR);
    stem_permittivity	= vegetation_permittivity (stem_moisture, pPR->frequency);
    stemL1				= pPR->ShortVegi_stemL1;
    stemL2				= pPR->ShortVegi_stemL2;
@@ -146,7 +147,8 @@ void		*Image_Short_Veg_Direct_Stems		(void *threadarg)
          stem_centre			= Cartesian_Assign_d3Vector (stem_x, stem_y, stem_height);
          theta             = vegi_polar_angle_r (erand48(seed));
          phi					= 2.0*Pi*erand48 (seed);
-         stem_moisture		= Leaf_Moisture_r	(pPR->species, pPR, erand48(seed));
+         //stem_moisture		= Leaf_Moisture_r	(pPR->species, pPR, erand48(seed));
+         stem_moisture		= Leaf_Moisture_r	(stem_species, pPR, erand48(seed));
          stem_permittivity	= vegetation_permittivity (stem_moisture, pPR->frequency);
          Assign_Leaf		(&leaf_stem, stem_species, stem_d1, stem_d2, stem_d3, theta, phi, 
                          stem_moisture, stem_permittivity, stem_centre);
@@ -312,7 +314,8 @@ void     *Image_Short_Veg_Direct_Leaves      (void *threadarg)
    leaf_d1           = POLSARPROSIM_SHORTV_LEAF_LENGTH;
    leaf_d2           = POLSARPROSIM_SHORTV_LEAF_WIDTH;
    leaf_d3           = POLSARPROSIM_SHORTV_LEAF_THICKNESS;
-   leaf_moisture		= Leaf_Moisture	(pPR->species, pPR);  // no need for a thread safe random number generator here
+   //leaf_moisture		= Leaf_Moisture	(pPR->species, pPR);  // no need for a thread safe random number generator here
+   leaf_moisture		= Leaf_Moisture	(leaf_species, pPR);  // no need for a thread safe random number generator here
    leaf_permittivity	= vegetation_permittivity (leaf_moisture, pPR->frequency);
    leafL1				= pPR->ShortVegi_leafL1;
    leafL2				= pPR->ShortVegi_leafL2;
@@ -347,7 +350,8 @@ void     *Image_Short_Veg_Direct_Leaves      (void *threadarg)
          leaf_centre			= Cartesian_Assign_d3Vector (leaf_x, leaf_y, leaf_height);
          theta             = vegi_polar_angle_r (erand48(seed));
          phi					= 2.0*Pi*erand48 (seed);
-         leaf_moisture		= Leaf_Moisture_r	(pPR->species, pPR, erand48(seed));
+         //leaf_moisture		= Leaf_Moisture_r	(pPR->species, pPR, erand48(seed));
+         leaf_moisture		= Leaf_Moisture_r	(leaf_species, pPR, erand48(seed));
          leaf_permittivity	= vegetation_permittivity (leaf_moisture, pPR->frequency);
          Assign_Leaf       (&leaf_leaf, leaf_species, leaf_d1, leaf_d2, leaf_d3, theta, phi, 
                             leaf_moisture, leaf_permittivity, leaf_centre);
@@ -497,7 +501,8 @@ int		PolSARproSim_Short_Vegetation_Direct_SMP		(PolSARproSim_Record *pPR)
    stem_d1           = POLSARPROSIM_SHORTV_STEM_LENGTH;
    stem_d2           = POLSARPROSIM_SHORTV_STEM_RADIUS;
    stem_d3           = POLSARPROSIM_SHORTV_STEM_RADIUS;
-   stem_moisture		= Leaf_Moisture	(pPR->species, pPR);
+   //stem_moisture		= Leaf_Moisture	(pPR->species, pPR);
+   stem_moisture		= Leaf_Moisture	(stem_species, pPR);
    stem_permittivity	= vegetation_permittivity (stem_moisture, pPR->frequency);
    stemL1				= pPR->ShortVegi_stemL1;
    stemL2				= pPR->ShortVegi_stemL2;
@@ -783,7 +788,8 @@ int		PolSARproSim_Short_Vegetation_Direct		(PolSARproSim_Record *pPR)
    stem_d1           = POLSARPROSIM_SHORTV_STEM_LENGTH;
    stem_d2           = POLSARPROSIM_SHORTV_STEM_RADIUS;
    stem_d3           = POLSARPROSIM_SHORTV_STEM_RADIUS;
-   stem_moisture		= Leaf_Moisture	(pPR->species, pPR);
+   //stem_moisture		= Leaf_Moisture	(pPR->species, pPR);
+   stem_moisture		= Leaf_Moisture	(stem_species, pPR);
    stem_permittivity	= vegetation_permittivity (stem_moisture, pPR->frequency);
    stemL1				= pPR->ShortVegi_stemL1;
    stemL2				= pPR->ShortVegi_stemL2;
@@ -819,7 +825,8 @@ int		PolSARproSim_Short_Vegetation_Direct		(PolSARproSim_Record *pPR)
    leaf_d1           = POLSARPROSIM_SHORTV_LEAF_LENGTH;
    leaf_d2           = POLSARPROSIM_SHORTV_LEAF_WIDTH;
    leaf_d3           = POLSARPROSIM_SHORTV_LEAF_THICKNESS;
-   leaf_moisture		= Leaf_Moisture	(pPR->species, pPR);
+   //leaf_moisture		= Leaf_Moisture	(pPR->species, pPR);
+   leaf_moisture		= Leaf_Moisture	(leaf_species, pPR);
    leaf_permittivity	= vegetation_permittivity (leaf_moisture, pPR->frequency);
    leafL1				= pPR->ShortVegi_leafL1;
    leafL2				= pPR->ShortVegi_leafL2;
@@ -869,7 +876,8 @@ int		PolSARproSim_Short_Vegetation_Direct		(PolSARproSim_Record *pPR)
             stem_centre			= Cartesian_Assign_d3Vector (stem_x, stem_y, stem_height);
             theta             = vegi_polar_angle ();
             phi					= 2.0*Pi*drand ();
-            stem_moisture		= Leaf_Moisture	(pPR->species, pPR);
+            //stem_moisture		= Leaf_Moisture	(pPR->species, pPR);
+            stem_moisture		= Leaf_Moisture	(stem_species, pPR);
             stem_permittivity	= vegetation_permittivity (stem_moisture, pPR->frequency);
             Assign_Leaf		(&leaf_stem, stem_species, stem_d1, stem_d2, stem_d3, theta, phi, 
                             stem_moisture, stem_permittivity, stem_centre);
@@ -961,7 +969,8 @@ int		PolSARproSim_Short_Vegetation_Direct		(PolSARproSim_Record *pPR)
             leaf_centre			= Cartesian_Assign_d3Vector (leaf_x, leaf_y, leaf_height);
             theta             = vegi_polar_angle ();
             phi					= 2.0*Pi*drand ();
-            leaf_moisture		= Leaf_Moisture	(pPR->species, pPR);
+            //leaf_moisture		= Leaf_Moisture	(pPR->species, pPR);
+            leaf_moisture		= Leaf_Moisture	(leaf_species, pPR);
             leaf_permittivity	= vegetation_permittivity (leaf_moisture, pPR->frequency);
             Assign_Leaf       (&leaf_leaf, leaf_species, leaf_d1, leaf_d2, leaf_d3, theta, phi, 
                                leaf_moisture, leaf_permittivity, leaf_centre);
@@ -1172,7 +1181,8 @@ void		*Image_Short_Veg_Bounce_Stems		(void *threadarg)
    stem_d1           = POLSARPROSIM_SHORTV_STEM_LENGTH;
    stem_d2           = POLSARPROSIM_SHORTV_STEM_RADIUS;
    stem_d3           = POLSARPROSIM_SHORTV_STEM_RADIUS;
-   stem_moisture		= Leaf_Moisture	(pPR->species, pPR);			/* Note some calls to allometric equations involve random number generation */
+   //stem_moisture		= Leaf_Moisture	(pPR->species, pPR);			/* Note some calls to allometric equations involve random number generation */
+   stem_moisture		= Leaf_Moisture	(stem_species, pPR);			/* Note some calls to allometric equations involve random number generation */
    stem_permittivity	= vegetation_permittivity (stem_moisture, pPR->frequency);
    stemL1				= pPR->ShortVegi_stemL1;
    stemL2				= pPR->ShortVegi_stemL2;
@@ -1286,7 +1296,8 @@ void		*Image_Short_Veg_Bounce_Stems		(void *threadarg)
          stem_centre			= Cartesian_Assign_d3Vector (stem_x, stem_y, stem_height);
          theta             = vegi_polar_angle_r (erand48(seed));
          phi					= 2.0*Pi*erand48 (seed);
-         stem_moisture		= Leaf_Moisture_r	(pPR->species, pPR, erand48(seed));
+         //stem_moisture		= Leaf_Moisture_r	(pPR->species, pPR, erand48(seed));
+         stem_moisture		= Leaf_Moisture_r	(stem_species, pPR, erand48(seed));
          stem_permittivity	= vegetation_permittivity (stem_moisture, pPR->frequency);
          Assign_Leaf       (&leaf_stem, stem_species, stem_d1, stem_d2, stem_d3, theta, phi, 
                             stem_moisture, stem_permittivity, stem_centre);
@@ -1518,7 +1529,8 @@ void		*Image_Short_Veg_Bounce_Leaves		(void *threadarg)
    leaf_d1           = POLSARPROSIM_SHORTV_LEAF_LENGTH;
    leaf_d2           = POLSARPROSIM_SHORTV_LEAF_WIDTH;
    leaf_d3           = POLSARPROSIM_SHORTV_LEAF_THICKNESS;
-   leaf_moisture		= Leaf_Moisture	(pPR->species, pPR);
+   //leaf_moisture		= Leaf_Moisture	(pPR->species, pPR);
+   leaf_moisture		= Leaf_Moisture	(leaf_species, pPR);
    leaf_permittivity	= vegetation_permittivity (leaf_moisture, pPR->frequency);
    leafL1				= pPR->ShortVegi_leafL1;
    leafL2				= pPR->ShortVegi_leafL2;
@@ -1631,7 +1643,8 @@ void		*Image_Short_Veg_Bounce_Leaves		(void *threadarg)
          leaf_centre			= Cartesian_Assign_d3Vector (leaf_x, leaf_y, leaf_height);
          theta             = vegi_polar_angle_r (erand48(seed));
          phi					= 2.0*Pi*erand48 (seed);
-         leaf_moisture		= Leaf_Moisture_r	(pPR->species, pPR, erand48(seed));
+         //leaf_moisture		= Leaf_Moisture_r	(pPR->species, pPR, erand48(seed));
+         leaf_moisture		= Leaf_Moisture_r	(leaf_species, pPR, erand48(seed));
          leaf_permittivity	= vegetation_permittivity (leaf_moisture, pPR->frequency);
          Assign_Leaf       (&leaf_leaf, leaf_species, leaf_d1, leaf_d2, leaf_d3, theta, phi, 
                             leaf_moisture, leaf_permittivity, leaf_centre);
@@ -2198,7 +2211,8 @@ int		PolSARproSim_Short_Vegetation_Bounce		(PolSARproSim_Record *pPR)
    stem_d1           = POLSARPROSIM_SHORTV_STEM_LENGTH;
    stem_d2           = POLSARPROSIM_SHORTV_STEM_RADIUS;
    stem_d3           = POLSARPROSIM_SHORTV_STEM_RADIUS;
-   stem_moisture		= Leaf_Moisture	(pPR->species, pPR);			/* Note some calls to allometric equations involve random number generation */
+   //stem_moisture		= Leaf_Moisture	(pPR->species, pPR);			/* Note some calls to allometric equations involve random number generation */
+   stem_moisture		= Leaf_Moisture	(stem_species, pPR);			/* Note some calls to allometric equations involve random number generation */
    stem_permittivity	= vegetation_permittivity (stem_moisture, pPR->frequency);
    stemL1				= pPR->ShortVegi_stemL1;
    stemL2				= pPR->ShortVegi_stemL2;
@@ -2216,7 +2230,8 @@ int		PolSARproSim_Short_Vegetation_Bounce		(PolSARproSim_Record *pPR)
    leaf_d1           = POLSARPROSIM_SHORTV_LEAF_LENGTH;
    leaf_d2           = POLSARPROSIM_SHORTV_LEAF_WIDTH;
    leaf_d3           = POLSARPROSIM_SHORTV_LEAF_THICKNESS;
-   leaf_moisture		= Leaf_Moisture	(pPR->species, pPR);
+   //leaf_moisture		= Leaf_Moisture	(pPR->species, pPR);
+   leaf_moisture		= Leaf_Moisture	(leaf_species, pPR);
    leaf_permittivity	= vegetation_permittivity (leaf_moisture, pPR->frequency);
    leafL1				= pPR->ShortVegi_leafL1;
    leafL2				= pPR->ShortVegi_leafL2;
@@ -2353,7 +2368,8 @@ int		PolSARproSim_Short_Vegetation_Bounce		(PolSARproSim_Record *pPR)
             stem_centre			= Cartesian_Assign_d3Vector (stem_x, stem_y, stem_height);
             theta             = vegi_polar_angle ();
             phi					= 2.0*Pi*drand ();
-            stem_moisture		= Leaf_Moisture	(pPR->species, pPR);
+            //stem_moisture		= Leaf_Moisture	(pPR->species, pPR);
+            stem_moisture		= Leaf_Moisture	(stem_species, pPR);
             stem_permittivity	= vegetation_permittivity (stem_moisture, pPR->frequency);
             Assign_Leaf       (&leaf_stem, stem_species, stem_d1, stem_d2, stem_d3, theta, phi, 
                                stem_moisture, stem_permittivity, stem_centre);
@@ -2575,7 +2591,8 @@ int		PolSARproSim_Short_Vegetation_Bounce		(PolSARproSim_Record *pPR)
             leaf_centre			= Cartesian_Assign_d3Vector (leaf_x, leaf_y, leaf_height);
             theta             = vegi_polar_angle ();
             phi					= 2.0*Pi*drand ();
-            leaf_moisture		= Leaf_Moisture	(pPR->species, pPR);
+            //leaf_moisture		= Leaf_Moisture	(pPR->species, pPR);
+            leaf_moisture		= Leaf_Moisture	(leaf_species, pPR);
             leaf_permittivity	= vegetation_permittivity (leaf_moisture, pPR->frequency);
             Assign_Leaf       (&leaf_leaf, leaf_species, leaf_d1, leaf_d2, leaf_d3, theta, phi, 
                                leaf_moisture, leaf_permittivity, leaf_centre);

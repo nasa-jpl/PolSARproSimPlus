@@ -105,11 +105,13 @@ int     read_cflag     (FILE *pinF, char *key, char *str1){
 /******************************************/
 int     read_string     (FILE *pinF, char *key, char *str1){
    static int ns,nc, nb, i;
-   static char *string1,*string2,eol[3], *par;
+   static char *string1,*string2,eol[4], *par;
    
    eol[0]='\n';                  /* new line */
-   eol[1]=';';                   /* semicolon */
+   eol[1]='#';                   /* comment hashtag */
+   eol[3]=';';                   /* semi colon separator */
    eol[2]='\0';
+   
    
    /* determine number of bytes in the parameter file */
    fseek(pinF, (off_t)0L, SEEK_END);                    

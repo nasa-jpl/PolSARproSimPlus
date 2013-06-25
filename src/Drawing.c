@@ -1759,7 +1759,7 @@ void		Forest_Graphic					(PolSARproSim_Record *pPR)
             }
             phi				= 2.0*DPI_RAD*drand();
             theta			= vegi_polar_angle ();
-            moisture		= Leaf_Moisture	(pPR->species, pPR->mean_tree_height);
+            moisture		= Leaf_Moisture	(POLSARPROSIM_DECIDUOUS_LEAF, pPR->mean_tree_height);
             permittivity	= vegetation_permittivity (moisture, pPR->frequency);
             Assign_Leaf	(&leaf1, sv_species, sv_d1, sv_d2, sv_d3, theta, phi, moisture, permittivity, sv_centre);
             /***************************/
