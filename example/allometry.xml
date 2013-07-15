@@ -258,6 +258,10 @@
 		<crown_dry_shape		units="none">	spheroid	</crown_dry_shape>			<!-- shape of dry crown (concial/spheroid/cylindrical/none)	-->
 		<crown_dry_depth_factor		units="none">	1		</crown_dry_depth_factor>		<!-- fraction of dry crown depth at which crown radius is max.	-->  
 		<crown_dry_offset_factor	units="none">	1		</crown_dry_offset_factor>		<!-- offset dry crown from live by a fraction of the bare stem.	-->  
+		<crown_live_alpha		units="none">	0.410		</crown_live_alpha>			<!-- to est. live crown depth (unless forest primitives used)	-->  
+		<crown_dry_alpha		units="none">	0.500		</crown_dry_alpha>			<!-- to est. dry crown depth (unless forest primitives used)	-->  
+		<crown_radius_factor		units="none">	0.410		</crown_radius_factor>			<!-- to est. crown radius (unless forest primitives used)	-->  
+		<stem_start_radius_factor	units="none">	5.0025		</stem_start_radius_factor>		<!-- to est. stem start radius (unless forest primitives used)	-->  
 		<primary_layer_density		units="none">  	3.015		</primary_layer_density>		<!-- Primary layer density per unit depth (of canopy)		--> 
 		<primary_sections		units="none">  	4		</primary_sections>			<!-- Average no. of sections per layer of primary branches	--> 
 		<primary_dry_moisture 		units="none">	0.300		</primary_dry_moisture>			<!-- gravimetric moisture of dry primary branches 0<Mg<0.7	-->
@@ -265,5 +269,6 @@
 		<primary_dry_sections		units="none">  	3		</primary_dry_sections>			<!-- Number of sections per layer of dry primary branches	--> 
 		<primary_dry_polar_angle_mean	units="deg">  	135.0		</primary_dry_polar_angle_mean>		<!-- Average dry primary branch polar angle (from vertical) 	--> 
 		<primary_dry_polar_angle_stdev	units="deg">  	25.0		</primary_dry_polar_angle_stdev>	<!-- Stdev of dry primary branch polar angle (from vertical) 	--> 
+		<leaf_volume_fraction		units="none">	0.00125	</leaf_volume_fraction>			<!-- Fraction of crown volume occupied by leaves		-->
 	</RHMA>
 </allometry>
