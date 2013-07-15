@@ -47,7 +47,7 @@ int			Number_of_Secondaries			(Tree *pT, PolSARproSim_Record *pPR, double primar
 double		Crown_Fractional_Living_Depth	(Tree *pT, PolSARproSim_Record *pPR)
 {
    double		fL;
-
+   
    fL = pPR->SpeciesDataBase[pT->species].crown_live_alpha;
    return (fL);
 }
@@ -117,8 +117,8 @@ double      Stem_Start_Radius          (Tree *pT, PolSARproSim_Record *pPR) /* k
    if(pPR->ForestInput_Flag == EXTERNAL_FOREST_DEFINITION) {   /* if reading the forest input externally   */ 
       sr          = pT->dbh/2;                                     /* for now derive it directly from the dbh  */
    } else {
-   sr       = pPR->SpeciesDataBase[pT->species].stem_start_radius_factor * height/100.0;
-   pT->dbh  = sr*2;
+      sr       = pPR->SpeciesDataBase[pT->species].stem_start_radius_factor * height/100.0;
+      pT->dbh  = sr*2;
    }
    return (sr);
 }
@@ -275,7 +275,7 @@ d3Vector	Primary_Tropism_Direction			(Tree *pT, PolSARproSim_Record *pPR)
    primary_trop_z = cos(primary_tropism_theta);
    
    p = Cartesian_Assign_d3Vector (primary_trop_x, primary_trop_y, primary_trop_z);
-
+   
    return (p);
 }
 
@@ -318,7 +318,7 @@ double		Primary_Dry_Moisture			(Tree *pT, PolSARproSim_Record *pPR)
 {
    double		moisture;
    double      spec_moisture  = pPR->SpeciesDataBase[pT->species].primary_dry_moisture;
-
+   
    moisture = spec_moisture + spec_moisture * 0.1 * (drand ()-0.5);
    return (moisture);
 }
@@ -346,7 +346,7 @@ d3Vector	Secondary_Tropism_Direction		(Tree *pT, PolSARproSim_Record *pPR)
    secondary_trop_z = cos(secondary_tropism_theta);
    
    p = Cartesian_Assign_d3Vector (secondary_trop_x, secondary_trop_y, secondary_trop_z);
-
+   
    return (p);
 }
 
@@ -355,9 +355,9 @@ double		Secondary_Lamdacx				(Tree *pT, PolSARproSim_Record *pPR)
    double		lamdacx;
    double      stdev    = pPR->SpeciesDataBase[pT->species].secondary_lamdacx_stdev;
    double      mean     = pPR->SpeciesDataBase[pT->species].secondary_lamdacx_mean;
- 
+   
    lamdacx	= mean + stdev * drand (); 
-
+   
    return (lamdacx);
 }
 
@@ -455,7 +455,7 @@ void      Leaf_Size               (Tree *pT, PolSARproSim_Record *pPR, double *d
          }
       }
    }
-
+   
    *d1 = leaf_dim[2];
    *d2 = leaf_dim[1];
    *d3 = leaf_dim[0];

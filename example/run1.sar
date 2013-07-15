@@ -1,25 +1,27 @@
-# PolSARproSim Configuration File
-# - All comments should start with the '#' symbol
+# PolSARproSim+ Configuration File
+# - All comments should start with the '#' symbol, filenames should not have the '#' symbol in them
 # - parameter names should not be repeated elsewhere in the file
 
-# PARAMETER NAME		VALUE			DESCRIPTION
-
+#-----------------------------------------------------------------------------------------------------------------------------------------------#
+# PARAMETER NAME		VALUE			DESCRIPTION										#
+#-----------------------------------------------------------------------------------------------------------------------------------------------#
 randn_seed			45233			# Random number generator seed                                  			#
 fast_mode			0			# 1: Enable Fast Mode approx.,  0: recompute every scattering matrix			#
 
 #-----------------------------------------------------------------------------------------------------------------------------------------------#
-# Radar viewing geometry related parameters   													#
+# Parameters for defining radar viewing geometry   												#
 #-----------------------------------------------------------------------------------------------------------------------------------------------#
-tracks				2			# The number of requested tracks (including master track)       			#
+tracks				8			# The number of requested tracks (including master track)       			#
 center_slant_range_master	14433.756730		# Slant range (broadside platform to scene centre) in metres for master track     	#
-incidence_angle_master		40.0000			# Incidence angle for master track in degrees                       			#
-baseline_track_1		0.0	0.00		# horizontal and vertical baseline components for slave track 1 [m,m]			#
-baseline_track_2		0.0	0.00		# horizontal and vertical baseline components for slave track 2 [m,m]			#
-baseline_track_3		0.0	0.00		# horizontal and vertical baseline components for slave track 3 [m,m]			#
-baseline_track_4		40.0	0.00		# horizontal and vertical baseline components for slave track 4 [m,m]			#
-baseline_track_5		50.0	0.00		# horizontal and vertical baseline components for slave track 5 [m,m]			#
-baseline_track_6		0.0	0.00		# horizontal and vertical baseline components for slave track 6 [m,m]			#
-baseline_track_7		4000.0	0.00		# horizontal and vertical baseline components for slave track 7 [m,m]			#
+incidence_angle_master		45.0000			# Incidence angle for master track in degrees                       			#
+baseline_track_1		-28.2843 28.2843	# horizontal and vertical baseline components for slave track 1 [m,m]			#
+baseline_track_2		-56.5685 56.5685	# horizontal and vertical baseline components for slave track 2 [m,m]			#
+baseline_track_3		-84.8528 84.8528	# horizontal and vertical baseline components for slave track 3 [m,m]			#
+baseline_track_4		-113.1371 113.1371	# horizontal and vertical baseline components for slave track 4 [m,m]			#
+baseline_track_5		-141.4214 141.4214	# horizontal and vertical baseline components for slave track 5 [m,m]			#
+baseline_track_6		-169.7056 169.7056	# horizontal and vertical baseline components for slave track 6 [m,m]			#
+baseline_track_7		-197.9899 197.9899	# horizontal and vertical baseline components for slave track 7 [m,m]			#
+baseline_track_8		0.0	0.00		# horizontal and vertical baseline components for slave track 8 [m,m]			#
 
 #-----------------------------------------------------------------------------------------------------------------------------------------------#
 # Radar system parameters            														#
@@ -36,52 +38,64 @@ NESZ				-42.0 -45.0 -45.0 -45.0	# System noise equivalent sigma nought for each 
 # Surface parameters                								 						#
 #-----------------------------------------------------------------------------------------------------------------------------------------------#
 input_dem			0			# 1: Input DEM from external binary file 0: generate dem from slope parameters		#
-external_DEM_file		mydem.bin		# External DEM file name
+external_DEM_file		mydem.bin		# External DEM file name								#
 DEM_azimuth_pixels		175			# Number of pixels in azimuth (or x-) direction of external DEM (unitless)     		#
 DEM_range_pixels		209			# Number of pixels in ground range (or y-) direction of external DEM (unitless) 	#
 DEM_azimuth_resolution		1.48571			# Resolution of external DEM in azimuth [m] 		              			#
 DEM_range_resolution		1.48148			# Resolution of external DEM in ground range [m] 	             			#
 ground_slope_azimuth		0.000			# Ground slope in azimuth direction (dimensionless) (not used with external DEM) 	#
 ground_slope_range		0.0000			# Ground slope in ground range direction (dimensionless) (not used with external DEM) 	#
-ground_moisture			0 0 0 6 8 10		# Ground moisture content for each track: 0 = driest ... 10 = wettest (default = 0)  	#
-roughness_model			10			# surface roughness model: 0 = perfectly smooth, 10 = very rough     			#
+ground_moisture			10 10 10 10 10 10 10 10 10 	# Ground moisture content for each track: 0 = driest ... 10 = wettest (default = 0)  	#
+roughness_model			5			# surface roughness model: 0 = perfectly smooth, 10 = very rough     			#
 
 #-----------------------------------------------------------------------------------------------------------------------------------------------#
 # Forest parameters                  														#
 #-----------------------------------------------------------------------------------------------------------------------------------------------#
-input_forest			1			# 1: Input forest from forest xml file 0: generate forest of global tree species	#
+input_forest			0			# 1: Input forest from forest xml file 0: generate forest of global tree species	#
 forest_file			forest.xml		# Input forest XML file									#
 allometry_file			allometry.xml		# Input Allometry file									#
-global_tree_species		ACRU			# Tree species: this should be matched with a species tag in allometry file		#
-global_tree_height		30.5000			# Mean tree height of internally generated stand in metres                             	#
-forest_stand_area		10000.0000		# Area of the internally generated forest stand in square metres               		#
+global_tree_species		RHMA			# Tree species: this should be matched with a species tag in allometry file		#
+global_tree_height		20.5000			# Mean tree height of internally generated stand in metres                             	#
+forest_stand_area		40000.0000		# Area of the internally generated forest stand in square metres               		#
 stem_density			30.0000			# Desired stand density of the internally generated stand in stems per hectare 		#
 forest_output			Forest_output.xml 	# Output forest XML file used if internally generated forest option enabled		#
 draw_forest			0			# 1: Draw an image of the forest (NOT RECOMMENDED FOR THIS VER),  0: skip the drawing	#
 
 #-----------------------------------------------------------------------------------------------------------------------------------------------#
-# Parameters related to modeling of temporal decorrelation											#
+# Parameters for modeling temporal decorrelation												#
 #-----------------------------------------------------------------------------------------------------------------------------------------------#
-change_height_reference		1			# 0: Use ground as height reference, 1: Use canopy bottom as height reference		#
-# -- Parameters for changing scatterer position 
-position_change_model_track_1	1	 		# 0: No change, 1: Polynomial, 2: Exponential						#
-position_change_coeff_track_1	0.0 0.004 0.00		# Position Change Model Coefficients: A, B, C (in order) for slave track 1		#
-position_change_model_track_2	1	 		# 0: No change, 1: Polynomial, 2: Exponential						#
-position_change_coeff_track_2	0.00004 0.0 0.00	# Position Change Model Coefficients: A, B, C (in order) for slave track 2		#
-position_change_model_track_3	1	 		# 0: No change, 1: Polynomial, 2: Exponential						#
-position_change_coeff_track_3	0.00008 0.0 0.0		# Position Change Model Coefficients: A, B, C (in order) for slave track 3		#
-position_change_model_track_4	1	 		# 0: No change, 1: Polynomial, 2: Exponential						#
-position_change_coeff_track_4	0.00012 0.0 0.0		# Position Change Model Coefficients: A, B, C (in order) for slave track 4		#
-position_change_model_track_5	1	 		# 0: No change, 1: Polynomial, 2: Exponential						#
-position_change_coeff_track_5	0.00016 0.0 0.0		# Position Change Model Coefficients: A, B, C (in order) for slave track 4		#
-position_change_model_track_6	1	 		# 0: No change, 1: Polynomial, 2: Exponential						#
-position_change_coeff_track_6	0.00020 0.0 0.0		# Position Change Model Coefficients: A, B, C (in order) for slave track 4		#
-# -- Parameters for changing scatterer moisture
-moisture_change_model_track_1	1	 		# 0: No change, 1: Polynomial, 2: Exponential						# 
-moisture_change_coeff_track_1	0.0 0.01 0.00		# Moisture Change Model Coefficients: A, B, C (in order) for slave track 1		#
-moisture_change_model_track_2	1	 		# 0: No change, 1: Polynomial, 2: Exponential						# 
-moisture_change_coeff_track_2	0.0008 0.000 0.00	# Moisture Change Model Coefficients: A, B, C (in order) for slave track 2		#
-moisture_change_model_track_3	1	 		# 0: No change, 1: Polynomial, 2: Exponential						# 
-moisture_change_coeff_track_3	0.0 0.01 0.0		# Moisture Change Model Coefficients: A, B, C (in order) for slave track 3		#
-moisture_change_model_track_4	1	 		# 0: No change, 1: Polynomial, 2: Exponential						# 
-moisture_change_coeff_track_4	0.0 0.0 0.0		# Moisture Change Model Coefficients: A, B, C (in order) for slave track 4		#
+change_height_reference		0			# 0: Use ground as height reference, 1: Use canopy bottom as height reference		#
+# -- track dependent parameters for changing scatterer position 										#
+position_change_model_track_1	0	 		# 0: No change, 1: Polynomial, 2: Exponential						#
+position_change_coeff_track_1	0.0 0.004 0.00		# Position Change Model Coefficients: A, B, C (Ax^2+Bx+C, Ae^(Bx)+C) for slave track 1	#
+position_change_model_track_2	0	 		# 0: No change, 1: Polynomial, 2: Exponential						#
+position_change_coeff_track_2	0.00004 0.0 0.00	# Position Change Model Coefficients: A, B, C (Ax^2+Bx+C, Ae^(Bx)+C) for slave track 2	#
+position_change_model_track_3	0	 		# 0: No change, 1: Polynomial, 2: Exponential						#
+position_change_coeff_track_3	0.00008 0.0 0.0		# Position Change Model Coefficients: A, B, C (Ax^2+Bx+C, Ae^(Bx)+C) for slave track 3	#
+position_change_model_track_4	0	 		# 0: No change, 1: Polynomial, 2: Exponential						#
+position_change_coeff_track_4	0.00012 0.0 0.0		# Position Change Model Coefficients: A, B, C (Ax^2+Bx+C, Ae^(Bx)+C) for slave track 4	#
+position_change_model_track_5	0	 		# 0: No change, 1: Polynomial, 2: Exponential						#
+position_change_coeff_track_5	0.00016 0.0 0.0		# Position Change Model Coefficients: A, B, C (Ax^2+Bx+C, Ae^(Bx)+C) for slave track 5	#
+position_change_model_track_6	0	 		# 0: No change, 1: Polynomial, 2: Exponential						#
+position_change_coeff_track_6	0.00020 0.0 0.0		# Position Change Model Coefficients: A, B, C (Ax^2+Bx+C, Ae^(Bx)+C) for slave track 6	#
+position_change_model_track_7	0	 		# 0: No change, 1: Polynomial, 2: Exponential						#
+position_change_coeff_track_7	0.00020 0.0 0.0		# Position Change Model Coefficients: A, B, C (Ax^2+Bx+C, Ae^(Bx)+C) for slave track 6	#
+position_change_model_track_8	0	 		# 0: No change, 1: Polynomial, 2: Exponential						#
+position_change_coeff_track_8	0.00020 0.0 0.0		# Position Change Model Coefficients: A, B, C (Ax^2+Bx+C, Ae^(Bx)+C) for slave track 6	#
+# -- track dependent parameters for changing scatterer moisture											#
+moisture_change_model_track_1	0	 		# 0: No change, 1: Polynomial, 2: Exponential						# 
+moisture_change_coeff_track_1	0.0 0.01 0.00		# Moisture Change Model Coefficients: A, B, C (Ax^2+Bx+C, Ae^(Bx)+C) for slave track 1	#
+moisture_change_model_track_2	0	 		# 0: No change, 1: Polynomial, 2: Exponential						# 
+moisture_change_coeff_track_2	0.0008 0.000 0.00	# Moisture Change Model Coefficients: A, B, C (Ax^2+Bx+C, Ae^(Bx)+C) for slave track 2	#
+moisture_change_model_track_3	0	 		# 0: No change, 1: Polynomial, 2: Exponential						# 
+moisture_change_coeff_track_3	0.0 0.01 0.0		# Moisture Change Model Coefficients: A, B, C (Ax^2+Bx+C, Ae^(Bx)+C) for slave track 3	#
+moisture_change_model_track_4	0	 		# 0: No change, 1: Polynomial, 2: Exponential						# 
+moisture_change_coeff_track_4	0.0 0.0 0.0		# Moisture Change Model Coefficients: A, B, C (Ax^2+Bx+C, Ae^(Bx)+C) for slave track 4	#
+moisture_change_model_track_5	0	 		# 0: No change, 1: Polynomial, 2: Exponential						# 
+moisture_change_coeff_track_5	0.0 0.0 0.0		# Moisture Change Model Coefficients: A, B, C (Ax^2+Bx+C, Ae^(Bx)+C) for slave track 4	#
+moisture_change_model_track_6	0	 		# 0: No change, 1: Polynomial, 2: Exponential						# 
+moisture_change_coeff_track_6	0.0 0.0 0.0		# Moisture Change Model Coefficients: A, B, C (Ax^2+Bx+C, Ae^(Bx)+C) for slave track 4	#
+moisture_change_model_track_7	0	 		# 0: No change, 1: Polynomial, 2: Exponential						# 
+moisture_change_coeff_track_7	0.0 0.0 0.0		# Moisture Change Model Coefficients: A, B, C (Ax^2+Bx+C, Ae^(Bx)+C) for slave track 4	#
+moisture_change_model_track_8	0	 		# 0: No change, 1: Polynomial, 2: Exponential						# 
+moisture_change_coeff_track_8	0.0 0.0 0.0		# Moisture Change Model Coefficients: A, B, C (Ax^2+Bx+C, Ae^(Bx)+C) for slave track 4	#
