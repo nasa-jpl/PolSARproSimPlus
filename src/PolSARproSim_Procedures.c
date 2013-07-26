@@ -22,7 +22,7 @@
 /*
  * Author      : Mark L. Williams
  * Module      : PolSARproSim_Procedures.c
- * Revision    : Version C1b 
+ * Revision    : Version C1b
  * Date        : September, 2007
  * Notes       : Procedure implementations for PolSARproSim
  */
@@ -526,13 +526,13 @@ void		Surface_Parameters (PolSARproSim_Record *pPR, int DEM_model)
    double	Rt2dB, Rt2, sigma_l;
    double	deltaf;
    double	Sigma0HH;
-   
+
    double	x, aRdB, bRdB;
-   
+
    /******************************************************/
    /* Requested ground brightness is frequency dependent */
    /******************************************************/
-   
+
    if (pPR->frequency > POLSARPROSIM_LBAND) {
       deltaf	= 1.0;
    } else {
@@ -543,18 +543,18 @@ void		Surface_Parameters (PolSARproSim_Record *pPR, int DEM_model)
       }
    }
    Sigma0HH	= deltaf*POLSARPROSIM_SIGMA0HHL45 + (1.0-deltaf)*POLSARPROSIM_SIGMA0HHP45;
-   
+
    /****************************************************************/
    /* Small-scale parameters may be influenced by DEM model choice */
    /****************************************************************/
-   
+
    Sigma0HH	+= ((DEM_model - 5)/5) * POLSARPROSIM_DELTAS0HHDB;
-   
+
    /***************************************************/
    /* It may not be possible to realise the requested */
    /* brightness and still satisfy SPM validity.      */
    /***************************************************/
-   
+
    if (Sigma0HH > sigma0_max) {
       delta		= 1.0;
       lamda_s	= lamda_s_max;
@@ -567,11 +567,11 @@ void		Surface_Parameters (PolSARproSim_Record *pPR, int DEM_model)
       fl2		= k*k*lamda_s*lamda_s;
    }
    sigma0		= 10.0*log10(gamma*fs2*fl2*exp(-beta*fl2));
-   
+
    /*************************/
    /* Large scale roughness */
    /*************************/
-   
+
    /*****************/
    /* New model ... */
    /*****************/
@@ -589,7 +589,7 @@ void		Surface_Parameters (PolSARproSim_Record *pPR, int DEM_model)
    if (sigma_l < 0.0) {
       sigma_l	= 0.0;
    }
-   
+
 #ifdef FLAT_DEM
    pPR->large_scale_height_stdev		= 0.0;
 #else
@@ -616,8 +616,8 @@ void	Generate_PSF_Lookup_Tables	(PolSARproSim_Record *pPR)
    double         thetamin, thetamax, grmax, grmin, tmin, tmax, p_height, inc_angle;
    double         azimuth_resolution      = pPR->azimuth_resolution;
    double         slant_range_resolution  = pPR->slant_range_resolution;
-   
-   /* compute the minimum and maximum incidence angles for all tracks */ 
+
+   /* compute the minimum and maximum incidence angles for all tracks */
    p_height       = pPR->slant_range[0]*cos(pPR->incidence_angle[0]);
    tmin           = pPR->incidence_angle[0];
    tmax           = pPR->incidence_angle[0];
@@ -633,7 +633,7 @@ void	Generate_PSF_Lookup_Tables	(PolSARproSim_Record *pPR)
          tmax     = thetamax;
       }
    }
-   PSFt_length             = (int)rint((tmax-tmin)*RAD_TO_DEG)+1; 
+   PSFt_length             = (int)rint((tmax-tmin)*RAD_TO_DEG)+1;
    pPR->min_inc_angle      = tmin;
    pPR->deltax_OS          = pPR->deltax/PSF_OVERSAMPLING_FACTOR;
    pPR->deltay_OS          = pPR->deltay/PSF_OVERSAMPLING_FACTOR;
@@ -648,7 +648,7 @@ void	Generate_PSF_Lookup_Tables	(PolSARproSim_Record *pPR)
    for(i =0;i<(2*pPR->PSFny + 1)*(PSF_OVERSAMPLING_FACTOR +1);i++){
       pPR->PSFgrmat[i]  = (double*) calloc (PSFt_length, sizeof (double));
    }
-   
+
    /************************************************/
    /* Ground range PSF calculation                 */
    /************************************************/
@@ -662,7 +662,7 @@ void	Generate_PSF_Lookup_Tables	(PolSARproSim_Record *pPR)
          if(fabs(1-(psfy/slant_range_resolution)*(psfy/slant_range_resolution)) < DBL_EPSILON){
             PSFsrvec[i] = 0.0;
          }else{
-            PSFsrvec[i] = Sinc(DPI_RAD * psfy/slant_range_resolution) + 
+            PSFsrvec[i] = Sinc(DPI_RAD * psfy/slant_range_resolution) +
                            1/DPI_RAD*(1-pPR->PSFeta)/(1+pPR->PSFeta)*sin(DPI_RAD*psfy/slant_range_resolution)*(psfy/slant_range_resolution)/(1-(psfy/slant_range_resolution)*(psfy/slant_range_resolution));
          }
       }
@@ -684,7 +684,7 @@ void	Generate_PSF_Lookup_Tables	(PolSARproSim_Record *pPR)
          }
       }
    }
-   
+
    /************************************************/
    /* Azimuth PSF calculation                      */
    /************************************************/
@@ -694,7 +694,7 @@ void	Generate_PSF_Lookup_Tables	(PolSARproSim_Record *pPR)
       if(fabs(1-(psfx/azimuth_resolution)*(psfx/azimuth_resolution)) < DBL_EPSILON){
          PSFazvec[i] = 0.0;
       }else{
-         PSFazvec[i] = Sinc(DPI_RAD * psfx/azimuth_resolution) + 
+         PSFazvec[i] = Sinc(DPI_RAD * psfx/azimuth_resolution) +
                               1/DPI_RAD*(1-pPR->PSFeta)/(1+pPR->PSFeta)*sin(DPI_RAD*psfx/azimuth_resolution)*(psfx/azimuth_resolution)/(1-(psfx/azimuth_resolution)*(psfx/azimuth_resolution));
       }
    }
@@ -730,7 +730,7 @@ int		Input_PolSARproSim_Record		(const char *filename, PolSARproSim_Record *pPR)
    FILE           *pDEMFile;
    long           DEMFileSize;
    /* required by module read_parfile */
-   static char    buff[MAX_STR];   
+   static char    buff[MAX_STR];
    double         baseline[2];
    int            change_model_type;
    double         model_coeffs[3];
@@ -741,7 +741,7 @@ int		Input_PolSARproSim_Record		(const char *filename, PolSARproSim_Record *pPR)
    /*********************/
    /* Ground properties */
    /*********************/
-   
+
    const double	sand_fraction	= 0.0502;
    const double	clay_fraction	= 0.4738;
    const double	dry_density		= 2.56;
@@ -759,7 +759,7 @@ int		Input_PolSARproSim_Record		(const char *filename, PolSARproSim_Record *pPR)
    /**********************************/
    /* Attempt to open the input file */
    /**********************************/
-   
+
    if ((pInputFile = fopen(filename, "r")) == NULL) {
       fprintf (pPR->pLogFile, "ERROR: Unable to open input file %s.\n", filename);
       fprintf (pPR->pOutputFile, "ERROR: Unable to open input file %s.\n", filename);
@@ -768,7 +768,7 @@ int		Input_PolSARproSim_Record		(const char *filename, PolSARproSim_Record *pPR)
       fflush (pPR->pOutputFile);
       exit(0);
    }
-   
+
    /* initialize some text buffers for input */
    pPR->ForestData         = (char *)calloc(MAX_STR, sizeof(char));     /* Initialize the string containing the path & filename of forest input */
    pPR->SpeciesData        = (char *)calloc(MAX_STR, sizeof(char));     /* Initialize the string containing the path & filename of species database */
@@ -779,7 +779,7 @@ int		Input_PolSARproSim_Record		(const char *filename, PolSARproSim_Record *pPR)
    /********************/
    /* Input parameters */
    /********************/
-   
+
    fprintf (pPR->pLogFile, "\nInputs using keyword driven searches in parameter file ...\n\n");
    read_integer   (pInputFile,    "tracks",                   &(pPR->Tracks), TRACK_NUMBER_MIN, TRACK_NUMBER_MAX, TRACK_NUMBER_DEFAULT);
    /* Initialize Track dependent inputs */
@@ -818,7 +818,7 @@ int		Input_PolSARproSim_Record		(const char *filename, PolSARproSim_Record *pPR)
 
    /* Simulation inputs and controls */
    read_integer   (pInputFile,   "fast_mode",                  &(pPR->ForestFastMode_Flag), ENABLE_FAST_MODE_MIN, ENABLE_FAST_MODE_MAX, ENABLE_FAST_MODE_DEFAULT); /* whether to run in fast mode or not */
-   read_integer   (pInputFile,   "randn_seed",                 &(pPR->seed), SEED_MIN, SEED_MAX, SEED_DEFAULT);             
+   read_integer   (pInputFile,   "randn_seed",                 &(pPR->seed), SEED_MIN, SEED_MAX, SEED_DEFAULT);
 
    /* ground parameters */
 #ifdef INPUT_GROUND_MV
@@ -831,10 +831,10 @@ int		Input_PolSARproSim_Record		(const char *filename, PolSARproSim_Record *pPR)
    read_integer   (pInputFile,   "input_dem",                  &(pPR->ExternalDEM_Flag), EXTERNAL_DEM_MIN, EXTERNAL_DEM_MAX, EXTERNAL_DEM_DEFAULT);   /* whether to read external dem       */
    read_integer   (pInputFile,   "DEM_azimuth_pixels",         &(pPR->DEM_nx), DEM_NX_MIN, DEM_NX_MAX, DEM_NX_DEFAULT);
    read_integer   (pInputFile,   "DEM_range_pixels",           &(pPR->DEM_ny), DEM_NY_MIN, DEM_NY_MAX, DEM_NY_DEFAULT);
-   read_double    (pInputFile,   "DEM_azimuth_resolution",     &(pPR->DEM_dx), DEM_DX_MIN, DEM_DX_MAX, DEM_DX_DEFAULT);   
-   read_double    (pInputFile,   "DEM_range_resolution",       &(pPR->DEM_dy), DEM_DY_MIN, DEM_DY_MAX, DEM_DY_DEFAULT);   
+   read_double    (pInputFile,   "DEM_azimuth_resolution",     &(pPR->DEM_dx), DEM_DX_MIN, DEM_DX_MAX, DEM_DX_DEFAULT);
+   read_double    (pInputFile,   "DEM_range_resolution",       &(pPR->DEM_dy), DEM_DY_MIN, DEM_DY_MAX, DEM_DY_DEFAULT);
    read_integer   (pInputFile,   "roughness_model",            &(DEM_model), DEM_MODEL_MIN, DEM_MODEL_MAX, DEM_MODEL_DEFAULT);
-   read_double    (pInputFile,   "ground_slope_azimuth",       &(pPR->slope_x), SLOPE_MIN, SLOPE_MAX, SLOPE_DEFAULT);   
+   read_double    (pInputFile,   "ground_slope_azimuth",       &(pPR->slope_x), SLOPE_MIN, SLOPE_MAX, SLOPE_DEFAULT);
    read_double    (pInputFile,   "ground_slope_range",         &(pPR->slope_y), SLOPE_MIN, SLOPE_MAX, SLOPE_DEFAULT);
    /* do some error checking of external DEM file inputs */
    if(pPR->ExternalDEM_Flag == READ_EXTERNAL_DEM){
@@ -853,10 +853,10 @@ int		Input_PolSARproSim_Record		(const char *filename, PolSARproSim_Record *pPR)
       }
    }
    /* Forest inputs and controls */
-   read_string    (pInputFile,   "global_tree_species",        speccode);                                 /* Read the global tree species identifier */   
+   read_string    (pInputFile,   "global_tree_species",        speccode);                                 /* Read the global tree species identifier */
    read_double    (pInputFile,   "global_tree_height",         &(pPR->mean_tree_height), GLOBAL_TREE_HEIGHT_MIN, GLOBAL_TREE_HEIGHT_MAX, GLOBAL_TREE_HEIGHT_DEFAULT);
-   read_double    (pInputFile,   "forest_stand_area",          &(pPR->Stand_Area), STAND_AREA_MIN, STAND_AREA_MAX, STAND_AREA_DEFAULT); 
-   read_integer   (pInputFile,   "stem_density",               &(pPR->req_trees_per_hectare), STEM_DENSITY_MIN, STEM_DENSITY_MAX, STEM_DENSITY_DEFAULT);   
+   read_double    (pInputFile,   "forest_stand_area",          &(pPR->Stand_Area), STAND_AREA_MIN, STAND_AREA_MAX, STAND_AREA_DEFAULT);
+   read_integer   (pInputFile,   "stem_density",               &(pPR->req_trees_per_hectare), STEM_DENSITY_MIN, STEM_DENSITY_MAX, STEM_DENSITY_DEFAULT);
    read_integer   (pInputFile,   "input_forest",               &(pPR->ForestInput_Flag), INPUT_FOREST_MIN, INPUT_FOREST_MAX, INPUT_FOREST_DEFAULT);   /* whether to input forest primitives */
    read_integer   (pInputFile,   "draw_forest",                &(pPR->ForestDraw_Flag), DRAW_FOREST_MIN, DRAW_FOREST_MAX, DRAW_FOREST_DEFAULT);       /* whether to draw forest             */
    read_string    (pInputFile,   "allometry_file",             pPR->SpeciesData);                                                                     /* Read the allometry input fileanme form parameter file, mandatory */
@@ -866,14 +866,14 @@ int		Input_PolSARproSim_Record		(const char *filename, PolSARproSim_Record *pPR)
    if(pPR->ForestInput_Flag != EXTERNAL_FOREST_DEFINITION){
       read_string (pInputFile,   "forest_output",              pPR->ForestOutput);                                                                    /* Read the filename from parameter file */
    }
-   
+
    read_integer   (pInputFile,   "change_height_reference",           &(pPR->Change_Height_Reference), CHANGE_REFERENCE_TYPE_MIN, CHANGE_REFERENCE_TYPE_MAX, CHANGE_REFERENCE_TYPE_DEF); /* which height to use as reference */
    /******************************************************************************************/
    /* Read in track dependent temporal change parameters for modeling temporal decorrelation */
    /******************************************************************************************/
    /* Allocate Memory and initialzie all to zero */
-   pPR->Position_Change_Model       = (int *)calloc(pPR->Tracks, sizeof(int));   
-   pPR->Moisture_Change_Model       = (int *)calloc(pPR->Tracks, sizeof(int)); 
+   pPR->Position_Change_Model       = (int *)calloc(pPR->Tracks, sizeof(int));
+   pPR->Moisture_Change_Model       = (int *)calloc(pPR->Tracks, sizeof(int));
    pPR->motion_coeff_A              = (double *)calloc(pPR->Tracks, sizeof(double));
    pPR->motion_coeff_B              = (double *)calloc(pPR->Tracks, sizeof(double));
    pPR->motion_coeff_C              = (double *)calloc(pPR->Tracks, sizeof(double));
@@ -897,7 +897,7 @@ int		Input_PolSARproSim_Record		(const char *filename, PolSARproSim_Record *pPR)
       if(read_integer   (pInputFile,   buff,     &change_model_type, CHANGE_MODEL_TYPE_MIN, CHANGE_MODEL_TYPE_MAX, CHANGE_MODEL_TYPE_DEFAULT)!= -1){
          pPR->Position_Change_Model[i] = change_model_type;
          sprintf(buff,                 "position_change_coeff_track_%d", i);
-         read_dvector   (pInputFile,   buff, (double *)&model_coeffs,3); 
+         read_dvector   (pInputFile,   buff, (double *)&model_coeffs,3);
          pPR->motion_coeff_A[i]        = model_coeffs[0];
          pPR->motion_coeff_B[i]        = model_coeffs[1];
          pPR->motion_coeff_C[i]        = model_coeffs[2];
@@ -907,18 +907,18 @@ int		Input_PolSARproSim_Record		(const char *filename, PolSARproSim_Record *pPR)
       if(read_integer   (pInputFile,   buff,     &change_model_type, CHANGE_MODEL_TYPE_MIN, CHANGE_MODEL_TYPE_MAX, CHANGE_MODEL_TYPE_DEFAULT)!= -1){
          pPR->Moisture_Change_Model[i] = change_model_type;
          sprintf(buff,                 "moisture_change_coeff_track_%d", i);
-         read_dvector   (pInputFile,   buff, (double *)&model_coeffs,3); 
+         read_dvector   (pInputFile,   buff, (double *)&model_coeffs,3);
          pPR->moisture_coeff_A[i]      = model_coeffs[0];
          pPR->moisture_coeff_B[i]      = model_coeffs[1];
          pPR->moisture_coeff_C[i]      = model_coeffs[2];
       }
    }
-   
-   
+
+
    /************************/
    /* Close the input file */
    /************************/
-   
+
    fclose (pInputFile);
 
    /****************************/
@@ -932,7 +932,7 @@ int		Input_PolSARproSim_Record		(const char *filename, PolSARproSim_Record *pPR)
    for (i = 1; i < pPR->Tracks; i++) {
       if(pPR->ForestFastMode_Flag == FOREST_FAST_MODE_ON){
          if(pPR->Moisture_Change_Model[i] == CHANGE_MODEL_NONE){
-            /* set this flag only if user asks for it, track > 0 and no moisture changes needed */ 
+            /* set this flag only if user asks for it, track > 0 and no moisture changes needed */
             pPR->ForestFastMode[i]  = FOREST_FAST_MODE_ON;
          }
       }
@@ -941,7 +941,7 @@ int		Input_PolSARproSim_Record		(const char *filename, PolSARproSim_Record *pPR)
    /***************************/
    /* Report input parameters */
    /***************************/
-      
+
    fprintf (pPR->pLogFile, "\nInput parameter report ...\n\n");
    fprintf (pPR->pLogFile, "%d\t\t\t/* The number of requested tracks \t*/\n", pPR->Tracks);
    for (i = 0; i < pPR->Tracks; i++) {
@@ -983,9 +983,9 @@ int		Input_PolSARproSim_Record		(const char *filename, PolSARproSim_Record *pPR)
    }
 
    fprintf (pPR->pLogFile ,"\n\n");
-   
+
    fflush (pPR->pLogFile);
-   
+
    fprintf (pPR->pOutputFile, "\nInput parameter report ...\n\n");
    fprintf (pPR->pOutputFile, "%d\t\t\t/* The number of requested tracks \t*/\n", pPR->Tracks);
    for (i = 0; i < pPR->Tracks; i++) {
@@ -1026,62 +1026,62 @@ for (i = 0; i < pPR->Tracks; i++) {
 
    fprintf (pPR->pOutputFile ,"\n\n");
    fflush (pPR->pOutputFile);
-   
+
    /**************************************/
    /* Initialise random number generator */
    /**************************************/
-   
+
    srand (pPR->seed);
-   
+
    /*************************************/
    /* Central wavelength and wavenumber */
    /*************************************/
-   
+
    pPR->wavelength                  = LIGHT_SPEED/pPR->frequency;
    pPR->k0                          = 2.0*DPI_RAD/pPR->wavelength;
-   
+
    /******************************************************/
    /* Resolution, sampling and impulse response function */
    /******************************************************/
-   
+
    pPR->deltax                      = pPR->azimuth_resolution*pPR->f_azimuth;
    pPR->ground_range_resolution		= (double*) calloc (pPR->Tracks, sizeof (double));
    for (pPR->current_track  = 0; pPR->current_track < pPR->Tracks; pPR->current_track++) {
       pPR->ground_range_resolution[pPR->current_track]	= pPR->slant_range_resolution/sin(pPR->incidence_angle[pPR->current_track]);
    }
    pPR->deltay                      = pPR->ground_range_resolution[0]*pPR->f_ground_range;
-   
+
    /******************************************************/
    /* Read and report the species specific parameters    */
    /******************************************************/
-   
+
    Input_PolSARproSim_Allometry(pPR);     /* Read in the species database first */
    Report_PolSARproSim_Allometry(pPR);    /* Report the Specie Database         */
-   
+
    /******************************************************/
    /* If input_forest flag of Master Record is set       */
    /* read forest primitives from file and               */
    /* calculate image size parameters from them          */
    /******************************************************/
-   
+
    if(pPR->ForestInput_Flag == EXTERNAL_FOREST_DEFINITION) {
-      
-      Input_PolSARproSim_Forest (pPR);       /* Read in the forest primitives next */  
+
+      Input_PolSARproSim_Forest (pPR);       /* Read in the forest primitives next */
       Check_PolSARproSim_Forest (pPR);       /* Check and report the forest parameters */
-      
+
    } else {
-      
+
       /* match the global species identifier with the correct database entry */
-      pPR->species = GLOBAL_SPECIES_DEFAULT; 
+      pPR->species = GLOBAL_SPECIES_DEFAULT;
       for(i=0;i<pPR->Nspecies;i++)
          if(!strcmp(speccode, pPR->SpeciesDataBase[i].species_name))
             pPR->species = i;
-            
+
       /******************************************************/
       /* User supplies area, for trees this is assumed much */
       /* greater than a crown area, but for the hedge ...   */
       /******************************************************/
-      
+
       pPR->mean_crown_radius  = Mean_Tree_Crown_Radius (pPR->species, pPR->mean_tree_height, pPR);
       pPR->Layover_Distance	= pPR->mean_tree_height / tan(pPR->incidence_angle[0]);
       pPR->Shadow_Distance		= pPR->mean_tree_height * tan(pPR->incidence_angle[0]);
@@ -1091,25 +1091,25 @@ for (i = 0; i < pPR->Tracks; i++) {
       pPR->Ly                 = pPR->Lx + pPR->Layover_Distance+pPR->Shadow_Distance;
       pPR->Area               = pPR->Lx*pPR->Ly;
       pPR->Hectares           = pPR->Area/10000.0;
-      
+
       /************************/
       /* SAR image dimensions */
       /************************/
-      
+
       pPR->nx                 = (int) (pPR->Lx / pPR->deltax) + 1;
       pPR->nx                 = 2*((int)(pPR->nx/2))+1;
       pPR->deltax             = pPR->Lx/pPR->nx;
       pPR->ny                 = (int) (pPR->Ly / pPR->deltay) + 1;
       pPR->ny                 = 2*((int)(pPR->ny/2))+1;
       pPR->deltay             = pPR->Ly/pPR->ny;
-      
+
       /*********/
       /* Trees */
       /*********/
-      
+
       pPR->max_tree_height             = pPR->mean_tree_height; /* This is added to make changes in Attenuation_Map backward compatible --RAedit */
       pPR->max_tree_number             = (int) (max_packing_fraction*pPR->Area/(POLSARPROSIM_CROWN_OVERLAP_FACTOR*POLSARPROSIM_CROWN_OVERLAP_FACTOR*DPI_RAD*pPR->mean_crown_radius*pPR->mean_crown_radius));
-      
+
       pPR->max_trees_per_hectare			= (int) ((double) pPR->max_tree_number/pPR->Hectares);
       if (pPR->req_trees_per_hectare > pPR->max_trees_per_hectare) {
          fprintf (pPR->pLogFile, "\nRequested stand density of %d Trees/Ha is too great.\n", pPR->req_trees_per_hectare);
@@ -1127,11 +1127,11 @@ for (i = 0; i < pPR->Tracks; i++) {
       pPR->deltaTreex               = pPR->Lx/(double)pPR->nTreex;
       pPR->deltaTreey               = pPR->Ly/(double)pPR->nTreey;
       pPR->close_packing_radius     = sqrt (max_packing_fraction*pPR->Area/(DPI_RAD*pPR->Trees));
-      
+
       /*************************************/
       /* Initialise tree heights and radii */
       /*************************************/
-      
+
       pPR->Tree_Location               = (TreeLoc*) calloc (pPR->Trees, sizeof(TreeLoc));
       for (i=0; i<pPR->Trees; i++) {
          pPR->Tree_Location[i].height	= Realise_Tree_Height(pPR->mean_tree_height);
@@ -1140,28 +1140,28 @@ for (i = 0; i < pPR->Tracks; i++) {
          pPR->Tree_Location[i].y       = 0.0;
       }
    }
-   
+
    /***************************/
    /* Graphic image variables */
    /***************************/
-   
+
    image_height		= pPR->Ly*cos(pPR->incidence_angle[0]) + pPR->mean_tree_height*sin(pPR->incidence_angle[0]);
    image_width       = pPR->Lx;
    pPR->gny          = FOREST_GRAPHIC_NY;
    pPR->gnx          = (int) (((double)pPR->gny*image_width)/((double)image_height));
-   
+
    /***********************************************************/
    /* Short vegetation layer variables not under user control */
    /***********************************************************/
-   
+
    pPR->shrt_vegi_depth          = DEFAULT_SHORT_VEGI_DEPTH;
    pPR->shrt_vegi_stem_vol_frac	= DEFAULT_SHORT_VEGI_STEM_VOL_FRAC;
    pPR->shrt_vegi_leaf_vol_frac	= DEFAULT_SHORT_VEGI_LEAF_VOL_FRAC;
-   
+
    /********************************/
    /* Ground electrical properties */
    /********************************/
-   
+
 #ifdef INPUT_GROUND_MV
    ground_mv         = (double *)calloc(pPR->Tracks, sizeof(double));
    for (i=0; i<pPR->Tracks; i++) {
@@ -1178,17 +1178,17 @@ for (i = 0; i < pPR->Tracks; i++) {
    for (i=0; i<pPR->Tracks; i++) {
       pPR->ground_eps[i]= ground_permittivity (dry_density, ground_pf, sand_fraction, clay_fraction, ground_mv[i], pPR->frequency);
    }
-      
+
    /**************************************************/
    /* Large scale and small scale surface parameters */
    /**************************************************/
-   
+
    Surface_Parameters (pPR, DEM_model);
-   
+
    /**********************************************/
    /* Report derived simulation parameter vaules */
    /**********************************************/
-   
+
    fprintf (pPR->pLogFile, "Derived parameter values ...\n\n");
    fprintf (pPR->pLogFile, "Wavelength\t\t\t\t=\t%lf metres\n", pPR->wavelength);
    fprintf (pPR->pLogFile, "Wavenumber\t\t\t\t=\t%lf inv. metres\n", pPR->k0);
@@ -1212,7 +1212,7 @@ for (i = 0; i < pPR->Tracks; i++) {
    fprintf (pPR->pLogFile, "There are %d pixels in ground range of width %lf metres\n", pPR->ny, pPR->deltay);
    fprintf (pPR->pLogFile, "\n*******************************************************************\n\n");
    fflush  (pPR->pLogFile);
-   
+
    fprintf (pPR->pOutputFile, "Derived parameter values ...\n\n");
    fprintf (pPR->pOutputFile, "Wavelength\t\t\t\t=\t%lf metres\n", pPR->wavelength);
    fprintf (pPR->pOutputFile, "Wavenumber\t\t\t\t=\t%lf inv. metres\n", pPR->k0);
@@ -1236,26 +1236,26 @@ for (i = 0; i < pPR->Tracks; i++) {
    fprintf (pPR->pOutputFile, "There are %d pixels in ground range of width %lf metres\n", pPR->ny, pPR->deltay);
    fprintf (pPR->pOutputFile, "\n*******************************************************************\n\n");
    fflush  (pPR->pOutputFile);
-   
+
 //   /************************************/
 //   /* Initialise SAR imagery variables */
 //   /************************************/
-//   
+//
 //   Create_SIM_Record (&(pPR->HHimage));
 //   Create_SIM_Record (&(pPR->HVimage));
 //   Create_SIM_Record (&(pPR->VVimage));
-//   
-//   Initialise_SIM_Record	(&(pPR->HHimage), "", pPR->nx, pPR->ny, SIM_COMPLEX_FLOAT_TYPE, pPR->Lx, pPR->Ly, 
+//
+//   Initialise_SIM_Record	(&(pPR->HHimage), "", pPR->nx, pPR->ny, SIM_COMPLEX_FLOAT_TYPE, pPR->Lx, pPR->Ly,
 //                            "PolSARproSim HH image file");
-//   Initialise_SIM_Record	(&(pPR->HVimage), "", pPR->nx, pPR->ny, SIM_COMPLEX_FLOAT_TYPE, pPR->Lx, pPR->Ly, 
+//   Initialise_SIM_Record	(&(pPR->HVimage), "", pPR->nx, pPR->ny, SIM_COMPLEX_FLOAT_TYPE, pPR->Lx, pPR->Ly,
 //                            "PolSARproSim HV image file");
-//   Initialise_SIM_Record	(&(pPR->VVimage), "", pPR->nx, pPR->ny, SIM_COMPLEX_FLOAT_TYPE, pPR->Lx, pPR->Ly, 
+//   Initialise_SIM_Record	(&(pPR->VVimage), "", pPR->nx, pPR->ny, SIM_COMPLEX_FLOAT_TYPE, pPR->Lx, pPR->Ly,
 //                            "PolSARproSim VV image file");
-   
+
    /******************************************************/
    /* Store xmid and ymid in the master record structure */
    /******************************************************/
-   
+
    pPR->xmid		= (pPR->nx/2)*pPR->deltax;
    pPR->ymid		= (pPR->ny/2)*pPR->deltay;
 
@@ -1297,13 +1297,13 @@ for (i = 0; i < pPR->Tracks; i++) {
    Generate_PSF_Lookup_Tables	(pPR);
 #endif
 
-   
 
-   
+
+
    /*********************************************/
    /* Report SAR imaging parameters to log file */
    /*********************************************/
-   
+
    fprintf (pPR->pLogFile, "\nxmid is %lf metres\n", pPR->xmid);
    fprintf (pPR->pLogFile, "ymid is %lf metres\n", pPR->ymid);
    fprintf (pPR->pLogFile, "PSF azimuth factor is %lf metres^-2\n", pPR->psfaaz);
@@ -1320,11 +1320,11 @@ for (i = 0; i < pPR->Tracks; i++) {
    /***********************************/
    /* Initialise PSF scaling to unity */
    /***********************************/
-   
+
    pPR->PSFamp	= 1.0;
    fprintf (pPR->pLogFile, "Initial PSF scaling is %lf\n", pPR->PSFamp);
    fflush  (pPR->pLogFile);
-   
+
    /***********************************************/
    /* Initialize Temporal decorrelation Variables */
    /***********************************************/
@@ -1362,13 +1362,13 @@ for (i = 0; i < pPR->Tracks; i++) {
    /*********************************/
    /* Initialise progress indicator */
    /*********************************/
-   
+
    pPR->progress	= 0;
-   
+
    /**************************/
    /* Return to main program */
    /**************************/
-   
+
    return (NO_POLSARPROSIM_ERRORS);
 }
 
@@ -1418,11 +1418,11 @@ void	Ground_Surface_Generation	(PolSARproSim_Record *pPR)
    Complex        *f;
    Complex        *F;
 #endif
-   
+
    /******************************************/
    /* Report call if running in VERBOSE mode */
    /******************************************/
-   
+
 #ifdef VERBOSE_POLSARPROSIM
    printf ("\n");
    printf ("Call to Ground_Surface_Generation ... \n");
@@ -1430,45 +1430,45 @@ void	Ground_Surface_Generation	(PolSARproSim_Record *pPR)
 #endif
    fprintf (pPR->pLogFile, "Call to Ground_Surface_Generation ... \n");
    fflush  (pPR->pLogFile);
-   
+
    /********************************/
    /* Seed random number generator */
    /********************************/
-   
+
    srand (pPR->seed);
-   
+
    /*****************************************/
    /* Initialise ground height map variable */
    /*****************************************/
-   
+
    ground_height_filename	= (char*) calloc (strlen(pPR->pMasterDirectory)+strlen("ground_height.bin")+1, sizeof(char));
    strcpy  (ground_height_filename, pPR->pMasterDirectory);
    strcat  (ground_height_filename, "ground_height.bin");
-   
+
    Destroy_SIM_Record (pSR);
    Create_SIM_Record (pSR);
-   Initialise_SIM_Record (pSR, ground_height_filename, nx, ny, SIM_FLOAT_TYPE, 
+   Initialise_SIM_Record (pSR, ground_height_filename, nx, ny, SIM_FLOAT_TYPE,
                           Lx, Ly, "PolSARproSim ground height map");
    p.simpixeltype	= pSR->pixel_type;
    free (ground_height_filename);
-   
+
 #ifndef FLAT_DEM
-   
+
    /**********************************/
    /* Stage 1: generate random field */
    /**********************************/
-   
+
    f	= (Complex*) calloc (nx*ny, sizeof(Complex));
    for (m=0;m<nx;m++) {
       for (n=0;n<ny;n++) {
          f[n*nx+m]	= rp_complex(drand(), 2.0*PI*drand());
       }
    }
-   
+
    /**********************************************/
    /* Stage 2: Calculate moments of random field */
    /**********************************************/
-   
+
    F	= (Complex*) calloc ((2*N+1)*(2*N+1), sizeof(Complex));
    for (m=0;m<=2*N;m++) {
       for (n=0;n<=2*N;n++) {
@@ -1487,11 +1487,11 @@ void	Ground_Surface_Generation	(PolSARproSim_Record *pPR)
          }
       }
    }
-   
+
    /**********************************************/
    /* Stage 3: Calculate the correlation moments */
    /**********************************************/
-   
+
    C	= (double*) calloc ((2*N+1)*(2*N+1), sizeof(double));
    for (m=0;m<=2*N;m++) {
       km	 = (double) m - (double) N;
@@ -1502,22 +1502,22 @@ void	Ground_Surface_Generation	(PolSARproSim_Record *pPR)
          C[n*(2*N+1)+m]	= 0.5*length*length*exp(-km*km*length*length/8.0)*exp(-kn*kn*length*length/8.0);
       }
    }
-   
+
    /*******************************************/
    /* Stage 4: Multiply in the Fourier domain */
    /*******************************************/
-   
+
    H	= (Complex*) calloc ((2*N+1)*(2*N+1), sizeof(Complex));
    for (m=0;m<=2*N;m++) {
       for (n=0;n<=2*N;n++) {
          H[n*(2*N+1)+m]	= complex_rmul (F[n*(2*N+1)+m], C[n*(2*N+1)+m]);
       }
    }
-   
+
    /************************************************/
    /* Stage 5: Form the surface in the real domain */
    /************************************************/
-   
+
    for (i=0; i<nx; i++) {
       xi	= i*deltaxp - (Lxp - deltaxp)/2.0;
       for (j=0; j<ny; j++) {
@@ -1540,11 +1540,11 @@ void	Ground_Surface_Generation	(PolSARproSim_Record *pPR)
          putSIMpixel_periodic (pSRHgt, p, i, j);
       }
    }
-   
+
    /**********************************************************/
    /* Stage 6: Zero mean height and scale standard deviation */
    /**********************************************************/
-   
+
    mean_height	= 0.0;
    stdd_height		= 0.0;
    for (i=0; i<nx; i++) {
@@ -1573,11 +1573,11 @@ void	Ground_Surface_Generation	(PolSARproSim_Record *pPR)
          putSIMpixel_periodic (pSRHgt, p, i, j);
       }
    }
-   
+
    /*************************************************/
    /* Stage 7: Project into SAR image plane heights */
    /*************************************************/
-   
+
    for (i=0; i<nx; i++) {
       xi	= i*deltax - (Lx - deltax)/2.0;
       for (j=0; j<ny; j++) {
@@ -1589,9 +1589,9 @@ void	Ground_Surface_Generation	(PolSARproSim_Record *pPR)
          putSIMpixel_periodic (pSRHgt, p, i, j);
       }
    }
-   
+
 #else
-   
+
    for (i=0; i<nx; i++) {
       xi	= i*deltax - (Lx - deltax)/2.0;
       for (j=0; j<ny; j++) {
@@ -1602,13 +1602,13 @@ void	Ground_Surface_Generation	(PolSARproSim_Record *pPR)
          putSIMpixel (pSRHgt, p, i, j);
       }
    }
-   
+
 #endif
-   
+
    /***********************************************************/
    /* Stage 8: Report the properties of the generated surface */
    /***********************************************************/
-   
+
    mean_height	= 0.0;
    stdd_height	= 0.0;
    for (i=0; i<nx; i++) {
@@ -1632,28 +1632,28 @@ void	Ground_Surface_Generation	(PolSARproSim_Record *pPR)
    }
    stdd_height	/= (double) (nx*ny);
    stdd_height	 = sqrt(stdd_height);
-   
+
    fprintf (pPR->pLogFile, "\n");
    fprintf (pPR->pLogFile, "Ground surface mean height above terrain slope\t= %12.5em.\n", mean_height);
    fprintf (pPR->pLogFile, "Ground surface stdd height above terrain slope\t= %12.5em.\n", stdd_height);
    fprintf (pPR->pLogFile, "\n");
    fflush  (pPR->pLogFile);
-   
+
    /***********/
    /* Tidy up */
    /***********/
-   
+
 #ifndef FLAT_DEM
    free (f);
    free (F);
    free (C);
    free (H);
 #endif
-   
+
    /******************************************/
    /* Report call if running in VERBOSE mode */
    /******************************************/
-   
+
 #ifdef VERBOSE_POLSARPROSIM
    printf ("\n");
    printf ("... Returning from call to Ground_Surface_Generation\n");
@@ -1661,21 +1661,21 @@ void	Ground_Surface_Generation	(PolSARproSim_Record *pPR)
 #endif
    fprintf (pPR->pLogFile, "... Returning from call to Ground_Surface_Generation\n\n");
    fflush  (pPR->pLogFile);
-   
+
    /********************************/
    /* Increment progress indicator */
    /********************************/
-   
+
    pPR->progress++;
-   
+
    /********************************/
    /* Report progress if requested */
    /********************************/
-   
+
 #ifdef POLSARPROSIM_MAX_PROGRESS
    PolSARproSim_indicate_progress (pPR);
 #endif
-   
+
    return;
 }
 
@@ -1701,7 +1701,7 @@ int			Cylinder_from_Branch		(Cylinder *pC, Branch *pB, int i_seg, int n_segments
 {
    double		length, radius, tm, tp, deltat;
    d3Vector	z, bm, bp;
-   
+
    deltat	= 1.0/(double) n_segments;
    tm			= i_seg*deltat;
    tp			= (i_seg+1)*deltat;
@@ -1719,7 +1719,7 @@ c33Matrix	CylinderPolarisability	(Cylinder *pC, d3Vector *pkix, d3Vector *pkiy, 
 {
    c33Matrix		Alpha;
    const double	sfac	= 1.0/2.0;
-   
+
 #ifdef FORCE_GRG_CYLINDERS
    Alpha		= GrgCylP (pC, pkix);
    Alpha		= c33Matrix_sum (Alpha, GrgCylP (pC, pkiy));
@@ -1809,9 +1809,9 @@ c33Matrix	CylinderPolarisability	(Cylinder *pC, d3Vector *pkix, d3Vector *pkiy, 
 //   d3Vector       t_axis, t_base;
 //   double			tertiary_branch_volume;
 //   Complex        tbvinv;
-//   
+//
 //   Tree           *pT;
-//   
+//
 //   /******************************************/
 //   /* Report call if running in VERBOSE mode */
 //   /******************************************/
@@ -2003,8 +2003,8 @@ c33Matrix	CylinderPolarisability	(Cylinder *pC, d3Vector *pkix, d3Vector *pkiy, 
 //            pB	= pB->next;
 //         }
 //      } /* end for loop on trees */
-//      
-//      
+//
+//
 //      /*if ((pPR->species != POLSARPROSIM_DECIDUOUS001) && (pPR->species != POLSARPROSIM_NULL_SPECIES)) { */
 //      if(dry_count > 0){ /* Use dry_count to avoid using pPR->species as a check --RAedit  */
 //         crown_dry_vol_frac		/= dry_crown_volume;
@@ -2069,11 +2069,11 @@ c33Matrix	CylinderPolarisability	(Cylinder *pC, d3Vector *pkix, d3Vector *pkiy, 
 //      fprintf (pPR->pLogFile, "Crown dry effective permittivity\t= %10.3e + j %10.3e  ... \n", CrownDry_EpsEff.m[8].x, fabs(CrownDry_EpsEff.m[8].y));
 //      fprintf (pPR->pLogFile, "\n");
 //   }
-//   
+//
 //   /*********************************************************/
 //   /* Isotropic short vegetation layer: uses GRG model only */
 //   /*********************************************************/
-//   
+//
 //#ifdef VERBOSE_POLSARPROSIM
 //   printf ("\n");
 //   printf ("Calculating short vegetation effective permittivity  ... \n");
@@ -2164,12 +2164,12 @@ c33Matrix	CylinderPolarisability	(Cylinder *pC, d3Vector *pkix, d3Vector *pkiy, 
 //   fprintf (pPR->pLogFile, "Short vegetation effective permittivity = %10.3e + j %10.3e  ... \n", ShortVegi_EpsEff.m[4].x, fabs(ShortVegi_EpsEff.m[4].y));
 //   fprintf (pPR->pLogFile, "Short vegetation effective permittivity = %10.3e + j %10.3e  ... \n", ShortVegi_EpsEff.m[8].x, fabs(ShortVegi_EpsEff.m[8].y));
 //   fprintf (pPR->pLogFile, "\n");
-//   
-//   
+//
+//
 //   /*************************/
 //   /* Living crown tertiary */
 //   /*************************/
-//   
+//
 //#ifdef VERBOSE_POLSARPROSIM
 //   printf ("\n");
 //   printf ("Calculating crown tertiary effective permittivity  ... \n");
@@ -2273,11 +2273,11 @@ c33Matrix	CylinderPolarisability	(Cylinder *pC, d3Vector *pkix, d3Vector *pkiy, 
 //   t_base					= Cartesian_Assign_d3Vector (0.0, 0.0, 0.0);
 //   tertiary_branch_volume	= DPI_RAD*tertiary_branch_radius*tertiary_branch_radius*tertiary_branch_length;
 //   tbvinv					= xy_complex (1.0/tertiary_branch_volume, 0.0);
-//   
+//
 //   /********************************/
 //   /* Tertiary branch contribution */
 //   /********************************/
-//   
+//
 //   for (i_costheta = 0; i_costheta < Ntheta; i_costheta++) {
 //      costheta	= i_costheta*d_costheta + d_costheta/2.0 - 1.0;
 //      theta		= acos(costheta);
@@ -2314,11 +2314,11 @@ c33Matrix	CylinderPolarisability	(Cylinder *pC, d3Vector *pkix, d3Vector *pkiy, 
 //   }
 //   scale_factor			= xy_complex (tertiary_branch_vol_frac/(Ntheta*Nphi), 0.0);
 //   CrownTert_EpsEff		= c33Matrix_sum (CrownTert_EpsEff, c33Matrix_Complex_product (Alpha_Stem_Sum, scale_factor));
-//   
+//
 //   /*********************/
 //   /* Leaf contribution */
 //   /*********************/
-//   
+//
 //   leaf_species	= Leaf_Species       (pPR->species, pPR);
 //   leaf_d1			= Leaf_Dimension_1	(pPR->species);
 //   leaf_d2			= Leaf_Dimension_2	(pPR->species);
@@ -2334,7 +2334,7 @@ c33Matrix	CylinderPolarisability	(Cylinder *pC, d3Vector *pkix, d3Vector *pkiy, 
 //   pPR->Tertiary_leafL2	= leafL2;
 //   pPR->Tertiary_leafL3	= leafL3;
 //   Alpha_Leaf_Sum		= Zero_c33Matrix ();
-//   printf("Leaves in Epseff: %ld\n", (long)(Ntheta*Nphi)); 
+//   printf("Leaves in Epseff: %ld\n", (long)(Ntheta*Nphi));
 //   for (i_costheta = 0; i_costheta < Ntheta; i_costheta++) {
 //      costheta	= i_costheta*d_costheta + d_costheta/2.0 - 1.0;
 //      theta		= acos(costheta);
@@ -2538,7 +2538,7 @@ void		Effective_Permittivities	(PolSARproSim_Record *pPR)
    int            Ntrees;
    Branch			*pB;
    long           iBranch;
-   
+
    c33Matrix		Alpha_Trunk_Sum				= Zero_c33Matrix ();
    c33Matrix		Alpha_Primary_Sum          = Zero_c33Matrix ();
    c33Matrix		Alpha_Secondary_Sum			= Zero_c33Matrix ();
@@ -2547,14 +2547,14 @@ void		Effective_Permittivities	(PolSARproSim_Record *pPR)
    c33Matrix		Alpha_Dry_Sum              = Zero_c33Matrix ();
    c33Matrix		Alpha                      = Zero_c33Matrix ();
    c33Matrix		Alpha_Stem_Sum             = Zero_c33Matrix ();
-   
+
    c33Matrix		CrownTrunk_EpsEff          = Idem_c33Matrix ();
    c33Matrix		CrownPrimary_EpsEff			= Idem_c33Matrix ();
    c33Matrix		CrownSecondary_EpsEff		= Idem_c33Matrix ();
    c33Matrix		CrownTert_EpsEff           = Idem_c33Matrix ();
    c33Matrix		CrownDry_EpsEff				= Idem_c33Matrix ();
    c33Matrix		CrownLiving_EpsEff			= Idem_c33Matrix ();
-   
+
    double			crown_trunk_vol_frac       = 0.0;
    double			crown_primary_vol_frac		= 0.0;
    double			crown_secondary_vol_frac	= 0.0;
@@ -2563,17 +2563,17 @@ void		Effective_Permittivities	(PolSARproSim_Record *pPR)
    double			trunk_length, trunk_count, trunk_volume, trunk_number_density;
    double			primary_length, primary_count, primary_volume, primary_number_density;
    double			secondary_length, secondary_count, secondary_volume, secondary_number_density;
-   
+
    /* for treating tertiaries as cylinders instead of leaves */
    double         tertiary_length, tertiary_count, tertiary_volume, tertiary_number_density;
    double         crown_tertiary_vol_frac    = 0.0;
    int            number_of_tertiaries;
-   
+
    /* for using already realized leaves */
    int            number_of_leaves;
    double         crown_foliage_vol_frac     = 0.0;
    double         foliage_number_density, leaf_volume, leaf_count;
-   
+
    double			dry_length, dry_count, dry_volume, dry_number_density;
    int            n_segments, i_seg;
    int            rtn_value;
@@ -2586,15 +2586,15 @@ void		Effective_Permittivities	(PolSARproSim_Record *pPR)
    double         kro2;
    Complex        ko2, koz2, koz;
    Complex        ke2, kez2, kez;
-   
+
    Tree           *pT;
    Leaf           *pL;
    long           iLeaf;
-   
+
    int            ispecies;
    int            treeindex[POLSARPROSIM_ATTENUATION_TREES];
    int            index_count;
-   
+
    /******************************************/
    /* Report call if running in VERBOSE mode */
    /******************************************/
@@ -2638,18 +2638,18 @@ void		Effective_Permittivities	(PolSARproSim_Record *pPR)
    phis		= phii;
    kiz		= Polar_Assign_d3Vector (pPR->k0, thetai, phii);
    ksz		= Polar_Assign_d3Vector (pPR->k0, thetas, phis);
-   
+
    /* Initialize the global effective wave vectors */
    pPR->koz_living   = (Complex *) calloc(pPR->Nspecies, sizeof(Complex));
    pPR->koz_dry      = (Complex *) calloc(pPR->Nspecies, sizeof(Complex));
    pPR->kez_living   = (Complex *) calloc(pPR->Nspecies, sizeof(Complex));
    pPR->kez_dry      = (Complex *) calloc(pPR->Nspecies, sizeof(Complex));
-   
+
    /*********************************************/
    /* Estimate the wavevectors for each species */
    /*********************************************/
    for (ispecies=0;ispecies<pPR->Nspecies;ispecies++){
-      
+
 #ifdef VERBOSE_POLSARPROSIM
       printf ("\n");
       printf ("Calculating dry, trunk, primary, secondary, tertiary and foliage effective permittivities for %s ... \n", pPR->SpeciesDataBase[ispecies].species_name);
@@ -2657,14 +2657,14 @@ void		Effective_Permittivities	(PolSARproSim_Record *pPR)
 #endif
       fprintf (pPR->pLogFile, "Calculating dry, trunk, primary, secondary, tertiary and foliage effective permittivities for %s ... \n", pPR->SpeciesDataBase[ispecies].species_name);
       fflush  (pPR->pLogFile);
-      
+
       /* determine how many trees to average over for this species */
       if(pPR->SpeciesDataBase[ispecies].Trees < POLSARPROSIM_ATTENUATION_TREES) {
          Ntrees = pPR->SpeciesDataBase[ispecies].Trees;
       } else{
          Ntrees = POLSARPROSIM_ATTENUATION_TREES;
       }
-      
+
       /* determine which trees to average over */
       itree = 0;
       index_count = 0;
@@ -2675,7 +2675,7 @@ void		Effective_Permittivities	(PolSARproSim_Record *pPR)
          }
          itree++;
       }
-      
+
       /* zero out the counters */
       trunk_count                = 0.0;
       primary_count              = 0.0;
@@ -2704,12 +2704,12 @@ void		Effective_Permittivities	(PolSARproSim_Record *pPR)
       CrownTert_EpsEff           = Idem_c33Matrix ();
       CrownDry_EpsEff				= Idem_c33Matrix ();
       CrownLiving_EpsEff			= Idem_c33Matrix ();
-      
+
       for (itree = 0; itree < Ntrees; itree++) {
          fflush(stderr);
          Realise_Tree(&tree1, treeindex[itree], pPR);
          pT = &tree1;
-         
+
          /***************************/
          /* Dry crown contribution  */
          /***************************/
@@ -2750,7 +2750,7 @@ void		Effective_Permittivities	(PolSARproSim_Record *pPR)
             /*************************************/
             /* Primary contribution to dry crown */
             /*************************************/
-            if(pT->Dry.head != NULL_PTR2BRANCH_LIST) { 
+            if(pT->Dry.head != NULL_PTR2BRANCH_LIST) {
                pB	= tree1.Dry.head;
                for (iBranch=0L; iBranch < tree1.Dry.n; iBranch++) {
                   dry_length		= pB->l;
@@ -2770,14 +2770,14 @@ void		Effective_Permittivities	(PolSARproSim_Record *pPR)
                }
             }
          }
-         
+
          /************************************/
          /* Living crown, wich always exists */
          /************************************/
          crown_volume		+= tree1.CrownVolume.head->volume;
-         
+
          /* loop through the stem sections */
-         if (pT->Stem.head != NULL_PTR2BRANCH_LIST){ 
+         if (pT->Stem.head != NULL_PTR2BRANCH_LIST){
             pB				 = tree1.Stem.head;
             trunk_length		 = pB->l;
             if (bsecl < dsecl) {
@@ -2799,9 +2799,9 @@ void		Effective_Permittivities	(PolSARproSim_Record *pPR)
                }
             }
          }
-         
+
          /* loop through primary branches */
-         if (pT->Primary.head != NULL_PTR2BRANCH_LIST){   
+         if (pT->Primary.head != NULL_PTR2BRANCH_LIST){
             pB	= tree1.Primary.head;
             for (iBranch=0L; iBranch < tree1.Primary.n; iBranch++) {
                primary_length	= pB->l;
@@ -2820,9 +2820,9 @@ void		Effective_Permittivities	(PolSARproSim_Record *pPR)
                pB	= pB->next;
             }
          }
-         
+
          /* loop through secondary branches */
-         if (pT->Secondary.head != NULL_PTR2BRANCH_LIST){ 
+         if (pT->Secondary.head != NULL_PTR2BRANCH_LIST){
             pB	= tree1.Secondary.head;
             for (iBranch=0L; iBranch < tree1.Secondary.n; iBranch++) {
                secondary_length	= pB->l;
@@ -2841,7 +2841,7 @@ void		Effective_Permittivities	(PolSARproSim_Record *pPR)
                pB	= pB->next;
             }
          }
-         
+
          /* loop through tertiary branches */
          if(pT->Tertiary.head != NULL_PTR2BRANCH_LIST) {
             pB = tree1.Tertiary.head;
@@ -2862,8 +2862,8 @@ void		Effective_Permittivities	(PolSARproSim_Record *pPR)
                }
                pB	= pB->next;
             }
-         } 
-         
+         }
+
          /* loop through leaves */
          if(pT->Foliage.head != NULL_PTR2LEAF_LIST) {
             pL = tree1.Foliage.head;
@@ -2878,13 +2878,13 @@ void		Effective_Permittivities	(PolSARproSim_Record *pPR)
                leaf_volume             = Leaf_Volume (pL);
                crown_foliage_vol_frac  += leaf_volume;
                leaf_count              += 1.0;
-               pL = pL->next; 
+               pL = pL->next;
             }
          }
-         
+
       } /* end for loop on trees */
-      
-      
+
+
       if(dry_count > 0){ /* Use dry_count to avoid using pPR->species as a check --RAedit  */
          crown_dry_vol_frac         /= dry_crown_volume;
          dry_number_density         = dry_count / dry_crown_volume;
@@ -2902,7 +2902,7 @@ void		Effective_Permittivities	(PolSARproSim_Record *pPR)
          scale_factor               = xy_complex (trunk_number_density/trunk_count, 0.0);
          CrownTrunk_EpsEff          = c33Matrix_sum (CrownTrunk_EpsEff, c33Matrix_Complex_product (Alpha_Trunk_Sum, scale_factor));
       }
-      if(primary_count > 0) {   
+      if(primary_count > 0) {
          crown_primary_vol_frac     /= crown_volume;
          primary_number_density     = primary_count / crown_volume;
          scale_factor               = xy_complex (primary_number_density/primary_count, 0.0);
@@ -2938,7 +2938,7 @@ void		Effective_Permittivities	(PolSARproSim_Record *pPR)
       CrownTert_EpsEff.m[0]      = e;
       CrownTert_EpsEff.m[4]      = e;
       CrownTert_EpsEff.m[8]      = e;
-      
+
       /*****************************/
       /* Output results to logfile */
       /*****************************/
@@ -2986,7 +2986,7 @@ void		Effective_Permittivities	(PolSARproSim_Record *pPR)
       fprintf (pPR->pLogFile, "Crown dry effective permittivity\t= %10.3e + j %10.3e  ... \n", CrownDry_EpsEff.m[4].x, fabs(CrownDry_EpsEff.m[4].y));
       fprintf (pPR->pLogFile, "Crown dry effective permittivity\t= %10.3e + j %10.3e  ... \n", CrownDry_EpsEff.m[8].x, fabs(CrownDry_EpsEff.m[8].y));
       fprintf (pPR->pLogFile, "\n");
-      
+
       /******************************************/
       /* Combine contributions for living crown */
       /******************************************/
@@ -3046,7 +3046,7 @@ void		Effective_Permittivities	(PolSARproSim_Record *pPR)
       pPR->ke2_living            = ke2;
       pPR->kez2_living           = kez2;
       pPR->kez_living[ispecies]  = kez; // used in Attenuation_map
-      
+
       fprintf (pPR->pLogFile, "\n");
       fprintf (pPR->pLogFile, "Consolidated effective permittivities:");
       fprintf (pPR->pLogFile, "\n");
@@ -3061,11 +3061,11 @@ void		Effective_Permittivities	(PolSARproSim_Record *pPR)
       fprintf (pPR->pLogFile, "Crown living effective permittivity\t= %10.3e + j %10.3e  ... \n", CrownLiving_EpsEff.m[8].x, fabs(CrownLiving_EpsEff.m[8].y));
       fprintf (pPR->pLogFile, "\n");
    }
-   
+
    /*********************************************************/
    /* Isotropic short vegetation layer: uses GRG model only */
    /*********************************************************/
-   
+
 #ifdef VERBOSE_POLSARPROSIM
    printf ("\n");
    printf ("Calculating short vegetation effective permittivity  ... \n");
@@ -3163,7 +3163,7 @@ void		Effective_Permittivities	(PolSARproSim_Record *pPR)
    fprintf (pPR->pLogFile, "Short vegetation effective permittivity = %10.3e + j %10.3e  ... \n", ShortVegi_EpsEff.m[4].x, fabs(ShortVegi_EpsEff.m[4].y));
    fprintf (pPR->pLogFile, "Short vegetation effective permittivity = %10.3e + j %10.3e  ... \n", ShortVegi_EpsEff.m[8].x, fabs(ShortVegi_EpsEff.m[8].y));
    fprintf (pPR->pLogFile, "\n");
-   
+
    e                       = complex_rmul (complex_add (ShortVegi_EpsEff.m[0], ShortVegi_EpsEff.m[4]), 0.5);
    ez                      = ShortVegi_EpsEff.m[8];
    ShortVegi_EpsEff        = Idem_c33Matrix ();
@@ -3188,7 +3188,7 @@ void		Effective_Permittivities	(PolSARproSim_Record *pPR)
    pPR->ke2_short          = ke2;
    pPR->kez2_short         = kez2;
    pPR->kez_short          = kez;
-   
+
    /***********/
    /* Tidy up */
    /***********/
@@ -3225,9 +3225,9 @@ void		Effective_Permittivities	(PolSARproSim_Record *pPR)
 /* needed for an multi-processor ver.  */
 /* of the Effective_Permittivity() fn. */
 /***************************************/
-void     *Compute_Alphas   (void *threadarg) 
+void     *Compute_Alphas   (void *threadarg)
 {
-   
+
    int                  itree;
    EffPerm_Thread_Arg   *pTA;
    PolSARproSim_Record  *pPR;
@@ -3265,8 +3265,8 @@ void     *Compute_Alphas   (void *threadarg)
    Leaf                 leaf1;
    Leaf                 *pL;
    long                 iLeaf;
-   
-   
+
+
    c33Matrix            Alpha_Trunk_Sum				= Zero_c33Matrix ();
    c33Matrix            Alpha_Primary_Sum          = Zero_c33Matrix ();
    c33Matrix            Alpha_Secondary_Sum			= Zero_c33Matrix ();
@@ -3275,12 +3275,12 @@ void     *Compute_Alphas   (void *threadarg)
    c33Matrix            Alpha_Dry_Sum              = Zero_c33Matrix ();
    c33Matrix            Alpha                      = Zero_c33Matrix ();
    c33Matrix            c33Zero                    = Zero_c33Matrix ();
-   
+
    /* do some assignments */
    pTA         = (EffPerm_Thread_Arg *)threadarg;
    itree       = pTA->itree;
-   pPR         = pTA->pPR;  // address to Master_Record   
-   
+   pPR         = pTA->pPR;  // address to Master_Record
+
    /**************/
    /* Initialise */
    /**************/
@@ -3316,7 +3316,7 @@ void     *Compute_Alphas   (void *threadarg)
    ksz		= Polar_Assign_d3Vector (pPR->k0, thetas, phis);
    /* branch length control */
    bsecl       =	POLSARPROSIM_SAR_BRANCH_FACTOR*(pPR->azimuth_resolution + pPR->slant_range_resolution);
-   
+
    /* zero out the counters */
    trunk_count                = 0.0;
    primary_count              = 0.0;
@@ -3332,10 +3332,10 @@ void     *Compute_Alphas   (void *threadarg)
    crown_secondary_vol_frac	= 0.0;
    crown_tertiary_vol_frac    = 0.0;
    crown_dry_vol_frac			= 0.0;
-   
+
    Realise_Tree(&tree1, itree, pPR);
    pT = &tree1;
-   
+
    /***************************/
    /* Dry crown contribution  */
    /***************************/
@@ -3376,7 +3376,7 @@ void     *Compute_Alphas   (void *threadarg)
       /*************************************/
       /* Primary contribution to dry crown */
       /*************************************/
-      if(pT->Dry.head != NULL_PTR2BRANCH_LIST) { 
+      if(pT->Dry.head != NULL_PTR2BRANCH_LIST) {
          pB	= tree1.Dry.head;
          for (iBranch=0L; iBranch < tree1.Dry.n; iBranch++) {
             dry_length		= pB->l;
@@ -3396,14 +3396,14 @@ void     *Compute_Alphas   (void *threadarg)
          }
       }
    }
-   
+
    /************************************/
    /* Living crown, wich always exists */
    /************************************/
    crown_volume		+= tree1.CrownVolume.head->volume;
-   
+
    /* loop through the stem sections */
-   if (pT->Stem.head != NULL_PTR2BRANCH_LIST){ 
+   if (pT->Stem.head != NULL_PTR2BRANCH_LIST){
       pB				 = tree1.Stem.head;
       trunk_length		 = pB->l;
       if (bsecl < dsecl) {
@@ -3425,9 +3425,9 @@ void     *Compute_Alphas   (void *threadarg)
          }
       }
    }
-   
+
    /* loop through primary branches */
-   if (pT->Primary.head != NULL_PTR2BRANCH_LIST){   
+   if (pT->Primary.head != NULL_PTR2BRANCH_LIST){
       pB	= tree1.Primary.head;
       for (iBranch=0L; iBranch < tree1.Primary.n; iBranch++) {
          primary_length	= pB->l;
@@ -3446,9 +3446,9 @@ void     *Compute_Alphas   (void *threadarg)
          pB	= pB->next;
       }
    }
-   
+
    /* loop through secondary branches */
-   if (pT->Secondary.head != NULL_PTR2BRANCH_LIST){ 
+   if (pT->Secondary.head != NULL_PTR2BRANCH_LIST){
       pB	= tree1.Secondary.head;
       for (iBranch=0L; iBranch < tree1.Secondary.n; iBranch++) {
          secondary_length	= pB->l;
@@ -3467,7 +3467,7 @@ void     *Compute_Alphas   (void *threadarg)
          pB	= pB->next;
       }
    }
-   
+
    /* loop through tertiary branches */
    if(pT->Tertiary.head != NULL_PTR2BRANCH_LIST) {
       pB = tree1.Tertiary.head;
@@ -3488,54 +3488,54 @@ void     *Compute_Alphas   (void *threadarg)
          }
          pB	= pB->next;
       }
-   } 
-   
+   }
+
    /* loop through leaves */
    if(pT->Foliage.head != NULL_PTR2LEAF_LIST) {
       pL = tree1.Foliage.head;
       number_of_leaves = tree1.Foliage.n;
       for (iLeaf=0L; iLeaf < number_of_leaves; iLeaf++){
          Leaf_Depolarization_Factors (pL, &leafL1, &leafL2, &leafL3);
-         leaf_moisture           = pL->moisture; 
-         leaf_permittivity       = pL->permittivity; 
+         leaf_moisture           = pL->moisture;
+         leaf_permittivity       = pL->permittivity;
          leaf_epsm1              = xy_complex (leaf_permittivity.x-1.0, leaf_permittivity.y);
          Alpha                   = Leaf_Polarisability (pL, leafL1, leafL2, leafL3);
          Alpha_Leaf_Sum          = c33Matrix_sum (Alpha_Leaf_Sum, c33Matrix_Complex_product (Alpha, leaf_epsm1));
          leaf_volume             = Leaf_Volume (pL);
          crown_foliage_vol_frac  += leaf_volume;
          leaf_count              += 1.0;
-         pL = pL->next; 
+         pL = pL->next;
       }
    }
-   
+
    /*********************/
    /* Assign Outputs    */
    /*********************/
-   
+
    pTA->dry_crown_volume           = dry_crown_volume;
    pTA->dry_count                  = dry_count;
    pTA->crown_dry_vol_frac         = crown_dry_vol_frac;
    pTA->Alpha_Dry_Sum              = c33Matrix_sum (Alpha_Dry_Sum, c33Zero);
    pTA->crown_volume               = crown_volume;
    pTA->trunk_count                = trunk_count;
-   pTA->crown_trunk_vol_frac       = crown_trunk_vol_frac;   
-   pTA->Alpha_Trunk_Sum            = c33Matrix_sum (Alpha_Trunk_Sum, c33Zero); 
+   pTA->crown_trunk_vol_frac       = crown_trunk_vol_frac;
+   pTA->Alpha_Trunk_Sum            = c33Matrix_sum (Alpha_Trunk_Sum, c33Zero);
    pTA->primary_count              = primary_count;
    pTA->crown_primary_vol_frac     = crown_primary_vol_frac;
-   pTA->Alpha_Primary_Sum          = c33Matrix_sum (Alpha_Primary_Sum, c33Zero); 
-   pTA->secondary_count            = secondary_count;  
+   pTA->Alpha_Primary_Sum          = c33Matrix_sum (Alpha_Primary_Sum, c33Zero);
+   pTA->secondary_count            = secondary_count;
    pTA->crown_secondary_vol_frac   = crown_secondary_vol_frac;
    pTA->Alpha_Secondary_Sum        = c33Matrix_sum (Alpha_Secondary_Sum, c33Zero);
    pTA->tertiary_count             = tertiary_count;
    pTA->crown_tertiary_vol_frac    = crown_tertiary_vol_frac;
-   pTA->Alpha_Tertiary_Sum         = c33Matrix_sum (Alpha_Tertiary_Sum, c33Zero); 
+   pTA->Alpha_Tertiary_Sum         = c33Matrix_sum (Alpha_Tertiary_Sum, c33Zero);
    pTA->leaf_count                 = leaf_count;
    pTA->crown_foliage_vol_frac     = crown_foliage_vol_frac;
    pTA->Alpha_Leaf_Sum             = c33Matrix_sum (Alpha_Leaf_Sum, c33Zero);
-   
+
    /* exit */
    pthread_exit(NULL);
-   
+
 }
 
 /******************************************/
@@ -3565,7 +3565,7 @@ void		Effective_Permittivities_SMP	(PolSARproSim_Record *pPR)
    double			leafL1, leafL2, leafL3;
    int            itree;
    int            Ntrees;
-   
+
    /* some variables for hyperthreading */
    EffPerm_Thread_Arg   *threadarg; /* pointer to array of thread arguments   */
    pthread_t            *threads;   /* pointer to arry of thread ids          */
@@ -3576,7 +3576,7 @@ void		Effective_Permittivities_SMP	(PolSARproSim_Record *pPR)
    pthread_attr_init(&attr);
    pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 
-   
+
    c33Matrix		Alpha_Trunk_Sum				= Zero_c33Matrix ();
    c33Matrix		Alpha_Primary_Sum          = Zero_c33Matrix ();
    c33Matrix		Alpha_Secondary_Sum			= Zero_c33Matrix ();
@@ -3585,14 +3585,14 @@ void		Effective_Permittivities_SMP	(PolSARproSim_Record *pPR)
    c33Matrix		Alpha_Dry_Sum              = Zero_c33Matrix ();
    c33Matrix		Alpha                      = Zero_c33Matrix ();
    c33Matrix		Alpha_Stem_Sum             = Zero_c33Matrix ();
-   
+
    c33Matrix		CrownTrunk_EpsEff          = Idem_c33Matrix ();
    c33Matrix		CrownPrimary_EpsEff			= Idem_c33Matrix ();
    c33Matrix		CrownSecondary_EpsEff		= Idem_c33Matrix ();
    c33Matrix		CrownTert_EpsEff           = Idem_c33Matrix ();
    c33Matrix		CrownDry_EpsEff				= Idem_c33Matrix ();
    c33Matrix		CrownLiving_EpsEff			= Idem_c33Matrix ();
-   
+
    double			crown_trunk_vol_frac       = 0.0;
    double			crown_primary_vol_frac		= 0.0;
    double			crown_secondary_vol_frac	= 0.0;
@@ -3608,16 +3608,16 @@ void		Effective_Permittivities_SMP	(PolSARproSim_Record *pPR)
    /* for using already realized leaves */
    double         foliage_number_density, leaf_count;
    double			dry_count, dry_number_density;
-   
+
    Complex        e, ez;
    double         kro2;
    Complex        ko2, koz2, koz;
    Complex        ke2, kez2, kez;
-      
+
    int            ispecies;
    int            treeindex[POLSARPROSIM_ATTENUATION_TREES];
    int            index_count;
-   
+
    /******************************************/
    /* Report call if running in VERBOSE mode */
    /******************************************/
@@ -3628,18 +3628,18 @@ void		Effective_Permittivities_SMP	(PolSARproSim_Record *pPR)
 #endif
    fprintf (pPR->pLogFile, "Call to Effective_Permittivities ... \n");
    fflush  (pPR->pLogFile);
-   
+
    /* Initialize the global effective wave vectors */
    pPR->koz_living   = (Complex *) calloc(pPR->Nspecies, sizeof(Complex));
    pPR->koz_dry      = (Complex *) calloc(pPR->Nspecies, sizeof(Complex));
    pPR->kez_living   = (Complex *) calloc(pPR->Nspecies, sizeof(Complex));
    pPR->kez_dry      = (Complex *) calloc(pPR->Nspecies, sizeof(Complex));
-   
+
    /*********************************************/
    /* Estimate the wavevectors for each species */
    /*********************************************/
    for (ispecies=0;ispecies<pPR->Nspecies;ispecies++){
-      
+
 #ifdef VERBOSE_POLSARPROSIM
       printf ("\n");
       printf ("Calculating dry, trunk, primary, secondary, tertiary and foliage effective permittivities for %s ... \n", pPR->SpeciesDataBase[ispecies].species_name);
@@ -3647,18 +3647,18 @@ void		Effective_Permittivities_SMP	(PolSARproSim_Record *pPR)
 #endif
       fprintf (pPR->pLogFile, "Calculating dry, trunk, primary, secondary, tertiary and foliage effective permittivities for %s ... \n", pPR->SpeciesDataBase[ispecies].species_name);
       fflush  (pPR->pLogFile);
-      
+
       /* determine how many trees to average over for this species */
       if(pPR->SpeciesDataBase[ispecies].Trees < POLSARPROSIM_ATTENUATION_TREES) {
          Ntrees = pPR->SpeciesDataBase[ispecies].Trees;
       } else{
          Ntrees = POLSARPROSIM_ATTENUATION_TREES;
       }
-      
+
       /* for threads */
       threadarg = (EffPerm_Thread_Arg *)calloc(Ntrees,sizeof(EffPerm_Thread_Arg));
       threads   = (pthread_t *)calloc(Ntrees,sizeof(pthread_t));
-      
+
       /* determine which trees to average over */
       itree = 0;
       index_count = 0;
@@ -3669,7 +3669,7 @@ void		Effective_Permittivities_SMP	(PolSARproSim_Record *pPR)
          }
          itree++;
       }
-      
+
       /* zero out the counters */
       crown_volume               = 0.0;
       dry_crown_volume           = 0.0;
@@ -3699,7 +3699,7 @@ void		Effective_Permittivities_SMP	(PolSARproSim_Record *pPR)
       CrownTert_EpsEff           = Idem_c33Matrix ();
       CrownDry_EpsEff				= Idem_c33Matrix ();
       CrownLiving_EpsEff			= Idem_c33Matrix ();
-      
+
       for (itree = 0; itree < Ntrees; itree++) {
          /* set the thread argument */
          threadarg[itree].itree   = treeindex[itree];
@@ -3750,7 +3750,7 @@ void		Effective_Permittivities_SMP	(PolSARproSim_Record *pPR)
          Alpha_Leaf_Sum             = c33Matrix_sum (Alpha_Leaf_Sum, threadarg[itree].Alpha_Leaf_Sum);
 
       }
-      
+
       if(dry_count > 0){ /* Use dry_count to avoid using pPR->species as a check --RAedit  */
          crown_dry_vol_frac         /= dry_crown_volume;
          dry_number_density         = dry_count / dry_crown_volume;
@@ -3768,7 +3768,7 @@ void		Effective_Permittivities_SMP	(PolSARproSim_Record *pPR)
          scale_factor               = xy_complex (trunk_number_density/trunk_count, 0.0);
          CrownTrunk_EpsEff          = c33Matrix_sum (CrownTrunk_EpsEff, c33Matrix_Complex_product (Alpha_Trunk_Sum, scale_factor));
       }
-      if(primary_count > 0) {   
+      if(primary_count > 0) {
          crown_primary_vol_frac     /= crown_volume;
          primary_number_density     = primary_count / crown_volume;
          scale_factor               = xy_complex (primary_number_density/primary_count, 0.0);
@@ -3804,7 +3804,7 @@ void		Effective_Permittivities_SMP	(PolSARproSim_Record *pPR)
       CrownTert_EpsEff.m[0]      = e;
       CrownTert_EpsEff.m[4]      = e;
       CrownTert_EpsEff.m[8]      = e;
-      
+
       /*****************************/
       /* Output results to logfile */
       /*****************************/
@@ -3852,7 +3852,7 @@ void		Effective_Permittivities_SMP	(PolSARproSim_Record *pPR)
       fprintf (pPR->pLogFile, "Crown dry effective permittivity\t= %10.3e + j %10.3e  ... \n", CrownDry_EpsEff.m[4].x, fabs(CrownDry_EpsEff.m[4].y));
       fprintf (pPR->pLogFile, "Crown dry effective permittivity\t= %10.3e + j %10.3e  ... \n", CrownDry_EpsEff.m[8].x, fabs(CrownDry_EpsEff.m[8].y));
       fprintf (pPR->pLogFile, "\n");
-      
+
       /******************************************/
       /* Combine contributions for living crown */
       /******************************************/
@@ -3912,7 +3912,7 @@ void		Effective_Permittivities_SMP	(PolSARproSim_Record *pPR)
       pPR->ke2_living            = ke2;
       pPR->kez2_living           = kez2;
       pPR->kez_living[ispecies]  = kez; // used in Attenuation_map
-      
+
       fprintf (pPR->pLogFile, "\n");
       fprintf (pPR->pLogFile, "Consolidated effective permittivities:");
       fprintf (pPR->pLogFile, "\n");
@@ -3927,11 +3927,11 @@ void		Effective_Permittivities_SMP	(PolSARproSim_Record *pPR)
       fprintf (pPR->pLogFile, "Crown living effective permittivity\t= %10.3e + j %10.3e  ... \n", CrownLiving_EpsEff.m[8].x, fabs(CrownLiving_EpsEff.m[8].y));
       fprintf (pPR->pLogFile, "\n");
    }
-   
+
    /*********************************************************/
    /* Isotropic short vegetation layer: uses GRG model only */
    /*********************************************************/
-   
+
 #ifdef VERBOSE_POLSARPROSIM
    printf ("\n");
    printf ("Calculating short vegetation effective permittivity  ... \n");
@@ -4030,7 +4030,7 @@ void		Effective_Permittivities_SMP	(PolSARproSim_Record *pPR)
    fprintf (pPR->pLogFile, "Short vegetation effective permittivity = %10.3e + j %10.3e  ... \n", ShortVegi_EpsEff.m[4].x, fabs(ShortVegi_EpsEff.m[4].y));
    fprintf (pPR->pLogFile, "Short vegetation effective permittivity = %10.3e + j %10.3e  ... \n", ShortVegi_EpsEff.m[8].x, fabs(ShortVegi_EpsEff.m[8].y));
    fprintf (pPR->pLogFile, "\n");
-   
+
    e                       = complex_rmul (complex_add (ShortVegi_EpsEff.m[0], ShortVegi_EpsEff.m[4]), 0.5);
    ez                      = ShortVegi_EpsEff.m[8];
    ShortVegi_EpsEff        = Idem_c33Matrix ();
@@ -4055,7 +4055,7 @@ void		Effective_Permittivities_SMP	(PolSARproSim_Record *pPR)
    pPR->ke2_short          = ke2;
    pPR->kez2_short         = kez2;
    pPR->kez_short          = kez;
-   
+
    /***********/
    /* Tidy up */
    /***********/
@@ -4101,7 +4101,7 @@ int			Lookup_Direct_Attenuation		(d3Vector r, PolSARproSim_Record *pPR, double *
    int				invol;
    long				l;
    int				n;
-   
+
    *gH	= 1.0;
    *gV	= 1.0;
    i		= (int) ((x + (pPR->Amap.Ax/2.0))/pPR->Amap.dx);
@@ -4152,7 +4152,7 @@ int			Lookup_Bounce_Attenuation		(d3Vector r, PolSARproSim_Record *pPR, double *
    int				invol;
    long				l;
    int				n;
-   
+
    *gH	= 1.0;
    *gV	= 1.0;
    i		= (int) ((x + (pPR->Amap.Ax/2.0))/pPR->Amap.dx);
@@ -4232,22 +4232,22 @@ void		Attenuation_Map					(PolSARproSim_Record *pPR)
    char        *AmapFilename;
    double		dk;
    Tree        *pT; //--RAedit
-   
+
    /* to get stem shadows --RAedit */
 #ifdef ENABLE_ATTENUATION_FROM_STEMS
-   Branch      *pB; 
-   Cylinder    cyl1; 
+   Branch      *pB;
+   Cylinder    cyl1;
    int         nsegments, isegment, cylinder_value;
    d3Vector		s_cyl1;
    double		alpha_cyl1;
    d3Vector		s_cyl2;
    double		alpha_cyl2;
 #endif
-   
+
    /******************************************/
    /* Report call if running in VERBOSE mode */
    /******************************************/
-   
+
 #ifdef VERBOSE_POLSARPROSIM
    printf ("\n");
    printf ("Call to Attenuation_Map ... \n");
@@ -4269,22 +4269,22 @@ void		Attenuation_Map					(PolSARproSim_Record *pPR)
    }
    pPR->Amap.dx	= pPR->Amap.Ax/(double)(pPR->Amap.Nx-1);
    pPR->Amap.dy	= pPR->Amap.Ay/(double)(pPR->Amap.Ny-1);
-   pPR->Amap.dz   = AMAP_VERTICAL_RESOLUTION;  /* set to a default resolution */ 
+   pPR->Amap.dz   = AMAP_VERTICAL_RESOLUTION;  /* set to a default resolution */
    pPR->Amap.Nz	= 2*(((int)(pPR->Amap.Az / pPR->Amap.dz))/2)+1;
    if (pPR->Amap.Nz < 3) {
       pPR->Amap.Nz	= 3;
    }
    pPR->Amap.dz	= pPR->Amap.Az/(double)(pPR->Amap.Nz-1);
    pPR->Amap.n    = pPR->Amap.Nx*pPR->Amap.Ny*pPR->Amap.Nz;
-   
+
    pPR->Amap.Nds	= AMAP_SHORT_VEGI_NZ;
    pPR->Amap.Ads	= pPR->shrt_vegi_depth;
    pPR->Amap.dds	= pPR->Amap.Ads / (double) (pPR->Amap.Nds - 1);
-   
+
    /**********************************/
    /* Report attenuation map details */
    /**********************************/
-   
+
    fprintf (pPR->pLogFile, "\n");
    fprintf (pPR->pLogFile, "Stand_Radius     \t=\t%12.5e\n", Sr);
    fprintf (pPR->pLogFile, "Mean_crown_radius\t=\t%12.5e\n", Cr);
@@ -4296,32 +4296,32 @@ void		Attenuation_Map					(PolSARproSim_Record *pPR)
    fprintf (pPR->pLogFile, "Attenuation map dimensions:\t%5d\t%5d\t%5d\n", pPR->Amap.Nx, pPR->Amap.Ny, pPR->Amap.Nz);
    fprintf (pPR->pLogFile, "\n");
    fflush  (pPR->pLogFile);
-   
+
    /***************************************/
    /* Allocate attenuation factor storage */
    /***************************************/
-   
+
    pPR->Amap.pDirectH			= (double*) calloc (pPR->Amap.n, sizeof (double));
    pPR->Amap.pDirectV			= (double*) calloc (pPR->Amap.n, sizeof (double));
    pPR->Amap.pBounceH			= (double*) calloc (pPR->Amap.n, sizeof (double));
    pPR->Amap.pBounceV			= (double*) calloc (pPR->Amap.n, sizeof (double));
    pPR->Amap.pDirectShortH	= (double*) calloc (AMAP_SHORT_VEGI_NZ, sizeof(double));
    pPR->Amap.pDirectShortV	= (double*) calloc (AMAP_SHORT_VEGI_NZ, sizeof(double));
-   
+
    /*******************************************************************/
    /* For each attenuation grid location calculate BOUNCE attenuation */
    /*******************************************************************/
-   
-   
+
+
    /* just testing, deleteme */
    Create_Tree (&tree1);
-   
+
 #ifdef ENABLE_ATTENUATION_FROM_STEMS
    Create_Cylinder	(&cyl1);
    printf("Estimating Attenunation from Stems as well. Go get a coffee, this may take some time\n");
 #endif
-   
-   
+
+
    gHmin	=  1.0e+30;
    gHmax	= -1.0e+30;
    gVmin	=  1.0e+30;
@@ -4398,7 +4398,7 @@ void		Attenuation_Map					(PolSARproSim_Record *pPR)
                         }
                         GammaH	*= exp(-fabs(pPR->koz_living[tree1.species].y)*cos_theta*path_length);
                         GammaV	*= exp(-fabs(pPR->kez_living[tree1.species].y)*cos_theta*path_length);
-                        
+
 #ifdef ENABLE_ATTENUATION_FROM_STEMS
                         /******* look for stem intersection ******/
                         pB        = tree1.Stem.head;
@@ -4416,14 +4416,14 @@ void		Attenuation_Map					(PolSARproSim_Record *pPR)
                            }
                         }
 #endif
-                        
+
                      }
                   }
                }
                /**************************************/
                /* Dry crown contribution if required */
                /**************************************/
-               
+
                for (itree=0; itree<pPR->Trees; itree++) {
                   if (fabs (x-pPR->Tree_Location[itree].x) <= pPR->Tree_Location[itree].radius) {
                      if (y > (pPR->Tree_Location[itree].y - pPR->Tree_Location[itree].radius)) {
@@ -4472,28 +4472,28 @@ void		Attenuation_Map					(PolSARproSim_Record *pPR)
       }
    }
    Destroy_Tree (&tree1);
-   
-   
+
+
    /*********************************/
    /* Report attenuation map values */
    /*********************************/
-   
-   fprintf (pPR->pLogFile, "\nOne-way bounce amplitude attenuation extrema:\n\n"); 
+
+   fprintf (pPR->pLogFile, "\nOne-way bounce amplitude attenuation extrema:\n\n");
    fprintf (pPR->pLogFile, "Min H-pol:\t%12.5e\n", gHmin);
    fprintf (pPR->pLogFile, "Min V-pol:\t%12.5e\n", gVmin);
    fprintf (pPR->pLogFile, "Max H-pol:\t%12.5e\n", gHmax);
    fprintf (pPR->pLogFile, "Max V-pol:\t%12.5e\n", gVmax);
    fflush  (pPR->pLogFile);
-   
+
    /*******************************************************************/
    /* For each attenuation grid location calculate DIRECT attenuation */
    /*******************************************************************/
-   
+
    gHmin	=  1.0e+30;
    gHmax	= -1.0e+30;
    gVmin	=  1.0e+30;
    gVmax	= -1.0e+30;
-   
+
    Create_Tree (&tree1);
    a	= Cartesian_Assign_d3Vector (0.0, -sin_theta, cos_theta);
    for (i=0; i<pPR->Amap.Nx; i++) {
@@ -4558,7 +4558,7 @@ void		Attenuation_Map					(PolSARproSim_Record *pPR)
                      }
                      GammaH	*= exp(-fabs(pPR->koz_living[tree1.species].y)*cos_theta*path_length);
                      GammaV	*= exp(-fabs(pPR->kez_living[tree1.species].y)*cos_theta*path_length);
-                     
+
 #ifdef ENABLE_ATTENUATION_FROM_STEMS
                      /******* look for stem intersection ******/
                      pB = tree1.Stem.head;
@@ -4576,14 +4576,14 @@ void		Attenuation_Map					(PolSARproSim_Record *pPR)
                         }
                      }
 #endif
-                     
+
                   }
                }
             }
             /**************************************/
             /* Dry crown contribution if required */
             /**************************************/
-                        
+
             for (itree=0; itree<pPR->Trees; itree++) {
                if (fabs (x-pPR->Tree_Location[itree].x) <= pPR->Tree_Location[itree].radius) {
                   if (y > (pPR->Tree_Location[itree].y - pPR->Tree_Location[itree].radius)) {
@@ -4631,27 +4631,27 @@ void		Attenuation_Map					(PolSARproSim_Record *pPR)
       }
    }
    Destroy_Tree (&tree1);
-   
+
 #ifdef ENABLE_ATTENUATION_FROM_STEMS
    Destroy_Cylinder(&cyl1);
 #endif
-   
+
    /*********************************/
    /* Report attenuation map values */
    /*********************************/
-   
-   fprintf (pPR->pLogFile, "\nOne-way direct amplitude attenuation extrema:\n\n"); 
+
+   fprintf (pPR->pLogFile, "\nOne-way direct amplitude attenuation extrema:\n\n");
    fprintf (pPR->pLogFile, "Min H-pol:\t%12.5e\n", gHmin);
    fprintf (pPR->pLogFile, "Min V-pol:\t%12.5e\n", gVmin);
    fprintf (pPR->pLogFile, "Max H-pol:\t%12.5e\n", gHmax);
    fprintf (pPR->pLogFile, "Max V-pol:\t%12.5e\n", gVmax);
    fflush  (pPR->pLogFile);
-   
+
    /****************************************************/
    /* Short vegetation layer attenuation look up array */
    /****************************************************/
-   
-   fprintf (pPR->pLogFile, "\nOne-way direct amplitude attenuation by depth in short vegetation ...\n\n"); 
+
+   fprintf (pPR->pLogFile, "\nOne-way direct amplitude attenuation by depth in short vegetation ...\n\n");
    fprintf (pPR->pLogFile, "\tdepth\t\tGammaH\tGammaV\n\n");
    for (k=0; k<pPR->Amap.Nds; k++) {
       dk		= k*pPR->Amap.dds;
@@ -4663,24 +4663,24 @@ void		Attenuation_Map					(PolSARproSim_Record *pPR)
    }
    fprintf (pPR->pLogFile, "\n");
    fflush  (pPR->pLogFile);
-   
+
    /************************************************/
    /* Create and ouptut attenuation map SIM images */
    /************************************************/
-   
+
    Create_SIM_Record	(&Amap_Image);
-   
+
    AmapFilename	= (char*) calloc (strlen(pPR->pMasterDirectory)+strlen("AmapDirectH.sim")+1, sizeof(char));
    strcpy  (AmapFilename, pPR->pMasterDirectory);
    strcat  (AmapFilename, "AmapDirectH.sim");
-   
+
    char  text[50];
-   sprintf(text, "PolSARproSim attenuation map, Nz = %d",pPR->Amap.Nz); 
-   //   Initialise_SIM_Record (&Amap_Image, AmapFilename, pPR->Amap.Nx, pPR->Amap.Ny*pPR->Amap.Nz, SIM_FLOAT_TYPE, 
+   sprintf(text, "PolSARproSim attenuation map, Nz = %d",pPR->Amap.Nz);
+   //   Initialise_SIM_Record (&Amap_Image, AmapFilename, pPR->Amap.Nx, pPR->Amap.Ny*pPR->Amap.Nz, SIM_FLOAT_TYPE,
    //                          pPR->Lx, pPR->Ly*pPR->Amap.Nz, "PolSARproSim attenuation map");
-   Initialise_SIM_Record (&Amap_Image, AmapFilename, pPR->Amap.Nx, pPR->Amap.Ny*pPR->Amap.Nz, SIM_FLOAT_TYPE, 
+   Initialise_SIM_Record (&Amap_Image, AmapFilename, pPR->Amap.Nx, pPR->Amap.Ny*pPR->Amap.Nz, SIM_FLOAT_TYPE,
                           pPR->Lx, pPR->Ly*pPR->Amap.Nz, text);
-   
+
    p.simpixeltype	= Amap_Image.pixel_type;
    for (i=0; i<pPR->Amap.Nx; i++) {
       for (j=0; j<pPR->Amap.Ny; j++) {
@@ -4694,17 +4694,17 @@ void		Attenuation_Map					(PolSARproSim_Record *pPR)
          }
       }
    }
-   
+
 #ifndef POLSARPROSIM_NOSIMOUTPUT
    Write_SIM_Record	(&Amap_Image);
 #endif
-   
+
    free (AmapFilename);
    AmapFilename	= (char*) calloc (strlen(pPR->pMasterDirectory)+strlen("AmapDirectV.sim")+1, sizeof(char));
    strcpy  (AmapFilename, pPR->pMasterDirectory);
    strcat  (AmapFilename, "AmapDirectV.sim");
    Rename_SIM_Record (&Amap_Image, AmapFilename);
-   
+
    for (i=0; i<pPR->Amap.Nx; i++) {
       for (j=0; j<pPR->Amap.Ny; j++) {
          for (k=0; k<pPR->Amap.Nz; k++) {
@@ -4717,17 +4717,17 @@ void		Attenuation_Map					(PolSARproSim_Record *pPR)
          }
       }
    }
-   
+
 #ifndef POLSARPROSIM_NOSIMOUTPUT
    Write_SIM_Record	(&Amap_Image);
 #endif
-   
+
    free (AmapFilename);
    AmapFilename	= (char*) calloc (strlen(pPR->pMasterDirectory)+strlen("AmapBounceH.sim")+1, sizeof(char));
    strcpy  (AmapFilename, pPR->pMasterDirectory);
    strcat  (AmapFilename, "AmapBounceH.sim");
    Rename_SIM_Record (&Amap_Image, AmapFilename);
-   
+
    for (i=0; i<pPR->Amap.Nx; i++) {
       for (j=0; j<pPR->Amap.Ny; j++) {
          for (k=0; k<pPR->Amap.Nz; k++) {
@@ -4740,17 +4740,17 @@ void		Attenuation_Map					(PolSARproSim_Record *pPR)
          }
       }
    }
-   
+
 #ifndef POLSARPROSIM_NOSIMOUTPUT
    Write_SIM_Record	(&Amap_Image);
 #endif
-   
+
    free (AmapFilename);
    AmapFilename	= (char*) calloc (strlen(pPR->pMasterDirectory)+strlen("AmapBounceV.sim")+1, sizeof(char));
    strcpy  (AmapFilename, pPR->pMasterDirectory);
    strcat  (AmapFilename, "AmapBounceV.sim");
    Rename_SIM_Record (&Amap_Image, AmapFilename);
-   
+
    for (i=0; i<pPR->Amap.Nx; i++) {
       for (j=0; j<pPR->Amap.Ny; j++) {
          for (k=0; k<pPR->Amap.Nz; k++) {
@@ -4763,19 +4763,19 @@ void		Attenuation_Map					(PolSARproSim_Record *pPR)
          }
       }
    }
-   
+
 #ifndef POLSARPROSIM_NOSIMOUTPUT
    Write_SIM_Record	(&Amap_Image);
 #endif
-   
+
    free (AmapFilename);
-   
+
    Destroy_SIM_Record (&Amap_Image);
-   
+
    /******************************************/
    /* Report call if running in VERBOSE mode */
    /******************************************/
-   
+
 #ifdef VERBOSE_POLSARPROSIM
    printf ("\n");
    printf ("... Returning from call to Attenuation_Map\n");
@@ -4783,21 +4783,21 @@ void		Attenuation_Map					(PolSARproSim_Record *pPR)
 #endif
    fprintf (pPR->pLogFile, "... Returning from call to Attenuation_Map\n\n");
    fflush  (pPR->pLogFile);
-   
+
    /********************************/
    /* Increment progress indicator */
    /********************************/
-   
+
    pPR->progress++;
-   
+
    /********************************/
    /* Report progress if requested */
    /********************************/
-   
+
 #ifdef POLSARPROSIM_MAX_PROGRESS
    PolSARproSim_indicate_progress (pPR);
 #endif
-   
+
    return;
 }
 
@@ -4827,21 +4827,21 @@ void     *Compute_Bounce_Gamma            (void *threadarg)
    double               path_length;
    double               cos_theta, sin_theta;
    double               f1, f2;
-   
+
    Amap_Thread_Arg      *pTA;
    PolSARproSim_Record  *pPR;
-   
+
 #ifdef ENABLE_ATTENUATION_FROM_STEMS
-   Branch      *pB; 
-   Cylinder    cyl1; 
+   Branch      *pB;
+   Cylinder    cyl1;
    int         nsegments, isegment, cylinder_value;
    d3Vector		s_cyl1;
    double		alpha_cyl1;
    d3Vector		s_cyl2;
    double		alpha_cyl2;
 #endif
-   
-   
+
+
    /* do some assignments */
    pTA         = (Amap_Thread_Arg *)threadarg;
    x           = pTA->x;    /* x-axis location */
@@ -4851,12 +4851,12 @@ void     *Compute_Bounce_Gamma            (void *threadarg)
    pPR         = pTA->pPR;  /* pointer to Master_Record */
    cos_theta	= cos(pPR->incidence_angle[0]);
    sin_theta	= sin(pPR->incidence_angle[0]);
-   
+
 #ifdef ENABLE_ATTENUATION_FROM_STEMS
    Create_Cylinder	(&cyl1);
 #endif
-   Create_Tree (&tree1); 
-   
+   Create_Tree (&tree1);
+
    G     = ground_height (pPR, x, y);
    zed	= ((double)k*pPR->Amap.dz);
    z     = G + zed;
@@ -4916,7 +4916,7 @@ void     *Compute_Bounce_Gamma            (void *threadarg)
                }
                GammaH	*= exp(-fabs(pPR->koz_living[tree1.species].y)*cos_theta*path_length);
                GammaV	*= exp(-fabs(pPR->kez_living[tree1.species].y)*cos_theta*path_length);
-               
+
 #ifdef ENABLE_ATTENUATION_FROM_STEMS
                /******* look for stem intersection ******/
                pB        = tree1.Stem.head;
@@ -4964,17 +4964,17 @@ void     *Compute_Bounce_Gamma            (void *threadarg)
          }/* end condition on azimuth pixels in shadow */
       }/* end loop on trees */
    }/* end condition on height above short veg depth */
-   
+
    /* assign return variables */
    pTA->GammaH = GammaH;
    pTA->GammaV = GammaV;
-   
+
    /* clean up */
    Destroy_Tree (&tree1);
 #ifdef ENABLE_ATTENUATION_FROM_STEMS
    Destroy_Cylinder(&cyl1);
 #endif
-   
+
    pthread_exit(NULL);
 }
 /************************************************/
@@ -5003,20 +5003,20 @@ void     *Compute_Direct_Gamma            (void *threadarg)
    double               path_length;
    double               cos_theta, sin_theta;
    double               f1, f2;
-   
+
    Amap_Thread_Arg      *pTA;
    PolSARproSim_Record  *pPR;
-   
+
 #ifdef ENABLE_ATTENUATION_FROM_STEMS
-   Branch      *pB; 
-   Cylinder    cyl1; 
+   Branch      *pB;
+   Cylinder    cyl1;
    int         nsegments, isegment, cylinder_value;
    d3Vector		s_cyl1;
    double		alpha_cyl1;
    d3Vector		s_cyl2;
    double		alpha_cyl2;
 #endif
-   
+
    /* do some assignments */
    pTA         = (Amap_Thread_Arg *)threadarg;
    x           = pTA->x;    // x-axis location
@@ -5026,11 +5026,11 @@ void     *Compute_Direct_Gamma            (void *threadarg)
    pPR         = pTA->pPR;  // address to Master_Record
    cos_theta	= cos(pPR->incidence_angle[0]);
    sin_theta	= sin(pPR->incidence_angle[0]);
-   
+
 #ifdef ENABLE_ATTENUATION_FROM_STEMS
    Create_Cylinder	(&cyl1);
 #endif
-   Create_Tree (&tree1); 
+   Create_Tree (&tree1);
    G     = ground_height (pPR, x, y);
    zed	= ((double)k*pPR->Amap.dz);
    z     = G + zed;
@@ -5048,7 +5048,7 @@ void     *Compute_Direct_Gamma            (void *threadarg)
    if (zed < pPR->shrt_vegi_depth) {
       GammaH	*= exp(-fabs(pPR->koz_short.y)*(pPR->shrt_vegi_depth-zed));
       GammaV	*= exp(-fabs(pPR->kez_short.y)*(pPR->shrt_vegi_depth-zed));
-   }   
+   }
    if (zed >= Shgt){
       /*****************************/
       /* Living crown contribution */
@@ -5090,7 +5090,7 @@ void     *Compute_Direct_Gamma            (void *threadarg)
                }
                GammaH	*= exp(-fabs(pPR->koz_living[tree1.species].y)*cos_theta*path_length);
                GammaV	*= exp(-fabs(pPR->kez_living[tree1.species].y)*cos_theta*path_length);
-               
+
 #ifdef ENABLE_ATTENUATION_FROM_STEMS
                /******* look for stem intersection ******/
                pB = tree1.Stem.head;
@@ -5137,7 +5137,7 @@ void     *Compute_Direct_Gamma            (void *threadarg)
             }/* end condition on range pixels in shadow */
          }/* end condition on azimuth pixels in shadow */
       }/* end loop on trees */
-   }else{  
+   }else{
       /* tree is in shadow => infinite atteuation */
       GammaH   *=0;
       GammaV   *=0;
@@ -5146,7 +5146,7 @@ void     *Compute_Direct_Gamma            (void *threadarg)
    /* assignment return variables */
    pTA->GammaH = GammaH;
    pTA->GammaV = GammaV;
-   
+
    /* clean up */
    Destroy_Tree (&tree1);
 #ifdef ENABLE_ATTENUATION_FROM_STEMS
@@ -5189,7 +5189,7 @@ void		Attenuation_Map_SMP					(PolSARproSim_Record *pPR)
    double		kidotn;
    char        *AmapFilename;
    double		dk;
-      
+
    /* some variables for hyperthreading */
    Amap_Thread_Arg      *threadarg; /* pointer to array of thread arguments   */
    pthread_t            *threads;   /* pointer to arry of thread ids          */
@@ -5199,11 +5199,11 @@ void		Attenuation_Map_SMP					(PolSARproSim_Record *pPR)
    /* initialize thread variables */
    pthread_attr_init(&attr);
    pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
-   
+
    /******************************************/
    /* Report call if running in VERBOSE mode */
    /******************************************/
-   
+
 #ifdef VERBOSE_POLSARPROSIM
    printf ("\n");
    printf ("Call to Attenuation_Map ... \n");
@@ -5211,7 +5211,7 @@ void		Attenuation_Map_SMP					(PolSARproSim_Record *pPR)
 #endif
    fprintf (pPR->pLogFile, "Call to Attenuation_Map ... \n");
    fflush  (pPR->pLogFile);
-   
+
    pPR->Amap.Ax	= Lx - 2.0*Gp;
    pPR->Amap.Ay	= Ly - Ll - 2.0*Gp;
    pPR->Amap.Az	= Hs;
@@ -5225,22 +5225,22 @@ void		Attenuation_Map_SMP					(PolSARproSim_Record *pPR)
    }
    pPR->Amap.dx	= pPR->Amap.Ax/(double)(pPR->Amap.Nx-1);
    pPR->Amap.dy	= pPR->Amap.Ay/(double)(pPR->Amap.Ny-1);
-   pPR->Amap.dz   = AMAP_VERTICAL_RESOLUTION;  /* set to a predefined resolution */ 
+   pPR->Amap.dz   = AMAP_VERTICAL_RESOLUTION;  /* set to a predefined resolution */
    pPR->Amap.Nz	= 2*(((int)(pPR->Amap.Az / pPR->Amap.dz))/2)+1;
    if (pPR->Amap.Nz < 3) {
       pPR->Amap.Nz	= 3;
    }
    pPR->Amap.dz	= pPR->Amap.Az/(double)(pPR->Amap.Nz-1);
    pPR->Amap.n    = pPR->Amap.Nx*pPR->Amap.Ny*pPR->Amap.Nz;
-   
+
    pPR->Amap.Nds	= AMAP_SHORT_VEGI_NZ;
    pPR->Amap.Ads	= pPR->shrt_vegi_depth;
    pPR->Amap.dds	= pPR->Amap.Ads / (double) (pPR->Amap.Nds - 1);
-   
+
    /**********************************/
    /* Report attenuation map details */
    /**********************************/
-   
+
    fprintf (pPR->pLogFile, "\n");
    fprintf (pPR->pLogFile, "Stand_Radius     \t=\t%12.5e\n", Sr);
    fprintf (pPR->pLogFile, "Mean_crown_radius\t=\t%12.5e\n", Cr);
@@ -5257,7 +5257,7 @@ void		Attenuation_Map_SMP					(PolSARproSim_Record *pPR)
    /***************************************/
    /* Allocate attenuation factor storage */
    /***************************************/
-   
+
    pPR->Amap.pDirectH			= (double*) calloc (pPR->Amap.n, sizeof (double));
    pPR->Amap.pDirectV			= (double*) calloc (pPR->Amap.n, sizeof (double));
    pPR->Amap.pBounceH			= (double*) calloc (pPR->Amap.n, sizeof (double));
@@ -5267,11 +5267,11 @@ void		Attenuation_Map_SMP					(PolSARproSim_Record *pPR)
    /* for threads */
    threadarg = (Amap_Thread_Arg *)calloc(pPR->Amap.Nz,sizeof(Amap_Thread_Arg));
    threads   = (pthread_t *)calloc(pPR->Amap.Nz,sizeof(pthread_t));
-   
+
    /*******************************************************************/
    /* For each attenuation grid location calculate BOUNCE attenuation */
    /*******************************************************************/
-   
+
    gHmin    =  1.0e+30;
    gHmax    = -1.0e+30;
    gVmin    =  1.0e+30;
@@ -5327,27 +5327,27 @@ void		Attenuation_Map_SMP					(PolSARproSim_Record *pPR)
          }
        }/* end loop on y-dimension */
    }/* end loop on x-dimension */
-      
+
    /*********************************/
    /* Report attenuation map values */
    /*********************************/
-   
-   fprintf (pPR->pLogFile, "\nOne-way bounce amplitude attenuation extrema:\n\n"); 
+
+   fprintf (pPR->pLogFile, "\nOne-way bounce amplitude attenuation extrema:\n\n");
    fprintf (pPR->pLogFile, "Min H-pol:\t%12.5e\n", gHmin);
    fprintf (pPR->pLogFile, "Min V-pol:\t%12.5e\n", gVmin);
    fprintf (pPR->pLogFile, "Max H-pol:\t%12.5e\n", gHmax);
    fprintf (pPR->pLogFile, "Max V-pol:\t%12.5e\n", gVmax);
    fflush  (pPR->pLogFile);
-   
+
    /*******************************************************************/
    /* For each attenuation grid location calculate DIRECT attenuation */
    /*******************************************************************/
-   
+
    gHmin	=  1.0e+30;
    gHmax	= -1.0e+30;
    gVmin	=  1.0e+30;
    gVmax	= -1.0e+30;
-   
+
    a	= Cartesian_Assign_d3Vector (0.0, -sin_theta, cos_theta);
    for (i=0; i<pPR->Amap.Nx; i++) {
       x		= ((double)i*pPR->Amap.dx) - pPR->Amap.Ax/2.0;
@@ -5393,23 +5393,23 @@ void		Attenuation_Map_SMP					(PolSARproSim_Record *pPR)
          }
       }/* end loop on y-dimension */
    }/* end loop on x-dimension */
-      
+
    /*********************************/
    /* Report attenuation map values */
    /*********************************/
-   
-   fprintf (pPR->pLogFile, "\nOne-way direct amplitude attenuation extrema:\n\n"); 
+
+   fprintf (pPR->pLogFile, "\nOne-way direct amplitude attenuation extrema:\n\n");
    fprintf (pPR->pLogFile, "Min H-pol:\t%12.5e\n", gHmin);
    fprintf (pPR->pLogFile, "Min V-pol:\t%12.5e\n", gVmin);
    fprintf (pPR->pLogFile, "Max H-pol:\t%12.5e\n", gHmax);
    fprintf (pPR->pLogFile, "Max V-pol:\t%12.5e\n", gVmax);
    fflush  (pPR->pLogFile);
-   
+
    /****************************************************/
    /* Short vegetation layer attenuation look up array */
    /****************************************************/
-   
-   fprintf (pPR->pLogFile, "\nOne-way direct amplitude attenuation by depth in short vegetation ...\n\n"); 
+
+   fprintf (pPR->pLogFile, "\nOne-way direct amplitude attenuation by depth in short vegetation ...\n\n");
    fprintf (pPR->pLogFile, "\tdepth\t\tGammaH\tGammaV\n\n");
    for (k=0; k<pPR->Amap.Nds; k++) {
       dk                         = k*pPR->Amap.dds;
@@ -5421,24 +5421,24 @@ void		Attenuation_Map_SMP					(PolSARproSim_Record *pPR)
    }
    fprintf (pPR->pLogFile, "\n");
    fflush  (pPR->pLogFile);
-   
+
    /************************************************/
    /* Create and ouptut attenuation map SIM images */
    /************************************************/
-   
+
    Create_SIM_Record	(&Amap_Image);
-   
+
    AmapFilename	= (char*) calloc (strlen(pPR->pMasterDirectory)+strlen("AmapDirectH.sim")+1, sizeof(char));
    strcpy  (AmapFilename, pPR->pMasterDirectory);
    strcat  (AmapFilename, "AmapDirectH.sim");
-   
+
    char  text[50];
-   sprintf(text, "PolSARproSim attenuation map, Nz = %d",pPR->Amap.Nz); 
-   //   Initialise_SIM_Record (&Amap_Image, AmapFilename, pPR->Amap.Nx, pPR->Amap.Ny*pPR->Amap.Nz, SIM_FLOAT_TYPE, 
+   sprintf(text, "PolSARproSim attenuation map, Nz = %d",pPR->Amap.Nz);
+   //   Initialise_SIM_Record (&Amap_Image, AmapFilename, pPR->Amap.Nx, pPR->Amap.Ny*pPR->Amap.Nz, SIM_FLOAT_TYPE,
    //                          pPR->Lx, pPR->Ly*pPR->Amap.Nz, "PolSARproSim attenuation map");
-   Initialise_SIM_Record (&Amap_Image, AmapFilename, pPR->Amap.Nx, pPR->Amap.Ny*pPR->Amap.Nz, SIM_FLOAT_TYPE, 
+   Initialise_SIM_Record (&Amap_Image, AmapFilename, pPR->Amap.Nx, pPR->Amap.Ny*pPR->Amap.Nz, SIM_FLOAT_TYPE,
                           pPR->Lx, pPR->Ly*pPR->Amap.Nz, text);
-   
+
    p.simpixeltype	= Amap_Image.pixel_type;
    for (i=0; i<pPR->Amap.Nx; i++) {
       for (j=0; j<pPR->Amap.Ny; j++) {
@@ -5452,17 +5452,17 @@ void		Attenuation_Map_SMP					(PolSARproSim_Record *pPR)
          }
       }
    }
-   
+
 #ifndef POLSARPROSIM_NOSIMOUTPUT
    Write_SIM_Record	(&Amap_Image);
 #endif
-   
+
    free (AmapFilename);
    AmapFilename	= (char*) calloc (strlen(pPR->pMasterDirectory)+strlen("AmapDirectV.sim")+1, sizeof(char));
    strcpy  (AmapFilename, pPR->pMasterDirectory);
    strcat  (AmapFilename, "AmapDirectV.sim");
    Rename_SIM_Record (&Amap_Image, AmapFilename);
-   
+
    for (i=0; i<pPR->Amap.Nx; i++) {
       for (j=0; j<pPR->Amap.Ny; j++) {
          for (k=0; k<pPR->Amap.Nz; k++) {
@@ -5475,17 +5475,17 @@ void		Attenuation_Map_SMP					(PolSARproSim_Record *pPR)
          }
       }
    }
-   
+
 #ifndef POLSARPROSIM_NOSIMOUTPUT
    Write_SIM_Record	(&Amap_Image);
 #endif
-   
+
    free (AmapFilename);
    AmapFilename	= (char*) calloc (strlen(pPR->pMasterDirectory)+strlen("AmapBounceH.sim")+1, sizeof(char));
    strcpy  (AmapFilename, pPR->pMasterDirectory);
    strcat  (AmapFilename, "AmapBounceH.sim");
    Rename_SIM_Record (&Amap_Image, AmapFilename);
-   
+
    for (i=0; i<pPR->Amap.Nx; i++) {
       for (j=0; j<pPR->Amap.Ny; j++) {
          for (k=0; k<pPR->Amap.Nz; k++) {
@@ -5498,17 +5498,17 @@ void		Attenuation_Map_SMP					(PolSARproSim_Record *pPR)
          }
       }
    }
-   
+
 #ifndef POLSARPROSIM_NOSIMOUTPUT
    Write_SIM_Record	(&Amap_Image);
 #endif
-   
+
    free (AmapFilename);
    AmapFilename	= (char*) calloc (strlen(pPR->pMasterDirectory)+strlen("AmapBounceV.sim")+1, sizeof(char));
    strcpy  (AmapFilename, pPR->pMasterDirectory);
    strcat  (AmapFilename, "AmapBounceV.sim");
    Rename_SIM_Record (&Amap_Image, AmapFilename);
-   
+
    for (i=0; i<pPR->Amap.Nx; i++) {
       for (j=0; j<pPR->Amap.Ny; j++) {
          for (k=0; k<pPR->Amap.Nz; k++) {
@@ -5521,19 +5521,19 @@ void		Attenuation_Map_SMP					(PolSARproSim_Record *pPR)
          }
       }
    }
-   
+
 #ifndef POLSARPROSIM_NOSIMOUTPUT
    Write_SIM_Record	(&Amap_Image);
 #endif
-   
+
    free (AmapFilename);
-   
+
    Destroy_SIM_Record (&Amap_Image);
-   
+
    /******************************************/
    /* Report call if running in VERBOSE mode */
    /******************************************/
-   
+
 #ifdef VERBOSE_POLSARPROSIM
    printf ("\n");
    printf ("... Returning from call to Attenuation_Map\n");
@@ -5541,21 +5541,21 @@ void		Attenuation_Map_SMP					(PolSARproSim_Record *pPR)
 #endif
    fprintf (pPR->pLogFile, "... Returning from call to Attenuation_Map\n\n");
    fflush  (pPR->pLogFile);
-   
+
    /********************************/
    /* Increment progress indicator */
    /********************************/
-   
+
    pPR->progress++;
-   
+
    /********************************/
    /* Report progress if requested */
    /********************************/
-   
+
 #ifdef POLSARPROSIM_MAX_PROGRESS
    PolSARproSim_indicate_progress (pPR);
 #endif
-   
+
    return;
 }
 
@@ -5617,11 +5617,11 @@ double		Lookup_PSF_value              (int ioffx, int ioffy, int inx, int iny, i
    psfgr       = pPR->PSFgrmat[iny*(PSF_OVERSAMPLING_FACTOR + 1) + ioffy][itheta];
 
    psf         = pPR->PSFamp* psfgr * psfaz;
-   
+
    return (psf);
 }
 
- 
+
 double		Accumulate_SAR_Contribution		(double focus_x, double focus_y, double focus_srange,
                                               Complex Shh, Complex Shv, Complex Svv, PolSARproSim_Record *pPR, int track, double focus_angle)
 {
@@ -5660,7 +5660,7 @@ double		Accumulate_SAR_Contribution		(double focus_x, double focus_y, double foc
    sim_pixel   gpix;
    Complex     cvalue;
    double		weight_sum	= 0.0;
-      
+
    spix.simpixeltype	= pPR->HHstack[track].Image.pixel_type;
    gpix.simpixeltype	= pPR->HHstack[track].Image.pixel_type;
    /**************************************************/
@@ -5688,7 +5688,7 @@ double		Accumulate_SAR_Contribution		(double focus_x, double focus_y, double foc
                      py				= ymid - jpy * dy;
 #ifdef   POLSARPROSIM_PSF_GAUSSIAN
                      weight			= Point_Spread_Function (daz, py-focus_y, pPR, track, focus_angle);
-#else                     
+#else
                      weight			= Lookup_PSF_value (ioffx, ioffy, ipx-ix+pPR->PSFnx, jpy-jy+pPR->PSFny, itheta, pPR);
 #endif
                      weight_sum		+= weight*weight;
@@ -5757,17 +5757,17 @@ void        Initialize_Max_Height_Map (PolSARproSim_Record *pPR)
 {
    char                 *max_height_filename;
    SIM_Record           *pSRHgt  = &(pPR->Max_Height);
-   
-   
-   /* create file nam */ 
+
+
+   /* create file nam */
    max_height_filename	= (char*) calloc (strlen(pPR->pMasterDirectory)+strlen("max_height.bin")+1, sizeof(char));
    strcpy  (max_height_filename, pPR->pMasterDirectory);
    strcat  (max_height_filename, "max_height.bin");
-   
+
    /* create the simulation record */
    //Destroy_SIM_Record (pSRHgt);
    Create_SIM_Record (pSRHgt);
-   Initialise_SIM_Record (pSRHgt, max_height_filename, pPR->nx, pPR->ny, SIM_FLOAT_TYPE, 
+   Initialise_SIM_Record (pSRHgt, max_height_filename, pPR->nx, pPR->ny, SIM_FLOAT_TYPE,
                           pPR->Lx, pPR->Ly, "PolSARproSim maximum height map");
    free (max_height_filename);
 }
@@ -5806,34 +5806,34 @@ void        Initialize_Surface_Normal_Layers (PolSARproSim_Record *pPR)
    SIM_Record     *pSNX  = &(pPR->Surface_Normal_X);
    SIM_Record     *pSNY  = &(pPR->Surface_Normal_Y);
    SIM_Record     *pSNZ  = &(pPR->Surface_Normal_Z);
-   
-   /* create filename */ 
+
+   /* create filename */
    filename             = (char*) calloc (strlen(pPR->pMasterDirectory)+strlen("surface_normal_x.bin")+1, sizeof(char));
    strcpy  (filename, pPR->pMasterDirectory);
    strcat  (filename, "surface_normal_x.bin");
    /* create the simulation record */
    Create_SIM_Record  (pSNX);
-   Initialise_SIM_Record (pSNX, filename, pPR->nx, pPR->ny, SIM_FLOAT_TYPE, 
+   Initialise_SIM_Record (pSNX, filename, pPR->nx, pPR->ny, SIM_FLOAT_TYPE,
                           pPR->Lx, pPR->Ly, "PolSARproSim surface normal x-component map");
    free (filename);
 
-   /* create filename */ 
+   /* create filename */
    filename             = (char*) calloc (strlen(pPR->pMasterDirectory)+strlen("surface_normal_y.bin")+1, sizeof(char));
    strcpy  (filename, pPR->pMasterDirectory);
    strcat  (filename, "surface_normal_y.bin");
    /* create the simulation record */
    Create_SIM_Record  (pSNY);
-   Initialise_SIM_Record (pSNY, filename, pPR->nx, pPR->ny, SIM_FLOAT_TYPE, 
+   Initialise_SIM_Record (pSNY, filename, pPR->nx, pPR->ny, SIM_FLOAT_TYPE,
                           pPR->Lx, pPR->Ly, "PolSARproSim surface normal y-component map");
    free (filename);
 
-   /* create filename */ 
+   /* create filename */
    filename             = (char*) calloc (strlen(pPR->pMasterDirectory)+strlen("surface_normal_z.bin")+1, sizeof(char));
    strcpy  (filename, pPR->pMasterDirectory);
    strcat  (filename, "surface_normal_z.bin");
    /* create the simulation record */
    Create_SIM_Record  (pSNZ);
-   Initialise_SIM_Record (pSNZ, filename, pPR->nx, pPR->ny, SIM_FLOAT_TYPE, 
+   Initialise_SIM_Record (pSNZ, filename, pPR->nx, pPR->ny, SIM_FLOAT_TYPE,
                           pPR->Lx, pPR->Ly, "PolSARproSim surface normal z-component map");
    free (filename);
 
@@ -5851,7 +5851,7 @@ void        Fill_Surface_Normal_Layers    (double  focus_x, double focus_y, d3Ve
    int         ix       = (int) ((xmid+focus_x)/dx);
    int         jy       = (int) ((ymid-focus_y)/dy);
    sim_pixel	spix;
-      
+
    spix.simpixeltype    = pPR->Surface_Normal_X.pixel_type;
    spix.data.f          = norm.x[0];
    putSIMpixel          (&(pPR->Surface_Normal_X), spix, ix, jy);
@@ -5886,10 +5886,10 @@ d3Vector	Lookup_Surface_Normal	(PolSARproSim_Record *pPR, double x, double y)
  Zn			= (double) pz.data.f;
 
  normal     = Cartesian_Assign_d3Vector(Xn, Yn, Zn);
- d3Vector_insitu_normalise(&normal); 
- 
+ d3Vector_insitu_normalise(&normal);
+
  return(normal);
- 
+
 }
 
 int			Polarisation_Vectors			(d3Vector k, d3Vector n, d3Vector *ph, d3Vector *pv)
@@ -5897,7 +5897,7 @@ int			Polarisation_Vectors			(d3Vector k, d3Vector n, d3Vector *ph, d3Vector *pv
    double		ndotk;
    double		hx, hy, hz;
    double		vx, vy, vz;
-   
+
    d3Vector_insitu_normalise (&k);
    d3Vector_insitu_normalise (&n);
    ndotk		= d3Vector_scalar_product (n, k);
@@ -5921,18 +5921,18 @@ int			Polarisation_Vectors			(d3Vector k, d3Vector n, d3Vector *ph, d3Vector *pv
 c3Vector	d3V2c3V	(d3Vector v)
 {
    c3Vector	c;
-   c	= Assign_c3Vector (xy_complex (v.x[0], 0.0), xy_complex (v.x[1], 0.0), xy_complex (v.x[2], 0.0)); 
+   c	= Assign_c3Vector (xy_complex (v.x[0], 0.0), xy_complex (v.x[1], 0.0), xy_complex (v.x[2], 0.0));
    return (c);
 }
 
 
 void		Create_SAR_Filenames			(PolSARproSim_Record *pPR, int track)
-{      
+{
       char trackid[10];
       char polname[10];
-      
-      sprintf(trackid, "track%03d",track); 
-      
+
+      sprintf(trackid, "track%03d",track);
+
       sprintf(polname, "HH.bin");
       pPR->HH_string	= (char*) calloc (strlen(pPR->pMasterDirectory)+strlen(pPR->pFilenamePrefix)+1+strlen(trackid)+1+strlen(polname), sizeof(char));
       strcpy (pPR->HH_string, pPR->pMasterDirectory);
@@ -5941,7 +5941,7 @@ void		Create_SAR_Filenames			(PolSARproSim_Record *pPR, int track)
       strncat(pPR->HH_string, trackid, strlen(trackid));
       strncat(pPR->HH_string, "_",1);
       strncat(pPR->HH_string, polname, strlen(polname));
-      
+
       sprintf(polname, "HV.bin");
       pPR->HV_string	= (char*) calloc (strlen(pPR->pMasterDirectory)+strlen(pPR->pFilenamePrefix)+1+strlen(trackid)+1+strlen(polname), sizeof(char));
       strcpy (pPR->HV_string, pPR->pMasterDirectory);
@@ -5975,12 +5975,12 @@ void		Create_SAR_Filenames			(PolSARproSim_Record *pPR, int track)
 void		Initialise_SAR_Stack				(PolSARproSim_Record *pPR)
 {
    int         itrack;
-   
+
    pPR->HHstack	= (SIM_Stack*) calloc (pPR->Tracks, sizeof (SIM_Stack));
    pPR->HVstack	= (SIM_Stack*) calloc (pPR->Tracks, sizeof (SIM_Stack));
    pPR->VVstack	= (SIM_Stack*) calloc (pPR->Tracks, sizeof (SIM_Stack));
    pPR->VHstack	= (SIM_Stack*) calloc (pPR->Tracks, sizeof (SIM_Stack));
-      
+
    for (itrack = 0; itrack<pPR->Tracks;itrack++){
       Destroy_SIM_Record      (&(pPR->HHstack[itrack].Image));
       Destroy_SIM_Record      (&(pPR->HVstack[itrack].Image));
@@ -6002,7 +6002,7 @@ void		Initialise_SAR_Stack				(PolSARproSim_Record *pPR)
 void		Destroy_SAR_Stack				(PolSARproSim_Record *pPR)
 {
    int         itrack;
-   
+
    for (itrack = 0; itrack<pPR->Tracks;itrack++){
       Destroy_SIM_Record      (&(pPR->HHstack[itrack].Image));
       Destroy_SIM_Record      (&(pPR->HVstack[itrack].Image));
@@ -6024,14 +6024,14 @@ void		Destroy_SAR_Stack				(PolSARproSim_Record *pPR)
 //   double		tertiary_branch_volume;
 //   double		tertiary_branch_vf;
 //   long			tertiary_branch_number;
-//   long			stbn; 
+//   long			stbn;
 //   Crown			*pC;
 //   Branch		*pB;
 //   long			iBranch;
 //   double		stbn_factor;
 //   double		crown_area;
 //   double		Sa_scaling;
-//   
+//
 //   /********************************/
 //   /* Initialise the crown pointer */
 //   /********************************/
@@ -6118,7 +6118,7 @@ void		Destroy_SAR_Stack				(PolSARproSim_Record *pPR)
 //   /*******************************************/
 //   /* Return to caller with amplitude scaling */
 //   /*******************************************/
-//      
+//
 //   return (Sa_scaling);
 //}
 
@@ -6129,15 +6129,15 @@ double		Estimate_SAR_Tertiaries			(Tree *pT, PolSARproSim_Record *pPR, long *nt,
    double		tertiary_branch_volume;
    double		tertiary_branch_vf;
    long			tertiary_branch_number;
-   long			stbn; 
+   long			stbn;
    Crown			*pC;
    Branch		*pB;
    long			iBranch;
    double		stbn_factor;
    double		crown_area;
    double		Sa_scaling;
-   double      tertiary_min_radius, tertiary_min_length;            
-   
+   double      tertiary_min_radius, tertiary_min_length;
+
    /********************************/
    /* Initialise the crown pointer */
    /********************************/
@@ -6150,11 +6150,11 @@ double		Estimate_SAR_Tertiaries			(Tree *pT, PolSARproSim_Record *pPR, long *nt,
    /*********************************************/
    /* Determine dimensions of tertiary branches */
    /*********************************************/
-   
+
    /* read in the minimum values from the species database */
    tertiary_min_length	= pPR->SpeciesDataBase[pT->species].tertiary_min_length;
    tertiary_min_radius	= pPR->SpeciesDataBase[pT->species].tertiary_min_radius;
-   
+
    /* initialize */
    primary_branch_length		= 0.0;
    primary_branch_radius		= 0.0;
@@ -6162,7 +6162,7 @@ double		Estimate_SAR_Tertiaries			(Tree *pT, PolSARproSim_Record *pPR, long *nt,
    secondary_branch_radius    = 0.0;
    tertiary_branch_length     = 0.0;
    tertiary_branch_radius     = 0.0;
-   
+
    /* compute mean secondary radius/length */
    if(pT->Secondary.n > 0){
       pB	= pT->Secondary.head;
@@ -6175,7 +6175,7 @@ double		Estimate_SAR_Tertiaries			(Tree *pT, PolSARproSim_Record *pPR, long *nt,
       secondary_branch_radius	/= (double) pT->Secondary.n;
    }
    /* compute mean primary radius/length */
-   if(pT->Primary.n > 0){      
+   if(pT->Primary.n > 0){
       pB	= pT->Primary.head;
       for (iBranch=0L; iBranch < pT->Primary.n; iBranch++) {
          primary_branch_length	+= pB->l;
@@ -6184,12 +6184,12 @@ double		Estimate_SAR_Tertiaries			(Tree *pT, PolSARproSim_Record *pPR, long *nt,
       }
       primary_branch_length		/= (double) pT->Primary.n;
       primary_branch_radius		/= (double) pT->Primary.n;
-      
+
       /* calculate the mean tertiary branch size */
       tertiary_branch_length	= secondary_branch_length*secondary_branch_length/primary_branch_length;
       tertiary_branch_radius	= secondary_branch_radius*secondary_branch_radius/primary_branch_radius;
    }
-   
+
    /* choose the minimum length/radius if larger than the computed length/radius */
    if(tertiary_min_length > tertiary_branch_length){
       tertiary_branch_length  = tertiary_min_length;
@@ -6197,7 +6197,7 @@ double		Estimate_SAR_Tertiaries			(Tree *pT, PolSARproSim_Record *pPR, long *nt,
    if(tertiary_min_radius > tertiary_branch_radius){
       tertiary_branch_radius  = tertiary_min_radius;
    }
-   
+
    /***********************************************************/
    /* Determine the actual number of tertiaries in this crown */
    /***********************************************************/
@@ -6238,11 +6238,11 @@ double		Estimate_SAR_Tertiaries			(Tree *pT, PolSARproSim_Record *pPR, long *nt,
    /*******************************************/
    /* Return to caller with amplitude scaling */
    /*******************************************/
-   
+
    return (Sa_scaling);
 }
 
-//int		Realise_Tertiary_Branch			(Tree *pT, PolSARproSim_Record *pPR, Branch *pB, 
+//int		Realise_Tertiary_Branch			(Tree *pT, PolSARproSim_Record *pPR, Branch *pB,
 //                                        double tertiary_branch_length, double tertiary_branch_radius,
 //                                        double moisture, Complex permittivity)
 //{
@@ -6250,7 +6250,7 @@ double		Estimate_SAR_Tertiaries			(Tree *pT, PolSARproSim_Record *pPR, long *nt,
 //   d3Vector		 b0, p0, z0;
 //   double			 theta, phi;
 //   int			 rtn_value;
-//   
+//
 //   pC				= pT->CrownVolume.head;
 //   Destroy_Branch (pB);
 //   rtn_value		= Random_Crown_Location (pC, &b0);
@@ -6260,7 +6260,7 @@ double		Estimate_SAR_Tertiaries			(Tree *pT, PolSARproSim_Record *pPR, long *nt,
 //      z0			= Polar_Assign_d3Vector (1.0, theta, phi);
 //      p0			= Polar_Assign_d3Vector (1.0, theta, phi);
 //      b0			= d3Vector_sum (b0, d3Vector_double_multiply (z0, -tertiary_branch_length/2.0));
-//      Assign_Branch (pB, tertiary_branch_radius, tertiary_branch_radius, b0, z0, p0, 0.0, 0.0, 0.0, 0.0, 0.0, 
+//      Assign_Branch (pB, tertiary_branch_radius, tertiary_branch_radius, b0, z0, p0, 0.0, 0.0, 0.0, 0.0, 0.0,
 //                     1.0, 1.0, 0.0, moisture, tertiary_branch_length, permittivity, 0, 0);
 //   }
 //   return (rtn_value);
@@ -6274,7 +6274,7 @@ double		Estimate_SAR_Tertiaries			(Tree *pT, PolSARproSim_Record *pPR, long *nt,
 //   double				tertiary_branch_vf;
 //   long				tertiary_branch_number;
 //   //int				stbn; //razi-edit 04/30/2012
-//   long				stbn; 
+//   long				stbn;
 //   Branch				tertiary_branch;
 //   double				theta, phi;
 //   d3Vector			z0;
@@ -6293,7 +6293,7 @@ double		Estimate_SAR_Tertiaries			(Tree *pT, PolSARproSim_Record *pPR, long *nt,
 //   double				stbn_factor;
 //   double				crown_area;
 //   double				Sa_scaling;
-//   
+//
 //   /********************************/
 //   /* Initialise the crown pointer */
 //   /********************************/
@@ -6392,7 +6392,7 @@ double		Estimate_SAR_Tertiaries			(Tree *pT, PolSARproSim_Record *pPR, long *nt,
 //         b0			= d3Vector_sum (b0, d3Vector_double_multiply (z0, -tertiary_branch_length/2.0));
 //         moisture		= Tertiary_Branch_Moisture (pT, pPR);
 //         permittivity	= vegetation_permittivity (moisture, pPR->frequency);
-//         Assign_Branch (&tertiary_branch, sr, er, b0, z0, p0, dp, phix, phiy, phicx, phicy, 
+//         Assign_Branch (&tertiary_branch, sr, er, b0, z0, p0, dp, phix, phiy, phicx, phicy,
 //                        lamdacx, lamdacy, gamma, moisture, tertiary_branch_length, permittivity,
 //                        (int) (pT->Stem.n + pT->Dry.n + pT->Primary.n + pT->Secondary.n + pT->Tertiary.n + 1L), 0);
 //         Branch_head_add (&(pT->Tertiary), &tertiary_branch);
@@ -6489,15 +6489,15 @@ double		Estimate_SAR_Foliage (Tree *pT, PolSARproSim_Record *pPR, long *nf)
    return (Sa_scaling);
 }
 
-//int		Realise_Foliage_Element			(Tree *pT, PolSARproSim_Record *pPR, Leaf *pL, 
-//                                        int species, double leaf_d1, double leaf_d2, double leaf_d3, 
+//int		Realise_Foliage_Element			(Tree *pT, PolSARproSim_Record *pPR, Leaf *pL,
+//                                        int species, double leaf_d1, double leaf_d2, double leaf_d3,
 //                                        double moisture, Complex permittivity)
 //{
 //   Crown			*pC;
 //   d3Vector		 cl;
 //   int			 rtn_value;
 //   double			 theta, phi;
-//   
+//
 //   Destroy_Leaf (pL);
 //   pC				= pT->CrownVolume.head;
 //   rtn_value		= Random_Crown_Location (pC, &cl);
@@ -6616,7 +6616,7 @@ int		Write_SIM_Record_As_POLSARPRO_BINARY	(SIM_Record *pSIMR)
    FILE              *pSBF;
    int				i, j;
    sim_pixel			sp;
-   
+
    pSBF	= fopen (pSIMR->filename, "wb");
    for (i=0; i<pSIMR->nx; i++) {
       for (j=0; j<pSIMR->ny; j++) {
@@ -6646,9 +6646,9 @@ int		Write_SIM_Record_As_POLSARPRO_BINARY	(SIM_Record *pSIMR)
 void		Write_SAR_Stack				(PolSARproSim_Record *pPR)
 {
    int itrack;
-   
-   for (itrack = 0; itrack<pPR->Tracks; itrack++){      
-   
+
+   for (itrack = 0; itrack<pPR->Tracks; itrack++){
+
       Create_SAR_Filenames		(pPR, itrack);
 #ifndef POLSARPRO_CONVENTION
 #ifdef POLSARPROSIM_ROTATED_IMAGES
@@ -6704,7 +6704,7 @@ void		tcltk_parser					(char *pString)
 #ifdef _WIN32
    const char	good	= '\\';
    const char	bad		= '/';
-#else 
+#else
    const char	good	= '/';
    const char	bad		= '\\';
 #endif
@@ -6748,7 +6748,7 @@ void		Flat_Earth_Phase_Removal		(PolSARproSim_Record *pPR)
    sim_pixel		s;
    Complex        cs;
    int            track;
-   
+
    /* loop over tracks */
    for (track = 0; track < pPR->Tracks; track++) {
       p_srange    = pPR->slant_range[track];
@@ -6756,7 +6756,7 @@ void		Flat_Earth_Phase_Removal		(PolSARproSim_Record *pPR)
       p_height    = p_srange*cos(thetai);
       p_height2	= p_height*p_height;
       p_grange    = p_srange*sin(thetai);
-      
+
       /* loop over range pixels */
       for (j = 0; j < pPR->ny; j++) {
          y		= ymid - j * dy;
@@ -6781,6 +6781,13 @@ void		Flat_Earth_Phase_Removal		(PolSARproSim_Record *pPR)
             s.data.cf.x	= (float) cs.x;
             s.data.cf.y	= (float) cs.y;
             putSIMpixel (&(pPR->HVstack[track].Image), s, i, j);
+            /* remove phase from VH image */
+            s			= getSIMpixel (&(pPR->VHstack[track].Image), i, j);
+            cs			= xy_complex (s.data.cf.x, s.data.cf.y);
+            cs			= complex_mul (cs, c_phase);
+            s.data.cf.x	= (float) cs.x;
+            s.data.cf.y	= (float) cs.y;
+            putSIMpixel (&(pPR->VHstack[track].Image), s, i, j);
             /* remove phase from VV image */
             s			= getSIMpixel (&(pPR->VVstack[track].Image), i, j);
             cs			= xy_complex (s.data.cf.x, s.data.cf.y);
@@ -6788,9 +6795,9 @@ void		Flat_Earth_Phase_Removal		(PolSARproSim_Record *pPR)
             s.data.cf.x	= (float) cs.x;
             s.data.cf.y	= (float) cs.y;
             putSIMpixel (&(pPR->VVstack[track].Image), s, i, j);
-            
+
          }
-         
+
       }
    }
    return;
@@ -6807,7 +6814,7 @@ void     Write_Forest_XML      (PolSARproSim_Record *pPR)
    FILE     *pForestXMLFile;
    int      itree;
    Tree     tree1;
-   
+
    if ((pForestXMLFile = fopen(pPR->ForestOutput, "w")) == NULL) {
       printf ("ERROR: Unable to open forest xml output file %s.\n", pPR->ForestOutput);
       exit (0);
@@ -6835,11 +6842,11 @@ void     Write_Forest_XML      (PolSARproSim_Record *pPR)
       fprintf(pForestXMLFile, "\t\t<stem_diameter\tunits=\"meters\">%12f\t</stem_diameter>\t<!-- Diameter of trunk at breast height (dbh)\t\t\t-->\n", tree1.dbh);
       fprintf(pForestXMLFile, "\t</tree>\n");
    }
-   
-   fprintf(pForestXMLFile, "</forest>\n");   
-   
+
+   fprintf(pForestXMLFile, "</forest>\n");
+
    printf("Successfully opened forest output file\n");
-   
+
    /* clean up */
    Destroy_Tree (&tree1);
    fclose(pForestXMLFile);
@@ -6865,12 +6872,12 @@ void		Write_Stack_LookVectors				(PolSARproSim_Record *pPR)
    double   p_ground_range;
    double   p_height;
    double   S,C,H; /* along-track (S), cross track (C), height (C) components of look vector */
-   
+
    sprintf(postfix, "los.dat");
-   for (itrack = 0; itrack<pPR->Tracks; itrack++){      
-      
-      /* compute file name */ 
-      sprintf(trackid, "track%03d",itrack); 
+   for (itrack = 0; itrack<pPR->Tracks; itrack++){
+
+      /* compute file name */
+      sprintf(trackid, "track%03d",itrack);
       filename = (char*) calloc (strlen(pPR->pMasterDirectory)+strlen(pPR->pFilenamePrefix)+1+strlen(trackid)+1+strlen(postfix), sizeof(char));
       strcpy (filename, pPR->pMasterDirectory);
       strncat(filename, pPR->pFilenamePrefix, strlen(pPR->pFilenamePrefix));
@@ -6888,7 +6895,7 @@ void		Write_Stack_LookVectors				(PolSARproSim_Record *pPR)
       p_incidence_angle    = pPR->incidence_angle[itrack];
       p_ground_range       = p_slant_range * sin(p_incidence_angle);
       p_height             = p_slant_range * cos(p_incidence_angle);
-      
+
       for (ix = 0; ix<pPR->nx; ix++){
          x = ix * pPR->deltax - Lx/2;
          for(jy = 0; jy<pPR->ny; jy++){
@@ -6900,10 +6907,10 @@ void		Write_Stack_LookVectors				(PolSARproSim_Record *pPR)
             fwrite (&S, sizeof(double), 1, pLOSfile);
             fwrite (&C, sizeof(double), 1, pLOSfile);
             fwrite (&H, sizeof(double), 1, pLOSfile);
-         } 
+         }
       }
       fclose(pLOSfile);
-   }   
+   }
    return;
 }
 
@@ -6936,7 +6943,7 @@ int		Image_Corner_Reflectors_Direct	(PolSARproSim_Record *pPR)
    for(i = 0; i < NUMBER_OF_CORNER_REFLECTORS; i++){
       cr_x           = pPR->Lx/2 - 2*(i+1)*pPR->Gap_Distance; // spaced twice the gap distance apart
       cr_height      = ground_height (pPR, cr_x, cr_y);
-      cr_center      = Cartesian_Assign_d3Vector(cr_x, cr_y, cr_height);      
+      cr_center      = Cartesian_Assign_d3Vector(cr_x, cr_y, cr_height);
       /* Simple scattering matrix for a dihedral corner reflector */
       Shh				= xy_complex (1.0, 0.0);
       Shv				= xy_complex (0.0, 0.0);
@@ -6983,7 +6990,7 @@ int		Check_Input_DEM			(SIM_Record *pSIMR, PolSARproSim_Record  *pPR)
 {
    int         i,j;
    sim_pixel	sp;
-   
+
    if((int)(pSIMR->Lx/pSIMR->dx) != pSIMR->nx){
       printf("WARNING: In file %s header: Lx/dx != nx\n", pSIMR->filename);
       return(!NO_SIMPRIMITIVE_ERRORS);
@@ -7000,7 +7007,7 @@ int		Check_Input_DEM			(SIM_Record *pSIMR, PolSARproSim_Record  *pPR)
       printf("WARNING: Input DEM does not completely cover the simulated area along ground-range, suggest using a larger section of DEM or zero padding\n");
       return(!NO_SIMPRIMITIVE_ERRORS);
    }
-   
+
    /* go through pixel by pixel and check for bad stuff */
    for (i=0; i<pPR->nx; i++) {
       for (j=0; j<pPR->ny; j++) {
@@ -7010,7 +7017,7 @@ int		Check_Input_DEM			(SIM_Record *pSIMR, PolSARproSim_Record  *pPR)
             sp.data.f    = (float)DEFAULT_DEM_HEIGHT;
             putSIMpixel (pSIMR, sp, i,j);
          }
-      }      
+      }
    }
    return (NO_SIMPRIMITIVE_ERRORS);
 }
@@ -7032,7 +7039,7 @@ int		Resample_Input_DEM			(SIM_Record *pDEM, PolSARproSim_Record *pPR)
    sim_pixel   sp1, sp2, sp3, sp4;
 #endif
    dxdem       = pDEM->dx;
-   dydem       = pDEM->dy;   
+   dydem       = pDEM->dy;
    xmiddem     = (pDEM->nx/2)*dxdem;
    ymiddem     = (pDEM->ny/2)*dydem;
    xmidsim     = pPR->xmid;
@@ -7041,16 +7048,16 @@ int		Resample_Input_DEM			(SIM_Record *pDEM, PolSARproSim_Record *pPR)
    dysim       = pPR->deltay;
    nxdem       = pDEM->nx;
    nydem       = pDEM->ny;
-   
+
    Create_SIM_Record          (&Copy);
-   Copy_SIM_Record            (pDEM, &Copy); 
+   Copy_SIM_Record            (pDEM, &Copy);
    Destroy_SIM_Record         (pDEM);
    Initialise_SIM_Record		(pDEM, Copy.filename, pPR->nx, pPR->ny, Copy.pixel_type, pPR->Lx, pPR->Ly, Copy.pInfo);
-   
+
    /* nearest neighbor resampling */
    for (jsim=0; jsim<pPR->ny; jsim++) {
       for (isim=0; isim<pPR->nx; isim++) {
-         
+
          x     = isim * dxsim - xmidsim;
          y     = ymidsim - jsim * dysim;
          idem  = (int)((x + xmiddem)/dxdem);
@@ -7090,9 +7097,9 @@ int		Resample_Input_DEM			(SIM_Record *pDEM, PolSARproSim_Record *pPR)
          sp2   = getSIMpixel(&Copy, i1, j2);
          sp3   = getSIMpixel(&Copy, i2, j1);
          sp4   = getSIMpixel(&Copy, i2, j2);
-         sp.data.f = (float) (1/dxdem/dydem * (sp1.data.f * (float)((x2-x)*(y2-y)) 
-                                               + sp2.data.f * (float)((x2-x)*(y-y1)) 
-                                               + sp3.data.f * (float)((x-x1)*(y2-y)) 
+         sp.data.f = (float) (1/dxdem/dydem * (sp1.data.f * (float)((x2-x)*(y2-y))
+                                               + sp2.data.f * (float)((x2-x)*(y-y1))
+                                               + sp3.data.f * (float)((x-x1)*(y2-y))
                                                + sp4.data.f * (float)((x-x1)*(y-y1))));
 #endif
          putSIMpixel(pDEM, sp, isim,jsim);
@@ -7120,13 +7127,13 @@ int      Create_Shadow_Map   (SIM_Record *pSHADE, PolSARproSim_Record *pPR)
    double			shadow_distance = 0.0;
    char           *filename;
    sim_pixel      sp;
-   
-   
-   
+
+
+
    /* an upward pointing vector */
    up          = Cartesian_Assign_d3Vector (0, 0, 1);
-   
-   /* create filename */ 
+
+   /* create filename */
    filename    = (char*) calloc (strlen(pPR->pMasterDirectory)+strlen("shadow_map.bin")+1, sizeof(char));
    strcpy      (filename, pPR->pMasterDirectory);
    strcat      (filename, "shadow_map.bin");
@@ -7134,14 +7141,14 @@ int      Create_Shadow_Map   (SIM_Record *pSHADE, PolSARproSim_Record *pPR)
    Create_SIM_Record       (pSHADE);
    Initialise_SIM_Record   (pSHADE, filename, pPR->nx, pPR->ny, SIM_FLOAT_TYPE, pPR->Lx, pPR->Ly, "PolSARproSim shadow map");
    free                    (filename);
-   
+
    for (i=0; i<pPR->nx; i++) {
       x        = i * pPR->deltax - pPR->xmid;
       g        = Cartesian_Assign_d3Vector (x, -pPR->Ly/2, ground_height(pPR, x, -pPR->Ly/2));
       /* create plane for first pixel */
       Assign_Plane (&Pg, &g, 0.0, yslope);
       for (j=pPR->ny-1; j>=0; j--) {
-         sp    = getSIMpixel(pSHADE, i,j);   
+         sp    = getSIMpixel(pSHADE, i,j);
          y     = pPR->ymid - j * pPR->deltay;
          g     = Cartesian_Assign_d3Vector (x, y, ground_height(pPR, x, y));
          Assign_Ray_d3V (&Rb, &g , &up);
@@ -7157,9 +7164,9 @@ int      Create_Shadow_Map   (SIM_Record *pSHADE, PolSARproSim_Record *pPR)
          }
       }
    }
-   
+
    return(NO_POLSARPROSIM_ERRORS);
-   
+
 }
 
 /*********************************************************/
@@ -7222,8 +7229,8 @@ void		Add_Thermal_Noise		(PolSARproSim_Record *pPR)
             /* add noise to HH image */
             s           = getSIMpixel (&(pPR->HHstack[track].Image), i, j);
             cs          = xy_complex (s.data.cf.x, s.data.cf.y);
-            noise_real  = Gaussian_drand	(0.0, noise_amp[0], min_noise_amp, max_noise_amp); 
-            noise_imag  = Gaussian_drand	(0.0, noise_amp[0], min_noise_amp, max_noise_amp); 
+            noise_real  = Gaussian_drand	(0.0, noise_amp[0], min_noise_amp, max_noise_amp);
+            noise_imag  = Gaussian_drand	(0.0, noise_amp[0], min_noise_amp, max_noise_amp);
             Cartesian_Assign_Complex (&noise, noise_real, noise_imag);
             cs          = complex_add (cs, noise);
             s.data.cf.x	= (float) cs.x;
@@ -7233,8 +7240,8 @@ void		Add_Thermal_Noise		(PolSARproSim_Record *pPR)
             s			= getSIMpixel (&(pPR->HVstack[track].Image), i, j);
             svh		= getSIMpixel (&(pPR->HVstack[track].Image), i, j);
             cs			= xy_complex (s.data.cf.x, s.data.cf.y);
-            noise_real  = Gaussian_drand	(0.0, noise_amp[1], min_noise_amp, max_noise_amp); 
-            noise_imag  = Gaussian_drand	(0.0, noise_amp[1], min_noise_amp, max_noise_amp); 
+            noise_real  = Gaussian_drand	(0.0, noise_amp[1], min_noise_amp, max_noise_amp);
+            noise_imag  = Gaussian_drand	(0.0, noise_amp[1], min_noise_amp, max_noise_amp);
             Cartesian_Assign_Complex (&noise, noise_real, noise_imag);
             cs          = complex_add (cs, noise);
             s.data.cf.x	= (float) cs.x;
@@ -7242,8 +7249,8 @@ void		Add_Thermal_Noise		(PolSARproSim_Record *pPR)
             putSIMpixel (&(pPR->HVstack[track].Image), s, i, j);
             /* add noise to VH image */
             cs          = xy_complex (svh.data.cf.x, svh.data.cf.y);
-            noise_real  = Gaussian_drand	(0.0, noise_amp[2], min_noise_amp, max_noise_amp); 
-            noise_imag  = Gaussian_drand	(0.0, noise_amp[2], min_noise_amp, max_noise_amp); 
+            noise_real  = Gaussian_drand	(0.0, noise_amp[2], min_noise_amp, max_noise_amp);
+            noise_imag  = Gaussian_drand	(0.0, noise_amp[2], min_noise_amp, max_noise_amp);
             Cartesian_Assign_Complex (&noise, noise_real, noise_imag);
             cs          = complex_add (cs, noise);
             s.data.cf.x	= (float) cs.x;
@@ -7252,16 +7259,16 @@ void		Add_Thermal_Noise		(PolSARproSim_Record *pPR)
             /* add noise to VV image */
             s			= getSIMpixel (&(pPR->VVstack[track].Image), i, j);
             cs			= xy_complex (s.data.cf.x, s.data.cf.y);
-            noise_real  = Gaussian_drand	(0.0, noise_amp[3], min_noise_amp, max_noise_amp); 
-            noise_imag  = Gaussian_drand	(0.0, noise_amp[3], min_noise_amp, max_noise_amp); 
+            noise_real  = Gaussian_drand	(0.0, noise_amp[3], min_noise_amp, max_noise_amp);
+            noise_imag  = Gaussian_drand	(0.0, noise_amp[3], min_noise_amp, max_noise_amp);
             Cartesian_Assign_Complex (&noise, noise_real, noise_imag);
             cs          = complex_add (cs, noise);
             s.data.cf.x	= (float) cs.x;
             s.data.cf.y	= (float) cs.y;
             putSIMpixel (&(pPR->VVstack[track].Image), s, i, j);
-            
+
          }
-         
+
       }
    }
    return;
@@ -7302,7 +7309,7 @@ void     Create_Ground_Surface            (PolSARproSim_Record *pPR)
    /************************/
    Create_SIM_Record                (&(pPR->Ground_Height));
    Ground_Surface_Generation        (pPR);
-   
+
    /*****************************/
    /* Add DEM and rough surface */
    /*****************************/
@@ -7310,19 +7317,19 @@ void     Create_Ground_Surface            (PolSARproSim_Record *pPR)
       Add_SIM_Records               (&(pPR->Ground_Height), &(pPR->Input_DEM));
       Destroy_SIM_Record            (&(pPR->Input_DEM));
    }
-      
+
    /**********************************/
    /* Create a map of shaded regions */
    /**********************************/
    Create_Shadow_Map                (&(pPR->Shadow_Map), pPR);
-   
-      
+
+
    /****************************************************/
    /* Initialize Max Height and Surface Normal Layers  */
    /****************************************************/
    Initialize_Max_Height_Map        (pPR);
    Initialize_Surface_Normal_Layers (pPR);
-   
+
    return;
 }
 
