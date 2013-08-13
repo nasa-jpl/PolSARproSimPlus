@@ -780,7 +780,7 @@ int		Input_PolSARproSim_Record		(const char *filename, PolSARproSim_Record *pPR)
    /* Input parameters */
    /********************/
    
-   fprintf (pPR->pLogFile, "\nInputs using keyword driven searches in parameter file ...\n\n");
+   fprintf (pPR->pLogFile, "\nReading inputs from parameter file ...\n\n");
    read_integer   (pInputFile,    "tracks",                   &(pPR->Tracks), TRACK_NUMBER_MIN, TRACK_NUMBER_MAX, TRACK_NUMBER_DEFAULT);
    /* Initialize Track dependent inputs */
    pPR->slant_range                 = (double *)calloc (pPR->Tracks, sizeof (double));
@@ -800,7 +800,6 @@ int		Input_PolSARproSim_Record		(const char *filename, PolSARproSim_Record *pPR)
       slave_height            = master_track_height + baseline[1];
       pPR->slant_range[i]     = sqrt(slave_height*slave_height + slave_ground_range*slave_ground_range);
       pPR->incidence_angle[i] = atan2(slave_ground_range, slave_height);
-      //printf("%d)\tSlant Range %f\tIncidence Angle: %f, Bperp with 0: %f\n", i, pPR->slant_range[i], pPR->incidence_angle[i]*RAD_TO_DEG, sqrt(baseline[0]*baseline[0]+baseline[1]*baseline[1])*cos(pPR->incidence_angle[0]));
    }
 
    /* instrument parameters and controls */
@@ -1285,8 +1284,8 @@ for (i = 0; i < pPR->Tracks; i++) {
    psf_azextent	= sqrt(-log(sqrt(POWER_AT_PSF_EDGE))/pPR->psfaaz);
    psf_srextent	= sqrt(-log(sqrt(POWER_AT_PSF_EDGE))/pPR->psfasr);
 
-   psf_azextent   = 3 * pPR->deltax;
-   psf_srextent   = 3 * pPR->deltay * sin(pPR->incidence_angle[0]);
+   psf_azextent   = 5 * pPR->deltax;
+   psf_srextent   = 5 * pPR->deltay * sin(pPR->incidence_angle[0]);
 
    pPR->PSFnx		= (int) (psf_azextent/pPR->deltax) + 1;
    pPR->PSFnx		= 2*(pPR->PSFnx/2)+1;
@@ -6731,11 +6730,6 @@ void		Flat_Earth_Phase_Removal		(PolSARproSim_Record *pPR)
    double			xmid		= pPR->xmid;
    double			ymid		= pPR->ymid;
    double			k			= pPR->k0;
-//   const double	p_srange	= pPR->slant_range[track];
-//   const double	thetai		= pPR->incidence_angle[track];
-//   const double	p_height	= p_srange*cos(thetai);
-//   const double	p_height2	= p_height*p_height;
-//   const double	p_grange	= p_srange*sin(thetai);
    double         p_srange;
    double         thetai;
    double         p_height;
@@ -6748,6 +6742,12 @@ void		Flat_Earth_Phase_Removal		(PolSARproSim_Record *pPR)
    sim_pixel		s;
    Complex        cs;
    int            track;
+   double         p_srange_master   = pPR->slant_range[0];
+   double         thetai_master     = pPR->incidence_angle[0];
+   double         p_height_master   = p_srange_master*cos(thetai_master);
+   double         p_height2_master  = p_height_master*p_height_master;
+   double         p_grange_master   = p_srange_master*sin(thetai_master);
+   double         gr_master, sr_master;
    
    /* loop over tracks */
    for (track = 0; track < pPR->Tracks; track++) {
@@ -6760,9 +6760,11 @@ void		Flat_Earth_Phase_Removal		(PolSARproSim_Record *pPR)
       /* loop over range pixels */
       for (j = 0; j < pPR->ny; j++) {
          y		= ymid - j * dy;
-         gr	= p_grange + y;
-         sr	= sqrt (gr*gr + p_height2);
-         phase	= 2.0*k*sr;
+         gr          = p_grange + y;
+         sr          = sqrt (gr*gr + p_height2);
+         gr_master	= p_grange_master + y;
+         sr_master	= sqrt (gr_master*gr_master+ p_height2_master);
+         phase	= 2.0*k*(sr-sr_master);
          Polar_Assign_Complex (&c_phase, 1.0, -phase);
          /* loop over azimuth pixels */
          for (i = 0; i < pPR->nx; i++) {
@@ -6788,7 +6790,14 @@ void		Flat_Earth_Phase_Removal		(PolSARproSim_Record *pPR)
             s.data.cf.x	= (float) cs.x;
             s.data.cf.y	= (float) cs.y;
             putSIMpixel (&(pPR->VVstack[track].Image), s, i, j);
-            
+            /* remove phase from VH image */
+            s			= getSIMpixel (&(pPR->VHstack[track].Image), i, j);
+            cs			= xy_complex (s.data.cf.x, s.data.cf.y);
+            cs			= complex_mul (cs, c_phase);
+            s.data.cf.x	= (float) cs.x;
+            s.data.cf.y	= (float) cs.y;
+            putSIMpixel (&(pPR->VHstack[track].Image), s, i, j);
+
          }
          
       }

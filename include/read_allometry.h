@@ -161,9 +161,9 @@
 
 /* range of allowed values */
 /* crown parameters */
-#define MIN_LIVE_CROWN_DEPTH_FACTOR       0.0
+#define MIN_LIVE_CROWN_DEPTH_FACTOR       0.5
 #define MAX_LIVE_CROWN_DEPTH_FACTOR       1.0
-#define MIN_DRY_CROWN_DEPTH_FACTOR        0.0
+#define MIN_DRY_CROWN_DEPTH_FACTOR        0.5
 #define MAX_DRY_CROWN_DEPTH_FACTOR        1.0
 #define MIN_DRY_CROWN_OFFSET_FACTOR       0.0
 #define MAX_DRY_CROWN_OFFSET_FACTOR       1.0

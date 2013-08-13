@@ -296,6 +296,7 @@ void		Realise_Primaries	(Tree *pT, PolSARproSim_Record *pPR)
       az_factor   = DEG_TO_RAD * pPR->SpeciesDataBase[pT->species].primary_azimuth_factor;
       
       delta_t     = (t1-t0)/Nlayers;
+      tbar        = 0.5*(t0+t1);
       delta_phi	= 2.0*DPI_RAD/Nsections;
       dry_l       = pC->d2/cos(theta-DPI_RAD/2.0);
       for (i_layer=0; i_layer<Nlayers; i_layer++) {
