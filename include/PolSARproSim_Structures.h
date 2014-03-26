@@ -254,6 +254,7 @@ typedef struct polsarprosim_record_tag {
    /**********************************************/
    /* Variables governing short vegetation layer */
    /**********************************************/
+   int            short_veg_flag;         /* Flag to enable/disable short vegetation                     */
    double			shrt_vegi_depth;        /* Depth of short vegetation layer in metres                   */
    double			shrt_vegi_stem_vol_frac;/* Volume fraction of short vegetation layer stems (ratio)     */
    double			shrt_vegi_leaf_vol_frac;/* Volume fraction of short vegetation layer stems (ratio)     */
@@ -318,6 +319,14 @@ typedef struct polsarprosim_record_tag {
    SIM_Stack      *HVstack;         /* Stack of HV images are stored here                             */
    SIM_Stack      *VVstack;         /* Stack of VV images are stored here                             */   
    SIM_Stack      *VHstack;         /* Stack of VH images are stored here                             */
+   SIM_Stack      *HHgndstack;      /* Stack of HH images for direct ground, double bounce            */
+   SIM_Stack      *HVgndstack;      /* Stack of HV images for direct ground, double bounce            */
+   SIM_Stack      *VVgndstack;      /* Stack of VV images for direct ground, double bounce            */   
+   SIM_Stack      *VHgndstack;      /* Stack of VH images for direct ground, double bounce            */
+   SIM_Stack      *HHvolstack;      /* Stack of HH images for direct volume                           */
+   SIM_Stack      *HVvolstack;      /* Stack of HV images for direct volume                           */
+   SIM_Stack      *VVvolstack;      /* Stack of VV images for direct volume                           */  
+   SIM_Stack      *VHvolstack;      /* Stack of VH images for direct volume                           */   
    double			xmid;					/* Used to calculate image array indices                          */
    double			ymid;					/* Used to calculate image array indices                          */
    double			psfaaz;           /* Point spread function azimuth parameter                        */
@@ -347,6 +356,14 @@ typedef struct polsarprosim_record_tag {
    char           *HV_string;				/* Full filename for current track                                */
    char           *VH_string;				/* Full filename for current track                                */
    char           *VV_string;				/* Full filename for current track                                */
+   char           *HHgnd_string;			/* Full filename for current track - GV+DG only                   */
+   char           *HVgnd_string;			/* Full filename for current track - GV+DG only                   */
+   char           *VHgnd_string;			/* Full filename for current track - GV+DG only                   */
+   char           *VVgnd_string;			/* Full filename for current track - GV+DG only                   */
+   char           *HHvol_string;			/* Full filename for current track - DV only                      */
+   char           *HVvol_string;			/* Full filename for current track - DV only                      */
+   char           *VHvol_string;			/* Full filename for current track - DV only                      */
+   char           *VVvol_string;			/* Full filename for current track - DV only                      */
    char           *ForestData;         /* Full filename for forest input file                            */
    char           *ForestOutput;       /* Full filename for forest output file                           */
    char           *SpeciesData;        /* Full filename for species database file                        */
@@ -355,19 +372,24 @@ typedef struct polsarprosim_record_tag {
    /* Progress indicator */
    /**********************/
    int            progress;             /* Indicates progress of simulation on stdout                     */
-   /*******************************************************************************************/
-   /* Forest input flag: 0 = generate forest, 1 = input forest from Forest Data File          */
-   /*******************************************************************************************/
+   /******************************************************************************************/
+   /* Forest input flag: 0 = generate forest, 1 = input forest from Forest Data File         */
+   /******************************************************************************************/
    int            ForestInput_Flag;     /* If set to 1 forest parameters will be read from input file     */
-   /*******************************************************************************************/
-   /* Forest drawing flag: 0 = skip forest drawing, 1 = draw forest image                     */
-   /*******************************************************************************************/
+   /******************************************************************************************/
+   /* Forest drawing flag: 0 = skip forest drawing, 1 = draw forest image                    */
+   /******************************************************************************************/
    int            ForestDraw_Flag;      
-   /*******************************************************************************************/
-   /* Fast Mode Computation Flag                                                              */
-   /*******************************************************************************************/
+   /******************************************************************************************/
+   /* Fast Mode Computation Flag                                                             */
+   /******************************************************************************************/
    int            ForestFastMode_Flag;
    int            *ForestFastMode;     
+   /******************************************************************************************/
+   /* Separate scattering mechanism into Ground (DG, GV) and Volume (DV)                     */
+   /******************************************************************************************/
+   int            SSM_Flag;            /* If set to 1 include additional layers for DG+GV DV */
+   int            SSM_accum;           /* which accumulator to add scattered value to (T= DG+DV+GV, G = DG+GV, V = DV) */
    /*******************************************************************************************/
    /* External DEM contrls                                                                    */
    /*******************************************************************************************/

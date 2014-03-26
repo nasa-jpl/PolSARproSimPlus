@@ -750,7 +750,6 @@ int		Input_PolSARproSim_Record		(const char *filename, PolSARproSim_Record *pPR)
 #ifdef INPUT_GROUND_MV
    double         *GMV_model;//[12];
 #endif
-//   double			ground_mv		= DEFAULT_GROUND_MV;
    double			*ground_mv;//		= DEFAULT_GROUND_MV;
 
    double			psf_azextent;
@@ -779,13 +778,7 @@ int		Input_PolSARproSim_Record		(const char *filename, PolSARproSim_Record *pPR)
    /********************/
    /* Input parameters */
    /********************/
-<<<<<<< HEAD
-   
    fprintf (pPR->pLogFile, "\nReading inputs from parameter file ...\n\n");
-=======
-
-   fprintf (pPR->pLogFile, "\nInputs using keyword driven searches in parameter file ...\n\n");
->>>>>>> bddb429505df963407d9eb0d0dbb7acebc8d5034
    read_integer   (pInputFile,    "tracks",                   &(pPR->Tracks), TRACK_NUMBER_MIN, TRACK_NUMBER_MAX, TRACK_NUMBER_DEFAULT);
    /* Initialize Track dependent inputs */
    pPR->slant_range                 = (double *)calloc (pPR->Tracks, sizeof (double));
@@ -823,6 +816,7 @@ int		Input_PolSARproSim_Record		(const char *filename, PolSARproSim_Record *pPR)
    /* Simulation inputs and controls */
    read_integer   (pInputFile,   "fast_mode",                  &(pPR->ForestFastMode_Flag), ENABLE_FAST_MODE_MIN, ENABLE_FAST_MODE_MAX, ENABLE_FAST_MODE_DEFAULT); /* whether to run in fast mode or not */
    read_integer   (pInputFile,   "randn_seed",                 &(pPR->seed), SEED_MIN, SEED_MAX, SEED_DEFAULT);
+   read_integer   (pInputFile,   "separate_scattering_layers", &(pPR->SSM_Flag), SSMFLAG_MIN, SSMFLAG_MAX, SSMFLAG_DEFAULT);
 
    /* ground parameters */
 #ifdef INPUT_GROUND_MV
@@ -856,6 +850,10 @@ int		Input_PolSARproSim_Record		(const char *filename, PolSARproSim_Record *pPR)
          }
       }
    }
+   
+   /* Short vegetation inputs and controls */
+   read_integer   (pInputFile,   "short_vegetation",           &(pPR->short_veg_flag), SHORT_VEGI_FLAG_DISABLE, SHORT_VEGI_FLAG_ENABLE, SHORT_VEGI_FLAG_DEFAULT);   /* whether to read external dem       */
+   
    /* Forest inputs and controls */
    read_string    (pInputFile,   "global_tree_species",        speccode);                                 /* Read the global tree species identifier */
    read_double    (pInputFile,   "global_tree_height",         &(pPR->mean_tree_height), GLOBAL_TREE_HEIGHT_MIN, GLOBAL_TREE_HEIGHT_MAX, GLOBAL_TREE_HEIGHT_DEFAULT);
@@ -1087,6 +1085,8 @@ for (i = 0; i < pPR->Tracks; i++) {
       /******************************************************/
 
       pPR->mean_crown_radius  = Mean_Tree_Crown_Radius (pPR->species, pPR->mean_tree_height, pPR);
+      printf("\nAlpha = %f, Mean crown radius = %f\n",  pPR->SpeciesDataBase[pPR->species].crown_radius_factor, pPR->mean_crown_radius);
+
       pPR->Layover_Distance	= pPR->mean_tree_height / tan(pPR->incidence_angle[0]);
       pPR->Shadow_Distance		= pPR->mean_tree_height * tan(pPR->incidence_angle[0]);
       pPR->Gap_Distance			= RESOLUTION_GAP_SIZE * (pPR->azimuth_resolution + pPR->ground_range_resolution[0])/2.0;
@@ -1112,9 +1112,9 @@ for (i = 0; i < pPR->Tracks; i++) {
       /*********/
 
       pPR->max_tree_height             = pPR->mean_tree_height; /* This is added to make changes in Attenuation_Map backward compatible --RAedit */
-      pPR->max_tree_number             = (int) (max_packing_fraction*pPR->Area/(POLSARPROSIM_CROWN_OVERLAP_FACTOR*POLSARPROSIM_CROWN_OVERLAP_FACTOR*DPI_RAD*pPR->mean_crown_radius*pPR->mean_crown_radius));
+      pPR->max_tree_number             = (int) (max_packing_fraction*pPR->Stand_Area/(POLSARPROSIM_CROWN_OVERLAP_FACTOR*POLSARPROSIM_CROWN_OVERLAP_FACTOR*DPI_RAD*pPR->mean_crown_radius*pPR->mean_crown_radius));
+      pPR->max_trees_per_hectare			= (int) ((double) pPR->max_tree_number/pPR->Stand_Area*10000.0);
 
-      pPR->max_trees_per_hectare			= (int) ((double) pPR->max_tree_number/pPR->Hectares);
       if (pPR->req_trees_per_hectare > pPR->max_trees_per_hectare) {
          fprintf (pPR->pLogFile, "\nRequested stand density of %d Trees/Ha is too great.\n", pPR->req_trees_per_hectare);
          fprintf (pPR->pLogFile, "Resetting stand density to %d Trees/Ha.\n\n", pPR->max_trees_per_hectare);
@@ -1124,6 +1124,7 @@ for (i = 0; i < pPR->Tracks; i++) {
          fflush  (pPR->pOutputFile);
          pPR->req_trees_per_hectare		= pPR->max_trees_per_hectare;
       }
+      
       pPR->trees_per_100m           = sqrt((double)pPR->req_trees_per_hectare);
       pPR->nTreex                   = (int) ((pPR->Lx*pPR->trees_per_100m/100.0)+1.0);
       pPR->nTreey                   = (int) ((pPR->Ly*pPR->trees_per_100m/100.0)+1.0);
@@ -5627,7 +5628,7 @@ double		Lookup_PSF_value              (int ioffx, int ioffy, int inx, int iny, i
 
 
 double		Accumulate_SAR_Contribution		(double focus_x, double focus_y, double focus_srange,
-                                              Complex Shh, Complex Shv, Complex Svv, PolSARproSim_Record *pPR, int track, double focus_angle)
+                                              Complex Shh, Complex Shv, Complex Svv, PolSARproSim_Record *pPR, int track, double focus_angle, int ssm_accum)
 {
    double		dx		= pPR->deltax;
    double		dy		= pPR->deltay;
@@ -5707,12 +5708,48 @@ double		Accumulate_SAR_Contribution		(double focus_x, double focus_y, double foc
                      spix.data.cf.x	+= gpix.data.cf.x;
                      spix.data.cf.y	+= gpix.data.cf.y;
                      putSIMpixel (&(pPR->HHstack[track].Image), spix, ipx, jpy);
+                     /* if separation of scattering mechanisms is desired */
+                     if(pPR->SSM_Flag == SSM_ENABLE){
+                        if(ssm_accum == SSM_ACCUM_GND){
+                           spix.data.cf.x	= (float) cvalue.x;
+                           spix.data.cf.y	= (float) cvalue.y;
+                           gpix				= getSIMpixel (&(pPR->HHgndstack[track].Image), ipx, jpy);
+                           spix.data.cf.x	+= gpix.data.cf.x;
+                           spix.data.cf.y	+= gpix.data.cf.y;
+                           putSIMpixel (&(pPR->HHgndstack[track].Image), spix, ipx, jpy);
+                        }else if(ssm_accum == SSM_ACCUM_VOL){
+                           spix.data.cf.x	= (float) cvalue.x;
+                           spix.data.cf.y	= (float) cvalue.y;
+                           gpix				= getSIMpixel (&(pPR->HHvolstack[track].Image), ipx, jpy);
+                           spix.data.cf.x	+= gpix.data.cf.x;
+                           spix.data.cf.y	+= gpix.data.cf.y;
+                           putSIMpixel (&(pPR->HHvolstack[track].Image), spix, ipx, jpy);
+                        }   
+                     }                  
                      pthread_mutex_unlock (&PolSARproSim_HHmutex);
 #else
                      gpix				= getSIMpixel (&(pPR->HHstack[track].Image), ipx, jpy);
                      spix.data.cf.x	+= gpix.data.cf.x;
                      spix.data.cf.y	+= gpix.data.cf.y;
                      putSIMpixel (&(pPR->HHstack[track].Image), spix, ipx, jpy);
+                     /* if separation of scattering mechanisms is desired */
+                     if(pPR->SSM_Flag == SSM_ENABLE){
+                        if(ssm_accum == SSM_ACCUM_GND){
+                           spix.data.cf.x	= (float) cvalue.x;
+                           spix.data.cf.y	= (float) cvalue.y;
+                           gpix				= getSIMpixel (&(pPR->HHgndstack[track].Image), ipx, jpy);
+                           spix.data.cf.x	+= gpix.data.cf.x;
+                           spix.data.cf.y	+= gpix.data.cf.y;
+                           putSIMpixel (&(pPR->HHgndstack[track].Image), spix, ipx, jpy);
+                        }else if(ssm_accum == SSM_ACCUM_VOL){
+                           spix.data.cf.x	= (float) cvalue.x;
+                           spix.data.cf.y	= (float) cvalue.y;
+                           gpix				= getSIMpixel (&(pPR->HHvolstack[track].Image), ipx, jpy);
+                           spix.data.cf.x	+= gpix.data.cf.x;
+                           spix.data.cf.y	+= gpix.data.cf.y;
+                           putSIMpixel (&(pPR->HHvolstack[track].Image), spix, ipx, jpy);
+                        }   
+                     }                  
 #endif
                      /* HV channel write */
                      cvalue			= complex_mul (cweight, Shv);
@@ -5724,12 +5761,48 @@ double		Accumulate_SAR_Contribution		(double focus_x, double focus_y, double foc
                      spix.data.cf.x	+= gpix.data.cf.x;
                      spix.data.cf.y	+= gpix.data.cf.y;
                      putSIMpixel (&(pPR->HVstack[track].Image), spix, ipx, jpy);
+                     /* if separation of scattering mechanisms is desired */
+                     if(pPR->SSM_Flag == SSM_ENABLE){
+                        if(ssm_accum == SSM_ACCUM_GND){
+                           spix.data.cf.x	= (float) cvalue.x;
+                           spix.data.cf.y	= (float) cvalue.y;
+                           gpix				= getSIMpixel (&(pPR->HVgndstack[track].Image), ipx, jpy);
+                           spix.data.cf.x	+= gpix.data.cf.x;
+                           spix.data.cf.y	+= gpix.data.cf.y;
+                           putSIMpixel (&(pPR->HVgndstack[track].Image), spix, ipx, jpy);
+                        }else if(ssm_accum == SSM_ACCUM_VOL){
+                           spix.data.cf.x	= (float) cvalue.x;
+                           spix.data.cf.y	= (float) cvalue.y;
+                           gpix				= getSIMpixel (&(pPR->HVvolstack[track].Image), ipx, jpy);
+                           spix.data.cf.x	+= gpix.data.cf.x;
+                           spix.data.cf.y	+= gpix.data.cf.y;
+                           putSIMpixel (&(pPR->HVvolstack[track].Image), spix, ipx, jpy);
+                        }   
+                     }                  
                      pthread_mutex_unlock (&PolSARproSim_HVmutex);
 #else
                      gpix				= getSIMpixel (&(pPR->HVstack[track].Image), ipx, jpy);
                      spix.data.cf.x	+= gpix.data.cf.x;
                      spix.data.cf.y	+= gpix.data.cf.y;
-                     putSIMpixel (&(pPR->HVstack[track].Image), spix, ipx, jpy);
+                     putSIMpixel (&(pPR->HVstack[track].Image), spix, ipx, jpy);                     
+                     /* if separation of scattering mechanisms is desired */
+                     if(pPR->SSM_Flag == SSM_ENABLE){
+                        if(ssm_accum == SSM_ACCUM_GND){
+                           spix.data.cf.x	= (float) cvalue.x;
+                           spix.data.cf.y	= (float) cvalue.y;
+                           gpix				= getSIMpixel (&(pPR->HVgndstack[track].Image), ipx, jpy);
+                           spix.data.cf.x	+= gpix.data.cf.x;
+                           spix.data.cf.y	+= gpix.data.cf.y;
+                           putSIMpixel (&(pPR->HVgndstack[track].Image), spix, ipx, jpy);
+                        }else if(ssm_accum == SSM_ACCUM_VOL){
+                           spix.data.cf.x	= (float) cvalue.x;
+                           spix.data.cf.y	= (float) cvalue.y;
+                           gpix				= getSIMpixel (&(pPR->HVvolstack[track].Image), ipx, jpy);
+                           spix.data.cf.x	+= gpix.data.cf.x;
+                           spix.data.cf.y	+= gpix.data.cf.y;
+                           putSIMpixel (&(pPR->HVvolstack[track].Image), spix, ipx, jpy);
+                        }   
+                     }                  
 #endif
                      /* VV channel write */
                      cvalue			= complex_mul (cweight, Svv);
@@ -5741,12 +5814,48 @@ double		Accumulate_SAR_Contribution		(double focus_x, double focus_y, double foc
                      spix.data.cf.x	+= gpix.data.cf.x;
                      spix.data.cf.y	+= gpix.data.cf.y;
                      putSIMpixel (&(pPR->VVstack[track].Image), spix, ipx, jpy);
+                     /* if separation of scattering mechanisms is desired */
+                     if(pPR->SSM_Flag == SSM_ENABLE){
+                        if(ssm_accum == SSM_ACCUM_GND){
+                           spix.data.cf.x	= (float) cvalue.x;
+                           spix.data.cf.y	= (float) cvalue.y;
+                           gpix				= getSIMpixel (&(pPR->VVgndstack[track].Image), ipx, jpy);
+                           spix.data.cf.x	+= gpix.data.cf.x;
+                           spix.data.cf.y	+= gpix.data.cf.y;
+                           putSIMpixel (&(pPR->VVgndstack[track].Image), spix, ipx, jpy);
+                        }else if(ssm_accum == SSM_ACCUM_VOL){
+                           spix.data.cf.x	= (float) cvalue.x;
+                           spix.data.cf.y	= (float) cvalue.y;
+                           gpix				= getSIMpixel (&(pPR->VVvolstack[track].Image), ipx, jpy);
+                           spix.data.cf.x	+= gpix.data.cf.x;
+                           spix.data.cf.y	+= gpix.data.cf.y;
+                           putSIMpixel (&(pPR->VVvolstack[track].Image), spix, ipx, jpy);
+                        }   
+                     }                  
                      pthread_mutex_unlock (&PolSARproSim_VVmutex);
 #else
                      gpix				= getSIMpixel (&(pPR->VVstack[track].Image), ipx, jpy);
                      spix.data.cf.x	+= gpix.data.cf.x;
                      spix.data.cf.y	+= gpix.data.cf.y;
                      putSIMpixel (&(pPR->VVstack[track].Image), spix, ipx, jpy);
+                     /* if separation of scattering mechanisms is desired */
+                     if(pPR->SSM_Flag == SSM_ENABLE){
+                        if(ssm_accum == SSM_ACCUM_GND){
+                           spix.data.cf.x	= (float) cvalue.x;
+                           spix.data.cf.y	= (float) cvalue.y;
+                           gpix				= getSIMpixel (&(pPR->VVgndstack[track].Image), ipx, jpy);
+                           spix.data.cf.x	+= gpix.data.cf.x;
+                           spix.data.cf.y	+= gpix.data.cf.y;
+                           putSIMpixel (&(pPR->VVgndstack[track].Image), spix, ipx, jpy);
+                        }else if(ssm_accum == SSM_ACCUM_VOL){
+                           spix.data.cf.x	= (float) cvalue.x;
+                           spix.data.cf.y	= (float) cvalue.y;
+                           gpix				= getSIMpixel (&(pPR->VVvolstack[track].Image), ipx, jpy);
+                           spix.data.cf.x	+= gpix.data.cf.x;
+                           spix.data.cf.y	+= gpix.data.cf.y;
+                           putSIMpixel (&(pPR->VVvolstack[track].Image), spix, ipx, jpy);
+                        }   
+                     }                  
 #endif
                   }
                }
@@ -5932,47 +6041,141 @@ c3Vector	d3V2c3V	(d3Vector v)
 
 void		Create_SAR_Filenames			(PolSARproSim_Record *pPR, int track)
 {
-      char trackid[10];
-      char polname[10];
-
-      sprintf(trackid, "track%03d",track);
-
-      sprintf(polname, "HH.bin");
-      pPR->HH_string	= (char*) calloc (strlen(pPR->pMasterDirectory)+strlen(pPR->pFilenamePrefix)+1+strlen(trackid)+1+strlen(polname), sizeof(char));
-      strcpy (pPR->HH_string, pPR->pMasterDirectory);
-      strncat(pPR->HH_string, pPR->pFilenamePrefix, strlen(pPR->pFilenamePrefix));
-      strncat(pPR->HH_string, "_",1);
-      strncat(pPR->HH_string, trackid, strlen(trackid));
-      strncat(pPR->HH_string, "_",1);
-      strncat(pPR->HH_string, polname, strlen(polname));
-
-      sprintf(polname, "HV.bin");
-      pPR->HV_string	= (char*) calloc (strlen(pPR->pMasterDirectory)+strlen(pPR->pFilenamePrefix)+1+strlen(trackid)+1+strlen(polname), sizeof(char));
-      strcpy (pPR->HV_string, pPR->pMasterDirectory);
-      strncat(pPR->HV_string, pPR->pFilenamePrefix, strlen(pPR->pFilenamePrefix));
-      strncat(pPR->HV_string, "_",1);
-      strncat(pPR->HV_string, trackid, strlen(trackid));
-      strncat(pPR->HV_string, "_",1);
-      strncat(pPR->HV_string, polname, strlen(polname));
-
-      sprintf(polname, "VH.bin");
-      pPR->VH_string	= (char*) calloc (strlen(pPR->pMasterDirectory)+strlen(pPR->pFilenamePrefix)+1+strlen(trackid)+1+strlen(polname), sizeof(char));
-      strcpy (pPR->VH_string, pPR->pMasterDirectory);
-      strncat(pPR->VH_string, pPR->pFilenamePrefix, strlen(pPR->pFilenamePrefix));
-      strncat(pPR->VH_string, "_",1);
-      strncat(pPR->VH_string, trackid, strlen(trackid));
-      strncat(pPR->VH_string, "_",1);
-      strncat(pPR->VH_string, polname, strlen(polname));
-
-      sprintf(polname, "VV.bin");
-      pPR->VV_string	= (char*) calloc (strlen(pPR->pMasterDirectory)+strlen(pPR->pFilenamePrefix)+1+strlen(trackid)+1+strlen(polname), sizeof(char));
-      strcpy (pPR->VV_string, pPR->pMasterDirectory);
-      strncat(pPR->VV_string, pPR->pFilenamePrefix, strlen(pPR->pFilenamePrefix));
-      strncat(pPR->VV_string, "_",1);
-      strncat(pPR->VV_string, trackid, strlen(trackid));
-      strncat(pPR->VV_string, "_",1);
-      strncat(pPR->VV_string, polname, strlen(polname));
-
+   char trackid[13];
+   char polname[13];
+   
+   sprintf(trackid, "track%03d",track);
+   
+   sprintf(polname, "HH.bin");
+   pPR->HH_string	= (char*) calloc (strlen(pPR->pMasterDirectory)+strlen(pPR->pFilenamePrefix)+1+strlen(trackid)+1+strlen(polname), sizeof(char));
+   strcpy (pPR->HH_string, pPR->pMasterDirectory);
+   strncat(pPR->HH_string, pPR->pFilenamePrefix, strlen(pPR->pFilenamePrefix));
+   strncat(pPR->HH_string, "_",1);
+   strncat(pPR->HH_string, trackid, strlen(trackid));
+   strncat(pPR->HH_string, "_",1);
+   strncat(pPR->HH_string, polname, strlen(polname));
+   
+   sprintf(polname, "HV.bin");
+   pPR->HV_string	= (char*) calloc (strlen(pPR->pMasterDirectory)+strlen(pPR->pFilenamePrefix)+1+strlen(trackid)+1+strlen(polname), sizeof(char));
+   strcpy (pPR->HV_string, pPR->pMasterDirectory);
+   strncat(pPR->HV_string, pPR->pFilenamePrefix, strlen(pPR->pFilenamePrefix));
+   strncat(pPR->HV_string, "_",1);
+   strncat(pPR->HV_string, trackid, strlen(trackid));
+   strncat(pPR->HV_string, "_",1);
+   strncat(pPR->HV_string, polname, strlen(polname));
+   
+   sprintf(polname, "VH.bin");
+   pPR->VH_string	= (char*) calloc (strlen(pPR->pMasterDirectory)+strlen(pPR->pFilenamePrefix)+1+strlen(trackid)+1+strlen(polname), sizeof(char));
+   strcpy (pPR->VH_string, pPR->pMasterDirectory);
+   strncat(pPR->VH_string, pPR->pFilenamePrefix, strlen(pPR->pFilenamePrefix));
+   strncat(pPR->VH_string, "_",1);
+   strncat(pPR->VH_string, trackid, strlen(trackid));
+   strncat(pPR->VH_string, "_",1);
+   strncat(pPR->VH_string, polname, strlen(polname));
+   
+   sprintf(polname, "VV.bin");
+   pPR->VV_string	= (char*) calloc (strlen(pPR->pMasterDirectory)+strlen(pPR->pFilenamePrefix)+1+strlen(trackid)+1+strlen(polname), sizeof(char));
+   strcpy (pPR->VV_string, pPR->pMasterDirectory);
+   strncat(pPR->VV_string, pPR->pFilenamePrefix, strlen(pPR->pFilenamePrefix));
+   strncat(pPR->VV_string, "_",1);
+   strncat(pPR->VV_string, trackid, strlen(trackid));
+   strncat(pPR->VV_string, "_",1);
+   strncat(pPR->VV_string, polname, strlen(polname));
+   
+   /* if option to separate scattering mechanisms is enabled */
+   if(pPR->SSM_Flag == SSM_ENABLE){
+      /* The GV+DG (ground scattering) files */
+      sprintf(polname, "HHgnd.bin");
+      pPR->HHgnd_string	= (char*) calloc (strlen(pPR->pMasterDirectory)+strlen(pPR->pFilenamePrefix)+1+strlen(trackid)+1+strlen(polname), sizeof(char));
+      strcpy (pPR->HHgnd_string, pPR->pMasterDirectory);
+      strncat(pPR->HHgnd_string, pPR->pFilenamePrefix, strlen(pPR->pFilenamePrefix));
+      strncat(pPR->HHgnd_string, "_",1);
+      strncat(pPR->HHgnd_string, trackid, strlen(trackid));
+      strncat(pPR->HHgnd_string, "_",1);
+      strncat(pPR->HHgnd_string, polname, strlen(polname));
+      
+      sprintf(polname, "HVgnd.bin");
+      pPR->HVgnd_string	= (char*) calloc (strlen(pPR->pMasterDirectory)+strlen(pPR->pFilenamePrefix)+1+strlen(trackid)+1+strlen(polname), sizeof(char));
+      strcpy (pPR->HVgnd_string, pPR->pMasterDirectory);
+      strncat(pPR->HVgnd_string, pPR->pFilenamePrefix, strlen(pPR->pFilenamePrefix));
+      strncat(pPR->HVgnd_string, "_",1);
+      strncat(pPR->HVgnd_string, trackid, strlen(trackid));
+      strncat(pPR->HVgnd_string, "_",1);
+      strncat(pPR->HVgnd_string, polname, strlen(polname));
+      
+      sprintf(polname, "VHgnd.bin");
+      pPR->VHgnd_string	= (char*) calloc (strlen(pPR->pMasterDirectory)+strlen(pPR->pFilenamePrefix)+1+strlen(trackid)+1+strlen(polname), sizeof(char));
+      strcpy (pPR->VHgnd_string, pPR->pMasterDirectory);
+      strncat(pPR->VHgnd_string, pPR->pFilenamePrefix, strlen(pPR->pFilenamePrefix));
+      strncat(pPR->VHgnd_string, "_",1);
+      strncat(pPR->VHgnd_string, trackid, strlen(trackid));
+      strncat(pPR->VHgnd_string, "_",1);
+      strncat(pPR->VHgnd_string, polname, strlen(polname));
+      
+      sprintf(polname, "VVgnd.bin");
+      pPR->VVgnd_string	= (char*) calloc (strlen(pPR->pMasterDirectory)+strlen(pPR->pFilenamePrefix)+1+strlen(trackid)+1+strlen(polname), sizeof(char));
+      strcpy (pPR->VVgnd_string, pPR->pMasterDirectory);
+      strncat(pPR->VVgnd_string, pPR->pFilenamePrefix, strlen(pPR->pFilenamePrefix));
+      strncat(pPR->VVgnd_string, "_",1);
+      strncat(pPR->VVgnd_string, trackid, strlen(trackid));
+      strncat(pPR->VVgnd_string, "_",1);
+      strncat(pPR->VVgnd_string, polname, strlen(polname));
+      
+      /* for DV (volume scattering) files */
+      sprintf(polname, "HHvol.bin");
+      pPR->HHvol_string	= (char*) calloc (strlen(pPR->pMasterDirectory)+strlen(pPR->pFilenamePrefix)+1+strlen(trackid)+1+strlen(polname), sizeof(char));
+      strcpy (pPR->HHvol_string, pPR->pMasterDirectory);
+      strncat(pPR->HHvol_string, pPR->pFilenamePrefix, strlen(pPR->pFilenamePrefix));
+      strncat(pPR->HHvol_string, "_",1);
+      strncat(pPR->HHvol_string, trackid, strlen(trackid));
+      strncat(pPR->HHvol_string, "_",1);
+      strncat(pPR->HHvol_string, polname, strlen(polname));
+      
+      sprintf(polname, "HVvol.bin");
+      pPR->HVvol_string	= (char*) calloc (strlen(pPR->pMasterDirectory)+strlen(pPR->pFilenamePrefix)+1+strlen(trackid)+1+strlen(polname), sizeof(char));
+      strcpy (pPR->HVvol_string, pPR->pMasterDirectory);
+      strncat(pPR->HVvol_string, pPR->pFilenamePrefix, strlen(pPR->pFilenamePrefix));
+      strncat(pPR->HVvol_string, "_",1);
+      strncat(pPR->HVvol_string, trackid, strlen(trackid));
+      strncat(pPR->HVvol_string, "_",1);
+      strncat(pPR->HVvol_string, polname, strlen(polname));
+      
+      sprintf(polname, "VHvol.bin");
+      pPR->VHvol_string	= (char*) calloc (strlen(pPR->pMasterDirectory)+strlen(pPR->pFilenamePrefix)+1+strlen(trackid)+1+strlen(polname), sizeof(char));
+      strcpy (pPR->VHvol_string, pPR->pMasterDirectory);
+      strncat(pPR->VHvol_string, pPR->pFilenamePrefix, strlen(pPR->pFilenamePrefix));
+      strncat(pPR->VHvol_string, "_",1);
+      strncat(pPR->VHvol_string, trackid, strlen(trackid));
+      strncat(pPR->VHvol_string, "_",1);
+      strncat(pPR->VHvol_string, polname, strlen(polname));
+      
+      sprintf(polname, "VVvol.bin");
+      pPR->VVvol_string	= (char*) calloc (strlen(pPR->pMasterDirectory)+strlen(pPR->pFilenamePrefix)+1+strlen(trackid)+1+strlen(polname), sizeof(char));
+      strcpy (pPR->VVvol_string, pPR->pMasterDirectory);
+      strncat(pPR->VVvol_string, pPR->pFilenamePrefix, strlen(pPR->pFilenamePrefix));
+      strncat(pPR->VVvol_string, "_",1);
+      strncat(pPR->VVvol_string, trackid, strlen(trackid));
+      strncat(pPR->VVvol_string, "_",1);
+      strncat(pPR->VVvol_string, polname, strlen(polname));
+   }
+   
+   printf("File names\n");
+   printf("HH: %s\n", pPR->HH_string);
+   printf("HV: %s\n", pPR->HV_string);
+   printf("VV: %s\n", pPR->VV_string);
+   printf("VH: %s\n\n", pPR->VH_string);
+   
+   if(pPR->SSM_Flag == SSM_ENABLE){
+      printf("HHgnd: %s\n", pPR->HHgnd_string);
+      printf("HVgnd: %s\n", pPR->HVgnd_string);
+      printf("VVgnd: %s\n", pPR->VVgnd_string);
+      printf("VHgnd: %s\n\n", pPR->VHgnd_string);
+      printf("HHvol: %s\n", pPR->HHvol_string);
+      printf("HVvol: %s\n", pPR->HVvol_string);
+      printf("VVvol: %s\n", pPR->VVvol_string);
+      printf("VHvol: %s\n", pPR->VHvol_string);
+   }   
+   
    return;
 }
 
@@ -5984,7 +6187,21 @@ void		Initialise_SAR_Stack				(PolSARproSim_Record *pPR)
    pPR->HVstack	= (SIM_Stack*) calloc (pPR->Tracks, sizeof (SIM_Stack));
    pPR->VVstack	= (SIM_Stack*) calloc (pPR->Tracks, sizeof (SIM_Stack));
    pPR->VHstack	= (SIM_Stack*) calloc (pPR->Tracks, sizeof (SIM_Stack));
+   
+   /* if option to separate scattering mechanisms is enabled */
+   if(pPR->SSM_Flag == SSM_ENABLE){
+      pPR->HHgndstack	= (SIM_Stack*) calloc (pPR->Tracks, sizeof (SIM_Stack));
+      pPR->HVgndstack	= (SIM_Stack*) calloc (pPR->Tracks, sizeof (SIM_Stack));
+      pPR->VVgndstack	= (SIM_Stack*) calloc (pPR->Tracks, sizeof (SIM_Stack));
+      pPR->VHgndstack	= (SIM_Stack*) calloc (pPR->Tracks, sizeof (SIM_Stack));
+      
+      pPR->HHvolstack	= (SIM_Stack*) calloc (pPR->Tracks, sizeof (SIM_Stack));
+      pPR->HVvolstack	= (SIM_Stack*) calloc (pPR->Tracks, sizeof (SIM_Stack));
+      pPR->VVvolstack	= (SIM_Stack*) calloc (pPR->Tracks, sizeof (SIM_Stack));
+      pPR->VHvolstack	= (SIM_Stack*) calloc (pPR->Tracks, sizeof (SIM_Stack));
+   }
 
+   /* if option to separate scattering mechanisms is enabled */
    for (itrack = 0; itrack<pPR->Tracks;itrack++){
       Destroy_SIM_Record      (&(pPR->HHstack[itrack].Image));
       Destroy_SIM_Record      (&(pPR->HVstack[itrack].Image));
@@ -5999,6 +6216,38 @@ void		Initialise_SAR_Stack				(PolSARproSim_Record *pPR)
                                pPR->Lx, pPR->Ly, "PolSARproSim VV image file");
       Initialise_SIM_Record	(&(pPR->VHstack[itrack].Image), pPR->VH_string, pPR->nx, pPR->ny, SIM_COMPLEX_FLOAT_TYPE,
                                pPR->Lx, pPR->Ly, "PolSARproSim VH image file");
+       
+      if(pPR->SSM_Flag == SSM_ENABLE){
+         /* GV+DG (ground only) stack */
+         Destroy_SIM_Record      (&(pPR->HHgndstack[itrack].Image));
+         Destroy_SIM_Record      (&(pPR->HVgndstack[itrack].Image));
+         Destroy_SIM_Record      (&(pPR->VVgndstack[itrack].Image));
+         Destroy_SIM_Record      (&(pPR->VHgndstack[itrack].Image));
+         Initialise_SIM_Record	(&(pPR->HHgndstack[itrack].Image), pPR->HHgnd_string, pPR->nx, pPR->ny, SIM_COMPLEX_FLOAT_TYPE,
+                                  pPR->Lx, pPR->Ly, "PolSARproSim HH ground-only image file");
+         Initialise_SIM_Record	(&(pPR->HVgndstack[itrack].Image), pPR->HVgnd_string, pPR->nx, pPR->ny, SIM_COMPLEX_FLOAT_TYPE,
+                                  pPR->Lx, pPR->Ly, "PolSARproSim HV ground-only image file");
+         Initialise_SIM_Record	(&(pPR->VVgndstack[itrack].Image), pPR->VVgnd_string, pPR->nx, pPR->ny, SIM_COMPLEX_FLOAT_TYPE,
+                                  pPR->Lx, pPR->Ly, "PolSARproSim VV ground-only image file");
+         Initialise_SIM_Record	(&(pPR->VHgndstack[itrack].Image), pPR->VHgnd_string, pPR->nx, pPR->ny, SIM_COMPLEX_FLOAT_TYPE,
+                                  pPR->Lx, pPR->Ly, "PolSARproSim VH ground-only image file");
+         /* DV (volume only) stack */
+         Destroy_SIM_Record      (&(pPR->HHvolstack[itrack].Image));
+         Destroy_SIM_Record      (&(pPR->HVvolstack[itrack].Image));
+         Destroy_SIM_Record      (&(pPR->VVvolstack[itrack].Image));
+         Destroy_SIM_Record      (&(pPR->VHvolstack[itrack].Image));
+         Initialise_SIM_Record	(&(pPR->HHvolstack[itrack].Image), pPR->HHvol_string, pPR->nx, pPR->ny, SIM_COMPLEX_FLOAT_TYPE,
+                                  pPR->Lx, pPR->Ly, "PolSARproSim HH volume-only image file");
+         Initialise_SIM_Record	(&(pPR->HVvolstack[itrack].Image), pPR->HVvol_string, pPR->nx, pPR->ny, SIM_COMPLEX_FLOAT_TYPE,
+                                  pPR->Lx, pPR->Ly, "PolSARproSim HV volume-only image file");
+         Initialise_SIM_Record	(&(pPR->VVvolstack[itrack].Image), pPR->VVvol_string, pPR->nx, pPR->ny, SIM_COMPLEX_FLOAT_TYPE,
+                                  pPR->Lx, pPR->Ly, "PolSARproSim VV volume-only image file");
+         Initialise_SIM_Record	(&(pPR->VHvolstack[itrack].Image), pPR->VHvol_string, pPR->nx, pPR->ny, SIM_COMPLEX_FLOAT_TYPE,
+                                  pPR->Lx, pPR->Ly, "PolSARproSim VH volume-only image file");
+                  
+      }
+      
+                              
    }
    return;
 }
@@ -6006,12 +6255,22 @@ void		Initialise_SAR_Stack				(PolSARproSim_Record *pPR)
 void		Destroy_SAR_Stack				(PolSARproSim_Record *pPR)
 {
    int         itrack;
-
+   
    for (itrack = 0; itrack<pPR->Tracks;itrack++){
       Destroy_SIM_Record      (&(pPR->HHstack[itrack].Image));
       Destroy_SIM_Record      (&(pPR->HVstack[itrack].Image));
       Destroy_SIM_Record      (&(pPR->VVstack[itrack].Image));
       Destroy_SIM_Record      (&(pPR->VHstack[itrack].Image));
+      if(pPR->SSM_Flag == SSM_ENABLE){
+         Destroy_SIM_Record      (&(pPR->HHgndstack[itrack].Image));
+         Destroy_SIM_Record      (&(pPR->HVgndstack[itrack].Image));
+         Destroy_SIM_Record      (&(pPR->VVgndstack[itrack].Image));
+         Destroy_SIM_Record      (&(pPR->VHgndstack[itrack].Image));
+         Destroy_SIM_Record      (&(pPR->HHvolstack[itrack].Image));
+         Destroy_SIM_Record      (&(pPR->HVvolstack[itrack].Image));
+         Destroy_SIM_Record      (&(pPR->VVvolstack[itrack].Image));
+         Destroy_SIM_Record      (&(pPR->VHvolstack[itrack].Image));
+      }
    }
    return;
 }
@@ -6650,9 +6909,9 @@ int		Write_SIM_Record_As_POLSARPRO_BINARY	(SIM_Record *pSIMR)
 void		Write_SAR_Stack				(PolSARproSim_Record *pPR)
 {
    int itrack;
-
+   
    for (itrack = 0; itrack<pPR->Tracks; itrack++){
-
+      
       Create_SAR_Filenames		(pPR, itrack);
 #ifndef POLSARPRO_CONVENTION
 #ifdef POLSARPROSIM_ROTATED_IMAGES
@@ -6662,29 +6921,67 @@ void		Write_SAR_Stack				(PolSARproSim_Record *pPR)
       Write_SIM_Record	(&RotImage);
       Rotate_SIM_Record	(&(pPR->HVstack[itrack].Image), &RotImage);
       Write_SIM_Record	(&RotImage);
-      //Rename_SIM_Record	(&RotImage, pPR->VH_string);
       Rotate_SIM_Record	(&(pPR->VHstack[itrack].Image), &RotImage);
       Write_SIM_Record	(&RotImage);
       Rotate_SIM_Record	(&(pPR->VVstack[itrack].Image), &RotImage);
       Write_SIM_Record	(&RotImage);
+      if(pPR->SSM_Flag == SSM_ENABLE){
+         /* GV+DG (ground only) stack */
+         Create_SIM_Record	(&RotImage);
+         Rotate_SIM_Record	(&(pPR->HHgndstack[itrack].Image), &RotImage);
+         Write_SIM_Record	(&RotImage);
+         Rotate_SIM_Record	(&(pPR->HVgndstack[itrack].Image), &RotImage);
+         Write_SIM_Record	(&RotImage);
+         Rotate_SIM_Record	(&(pPR->VHgndstack[itrack].Image), &RotImage);
+         Write_SIM_Record	(&RotImage);
+         Rotate_SIM_Record	(&(pPR->VVgndstack[itrack].Image), &RotImage);
+         Write_SIM_Record	(&RotImage);
+         /* DV (volume only) stack */
+         Rotate_SIM_Record	(&(pPR->HHvolstack[itrack].Image), &RotImage);
+         Write_SIM_Record	(&RotImage);
+         Rotate_SIM_Record	(&(pPR->HVvolstack[itrack].Image), &RotImage);
+         Write_SIM_Record	(&RotImage);
+         Rotate_SIM_Record	(&(pPR->VHvolstack[itrack].Image), &RotImage);
+         Write_SIM_Record	(&RotImage);
+         Rotate_SIM_Record	(&(pPR->VVvolstack[itrack].Image), &RotImage);
+         Write_SIM_Record	(&RotImage);
+      }
       Destroy_SIM_Record	(&RotImage);
 #else
       Write_SIM_Record	(&(pPR->HHstack[itrack].Image));
       Write_SIM_Record	(&(pPR->HVstack[itrack].Image));
       Write_SIM_Record	(&(pPR->VVstack[itrack].Image));
       Write_SIM_Record	(&(pPR->VHstack[itrack].Image));
-      //Rename_SIM_Record	(&(pPR->HVstack[itrack].Image), pPR->VH_string);
-      //Write_SIM_Record	(&(pPR->HVstack[itrack].Image));
-      //Rename_SIM_Record	(&(pPR->HVstack[itrack].Image), pPR->HV_string);
+      if(pPR->SSM_Flag == SSM_ENABLE){
+         /* GV+DG (ground only) stack */
+         Write_SIM_Record	(&(pPR->HHgndstack[itrack].Image));
+         Write_SIM_Record	(&(pPR->HVgndstack[itrack].Image));
+         Write_SIM_Record	(&(pPR->VVgndstack[itrack].Image));
+         Write_SIM_Record	(&(pPR->VHgndstack[itrack].Image));
+         /* DV (volume only) stack */         
+         Write_SIM_Record	(&(pPR->HHvolstack[itrack].Image));
+         Write_SIM_Record	(&(pPR->HVvolstack[itrack].Image));
+         Write_SIM_Record	(&(pPR->VVvolstack[itrack].Image));
+         Write_SIM_Record	(&(pPR->VHvolstack[itrack].Image));
+      }
 #endif
 #else
       Write_SIM_Record_As_POLSARPRO_BINARY (&(pPR->HHstack[itrack].Image));
       Write_SIM_Record_As_POLSARPRO_BINARY (&(pPR->HVstack[itrack].Image));
       Write_SIM_Record_As_POLSARPRO_BINARY (&(pPR->VVstack[itrack].Image));
       Write_SIM_Record_As_POLSARPRO_BINARY (&(pPR->VHstack[itrack].Image));
-      //Rename_SIM_Record (&(pPR->HVstack[itrack].Image), pPR->VH_string);
-      //Write_SIM_Record_As_POLSARPRO_BINARY (&(pPR->HVstack[itrack].Image));
-      //Rename_SIM_Record (&(pPR->HVstack[itrack].Image), pPR->HV_string);
+      if(pPR->SSM_Flag == SSM_ENABLE){
+         /* GV+DG (ground only) stack */
+         Write_SIM_Record_As_POLSARPRO_BINARY (&(pPR->HHgndstack[itrack].Image));
+         Write_SIM_Record_As_POLSARPRO_BINARY (&(pPR->HVgndstack[itrack].Image));
+         Write_SIM_Record_As_POLSARPRO_BINARY (&(pPR->VVgndstack[itrack].Image));
+         Write_SIM_Record_As_POLSARPRO_BINARY (&(pPR->VHgndstack[itrack].Image));
+         /* DV (volume only) stack */
+         Write_SIM_Record_As_POLSARPRO_BINARY (&(pPR->HHvolstack[itrack].Image));
+         Write_SIM_Record_As_POLSARPRO_BINARY (&(pPR->HVvolstack[itrack].Image));
+         Write_SIM_Record_As_POLSARPRO_BINARY (&(pPR->VVvolstack[itrack].Image));
+         Write_SIM_Record_As_POLSARPRO_BINARY (&(pPR->VHvolstack[itrack].Image));
+      }
 #endif
    }
    return;
@@ -6747,7 +7044,6 @@ void		Flat_Earth_Phase_Removal		(PolSARproSim_Record *pPR)
    sim_pixel		s;
    Complex        cs;
    int            track;
-<<<<<<< HEAD
    double         p_srange_master   = pPR->slant_range[0];
    double         thetai_master     = pPR->incidence_angle[0];
    double         p_height_master   = p_srange_master*cos(thetai_master);
@@ -6755,9 +7051,6 @@ void		Flat_Earth_Phase_Removal		(PolSARproSim_Record *pPR)
    double         p_grange_master   = p_srange_master*sin(thetai_master);
    double         gr_master, sr_master;
    
-=======
-
->>>>>>> bddb429505df963407d9eb0d0dbb7acebc8d5034
    /* loop over tracks */
    for (track = 0; track < pPR->Tracks; track++) {
       p_srange    = pPR->slant_range[track];
@@ -6806,17 +7099,6 @@ void		Flat_Earth_Phase_Removal		(PolSARproSim_Record *pPR)
             s.data.cf.x	= (float) cs.x;
             s.data.cf.y	= (float) cs.y;
             putSIMpixel (&(pPR->VVstack[track].Image), s, i, j);
-<<<<<<< HEAD
-            /* remove phase from VH image */
-            s			= getSIMpixel (&(pPR->VHstack[track].Image), i, j);
-            cs			= xy_complex (s.data.cf.x, s.data.cf.y);
-            cs			= complex_mul (cs, c_phase);
-            s.data.cf.x	= (float) cs.x;
-            s.data.cf.y	= (float) cs.y;
-            putSIMpixel (&(pPR->VHstack[track].Image), s, i, j);
-=======
->>>>>>> bddb429505df963407d9eb0d0dbb7acebc8d5034
-
          }
 
       }
@@ -6997,7 +7279,7 @@ int		Image_Corner_Reflectors_Direct	(PolSARproSim_Record *pPR)
       /***************************************************/
       /* Combine contribution into SAR image accumulator */
       /***************************************************/
-      weight_average	= Accumulate_SAR_Contribution (focus_x, focus_y, focus_srange, Shh, Shv, Svv, pPR, pPR->current_track, focus_angle);
+      weight_average	= Accumulate_SAR_Contribution (focus_x, focus_y, focus_srange, Shh, Shv, Svv, pPR, pPR->current_track, focus_angle, (int)SSM_ACCUM_GND);
    }
    return (NO_POLSARPROSIM_ERRORS);
 }

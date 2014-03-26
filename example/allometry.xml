@@ -27,7 +27,7 @@
 	</category_list>
 	<deciduous>													<!-- All fields MANDATORY if category defined in category_list 	-->
 		<crown_live_shape		units="none">	spheroid	</crown_live_shape>			<!-- shape of living crown (conical/spheroid/cylindrical)	-->
-		<crown_dry_shape		units="none">	none		</crown_dry_shape>			<!-- shape of dry crown (concial/spheroid/cylindrical/none)	-->
+		<crown_dry_shape		units="none">	none		</crown_dry_shape>			<!-- shape of dry crown (conical/spheroid/cylindrical/none)	-->
 		<crown_live_depth_factor	units="none">	0.5		</crown_live_depth_factor>		<!-- fraction of live crown depth at which crown radius is max.	-->  
 		<crown_dry_depth_factor		units="none">	0.5		</crown_dry_depth_factor>		<!-- fraction of dry crown depth at which crown radius is max.	-->  
 		<crown_dry_offset_factor	units="none">	0		</crown_dry_offset_factor>		<!-- offset dry crown from live by a fraction of the bare stem.	-->  
@@ -103,7 +103,7 @@
 	</deciduous>
 	<coniferous>													<!-- All fields MANDATORY if category defined in category_list 	-->
 		<crown_live_shape		units="none">	conical		</crown_live_shape>			<!-- shape of living crown (conical/spheroid/cylindrical)	-->
-		<crown_dry_shape		units="none">	cylindrical	</crown_dry_shape>			<!-- shape of dry crown (concial/spheroid/cylindrical/none)	-->
+		<crown_dry_shape		units="none">	cylindrical	</crown_dry_shape>			<!-- shape of dry crown (conical/spheroid/cylindrical/none)	-->
 		<crown_live_depth_factor	units="none">	1		</crown_live_depth_factor>		<!-- fraction of live crown depth at which crown radius is max.	-->  
 		<crown_dry_depth_factor		units="none">	1		</crown_dry_depth_factor>		<!-- fraction of dry crown depth at which crown radius is max.	-->  
 		<crown_dry_offset_factor	units="none">	0		</crown_dry_offset_factor>		<!-- offset dry crown from live by a fraction of the bare stem.	-->  
@@ -182,6 +182,7 @@
 	</ACRU>
 	<PIRE>
 		<category			units="none">	coniferous	</category>				<!-- MANDATORY category of trees (unused if all fields defined)	-->
+		<crown_radius_factor		units="none">	0.2590		</crown_radius_factor>			<!-- to est. crown radius (unless forest primitives used)	-->  
 	</PIRE>
 	<TSCA>
 		<category			units="none">	coniferous	</category>				<!-- MANDATORY category of trees (unused if all fields defined)	-->
@@ -255,13 +256,14 @@
 	</HEDGE>
 	<RHMA>
 		<category			units="none">	deciduous	</category>				<!-- MANDATORY category of trees (unused if all fields defined)	-->
-		<crown_dry_shape		units="none">	spheroid	</crown_dry_shape>			<!-- shape of dry crown (concial/spheroid/cylindrical/none)	-->
+		<crown_dry_shape		units="none">	spheroid	</crown_dry_shape>			<!-- shape of dry crown (conical/spheroid/cylindrical/none)	-->
 		<crown_dry_depth_factor		units="none">	1		</crown_dry_depth_factor>		<!-- fraction of dry crown depth at which crown radius is max.	-->  
-		<crown_dry_offset_factor	units="none">	1		</crown_dry_offset_factor>		<!-- offset dry crown from live by a fraction of the bare stem.	-->  
+		<crown_live_depth_factor	units="none">	0.1		</crown_live_depth_factor>		<!-- fraction of live crown depth at which crown radius is max.	-->  
+		<crown_dry_offset_factor	units="none">	1.0		</crown_dry_offset_factor>		<!-- offset dry crown from live by a fraction of the bare stem.	-->  
 		<crown_live_alpha		units="none">	0.410		</crown_live_alpha>			<!-- to est. live crown depth (unless forest primitives used)	-->  
 		<crown_dry_alpha		units="none">	0.500		</crown_dry_alpha>			<!-- to est. dry crown depth (unless forest primitives used)	-->  
-		<crown_radius_factor		units="none">	0.410		</crown_radius_factor>			<!-- to est. crown radius (unless forest primitives used)	-->  
-		<stem_start_radius_factor	units="none">	5.0025		</stem_start_radius_factor>		<!-- to est. stem start radius (unless forest primitives used)	-->  
+		<crown_radius_factor		units="none">	0.10		</crown_radius_factor>			<!-- to est. crown radius (unless forest primitives used)	-->  
+		<stem_start_radius_factor	units="none">	0.925		</stem_start_radius_factor>		<!-- to est. stem start radius (unless forest primitives used)	-->  
 		<primary_layer_density		units="none">  	3.015		</primary_layer_density>		<!-- Primary layer density per unit depth (of canopy)		--> 
 		<primary_sections		units="none">  	4		</primary_sections>			<!-- Average no. of sections per layer of primary branches	--> 
 		<primary_dry_moisture 		units="none">	0.300		</primary_dry_moisture>			<!-- gravimetric moisture of dry primary branches 0<Mg<0.7	-->

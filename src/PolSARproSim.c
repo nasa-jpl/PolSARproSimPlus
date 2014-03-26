@@ -193,6 +193,7 @@ int main(int argc, char *argv[])
    PolSARproSim_indicate_progress   (&Master_Record);
 #endif
    
+      
    /****************************************************/
    /*                                                  */
    /* Stage 1: Create the 3D description of the forest */
@@ -285,14 +286,15 @@ int main(int argc, char *argv[])
       /***********************************************/
       /* Calculate the short vegetation contribution */
       /***********************************************/
+      if(Master_Record.short_veg_flag == SHORT_VEGI_FLAG_ENABLE){
 #ifdef ENABLE_THREADS
-      PolSARproSim_Short_Vegetation_Direct_SMP  (&Master_Record);
-      PolSARproSim_Short_Vegetation_Bounce_SMP  (&Master_Record);
+         PolSARproSim_Short_Vegetation_Direct_SMP  (&Master_Record);
+         PolSARproSim_Short_Vegetation_Bounce_SMP  (&Master_Record);
 #else
-      PolSARproSim_Short_Vegetation_Direct      (&Master_Record);
-      PolSARproSim_Short_Vegetation_Bounce      (&Master_Record);
+         PolSARproSim_Short_Vegetation_Direct      (&Master_Record);
+         PolSARproSim_Short_Vegetation_Bounce      (&Master_Record);
 #endif
-      
+      }
       /*****************************************/
       /* Put a corner reflector or two for fun */
       /*****************************************/
@@ -326,7 +328,7 @@ int main(int argc, char *argv[])
    /****************************************/
    /* Add thermal noise to the image stack */
    /****************************************/
-   Add_Thermal_Noise                            (&Master_Record);
+   //Add_Thermal_Noise                            (&Master_Record);
 
    /****************************************/
    /* Optional flat earth phase correction */

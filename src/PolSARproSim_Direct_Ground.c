@@ -335,7 +335,7 @@ int		PolSARproSim_Direct_Ground		(PolSARproSim_Record *pPR)
             /***************************************************/
             /* Combine contribution into SAR image accumulator */
             /***************************************************/
-            weight_average	+= Accumulate_SAR_Contribution (focus_x, focus_y, focus_srange, Shh, Shv, Svv, pPR, pPR->current_track, focus_angle);
+            weight_average	+= Accumulate_SAR_Contribution (focus_x, focus_y, focus_srange, Shh, Shv, Svv, pPR, pPR->current_track, focus_angle, (int)SSM_ACCUM_GND);
             weight_count	+= 1.0;
             /********************/
             /* end (if visible) */
@@ -397,6 +397,14 @@ int		PolSARproSim_Direct_Ground		(PolSARproSim_Record *pPR)
       Rescale_SIM_Record (&(pPR->HHstack[pPR->current_track].Image), pPR->PSFamp);
       Rescale_SIM_Record (&(pPR->HVstack[pPR->current_track].Image), pPR->PSFamp);
       Rescale_SIM_Record (&(pPR->VVstack[pPR->current_track].Image), pPR->PSFamp);
+      if(pPR->SSM_Flag == SSM_ENABLE){
+         Rescale_SIM_Record (&(pPR->HHgndstack[pPR->current_track].Image), pPR->PSFamp);
+         Rescale_SIM_Record (&(pPR->HVgndstack[pPR->current_track].Image), pPR->PSFamp);
+         Rescale_SIM_Record (&(pPR->VVgndstack[pPR->current_track].Image), pPR->PSFamp);
+         Rescale_SIM_Record (&(pPR->HHvolstack[pPR->current_track].Image), pPR->PSFamp);
+         Rescale_SIM_Record (&(pPR->HVvolstack[pPR->current_track].Image), pPR->PSFamp);
+         Rescale_SIM_Record (&(pPR->VVvolstack[pPR->current_track].Image), pPR->PSFamp);
+      }                  
       fprintf (pPR->pLogFile, "Finished rescaling direct surface imagery ... \n");
       fprintf (pPR->pLogFile, "Checking rescaling of direct surface imagery ... \n");
       mnsqrpxlHH	= 0.0;
@@ -661,7 +669,7 @@ void  *Direct_Ground_RangeLine   (void *threadarg)
          /***************************************************/
          /* Combine contribution into SAR image accumulator */
          /***************************************************/
-         weight_average	+= Accumulate_SAR_Contribution (focus_x, focus_y, focus_srange, Shh, Shv, Svv, pPR, pPR->current_track, focus_angle);
+         weight_average	+= Accumulate_SAR_Contribution (focus_x, focus_y, focus_srange, Shh, Shv, Svv, pPR, pPR->current_track, focus_angle, (int)SSM_ACCUM_GND);
          weight_count	+= 1.0;
          /********************/
          /* end (if visible) */
@@ -789,7 +797,7 @@ int		PolSARproSim_Direct_Ground_SMP		(PolSARproSim_Record        *pPR)
    /******************/
    /* initialzie the random number generator */
    srand(pPR->seed);
-   /* Allocate space in memory for Tree_Location structure*/
+   /* Allocate space in memory for random array*/
    RandArray      = (double *) calloc (randarraylength, sizeof(double));
    /* populate the random number array */
    for (irand = 0; irand < randarraylength; irand ++){
@@ -952,6 +960,14 @@ int		PolSARproSim_Direct_Ground_SMP		(PolSARproSim_Record        *pPR)
       Rescale_SIM_Record (&(pPR->HHstack[pPR->current_track].Image), pPR->PSFamp);
       Rescale_SIM_Record (&(pPR->HVstack[pPR->current_track].Image), pPR->PSFamp);
       Rescale_SIM_Record (&(pPR->VVstack[pPR->current_track].Image), pPR->PSFamp);
+      if(pPR->SSM_Flag == SSM_ENABLE){
+         Rescale_SIM_Record (&(pPR->HHgndstack[pPR->current_track].Image), pPR->PSFamp);
+         Rescale_SIM_Record (&(pPR->HVgndstack[pPR->current_track].Image), pPR->PSFamp);
+         Rescale_SIM_Record (&(pPR->VVgndstack[pPR->current_track].Image), pPR->PSFamp);
+         Rescale_SIM_Record (&(pPR->HHvolstack[pPR->current_track].Image), pPR->PSFamp);
+         Rescale_SIM_Record (&(pPR->HVvolstack[pPR->current_track].Image), pPR->PSFamp);
+         Rescale_SIM_Record (&(pPR->VVvolstack[pPR->current_track].Image), pPR->PSFamp);
+      }                  
       fprintf (pPR->pLogFile, "Finished rescaling direct surface imagery ... \n");
       fprintf (pPR->pLogFile, "Checking rescaling of direct surface imagery ... \n");
       mnsqrpxlHH	= 0.0;

@@ -121,7 +121,8 @@ Complex		Bvv								(double theta, Complex epsilon);
 /*************************/
 
 double		Accumulate_SAR_Contribution	(double focus_x, double focus_y, double focus_srange,
-                                           Complex Shh, Complex Shv, Complex Svv, PolSARproSim_Record *pPR, int track, double inc_angle);
+                                           Complex Shh, Complex Shv, Complex Svv, PolSARproSim_Record *pPR, 
+                                           int track, double inc_angle, int ssm_accum);
 int			Lookup_Direct_Attenuation		(d3Vector r, PolSARproSim_Record *pPR, double *gH, double *gV);
 int			Lookup_Bounce_Attenuation		(d3Vector r, PolSARproSim_Record *pPR, double *gH, double *gV);
 int			Polarisation_Vectors          (d3Vector k, d3Vector n, d3Vector *ph, d3Vector *pv);

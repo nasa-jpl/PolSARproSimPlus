@@ -104,6 +104,9 @@
 /*********************************************/
 /* Short vegetation layer default parameters */
 /*********************************************/
+#define  SHORT_VEGI_FLAG_ENABLE                 1
+#define  SHORT_VEGI_FLAG_DISABLE                0
+#define  SHORT_VEGI_FLAG_DEFAULT                0
 
 #define	DEFAULT_SHORT_VEGI_DEPTH               0.30
 #define	DEFAULT_SHORT_VEGI_STEM_VOL_FRAC       0.004
@@ -423,6 +426,16 @@
 #define  CHANGE_MOISTURE_MIN                 0.0      /* minimum value of the gravimetric moisture content */
 #define  CHANGE_MOISTURE_MAX                 0.7      /* maximum value of the gravimetric moisture content, (see Ulaby, El-Rayes 1987) */
 #define  CHANGE_MOISTURE_STDEV_FACTOR        0.1      /* stdev of applied moisture change = (mean applied offset ) * this factor */
+
+/***************************************************/
+/* Separation of Scattering Mechanisms             */
+/***************************************************/
+#define  SSM_ENABLE                          1
+#define  SSM_DISABLE                         0
+#define  SSM_ACCUM_TOTAL                     0
+#define  SSM_ACCUM_GND                       1
+#define  SSM_ACCUM_VOL                       2
+
 /**********************************************/
 /* PARAMETER FILE MIN/MAX/DEFAULTS            */
 /**********************************************/
@@ -529,6 +542,10 @@
 #define  NOISE_POWER_MIN               -65.0          /* Minimum allowable Noise equivalent sigma nought */
 #define  NOISE_POWER_MAX               0.0            /* Maximum allowable NESZ  */
 #define  NOISE_POWER_DEFAULT           -30.0          /* default NESZ */
+
+#define  SSMFLAG_MIN                   SSM_DISABLE    /* no separations of scattering mechamisms (SSM) into GV+DG, DV */
+#define  SSMFLAG_MAX                   SSM_ENABLE     /* separate accumulators for GV+DG, DV */
+#define  SSMFLAG_DEFAULT               SSM_DISABLE    /* No SSM by default */
 
 /****************************************/
 /* CORNER REFLECTOR CONTROLS            */

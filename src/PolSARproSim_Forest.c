@@ -603,7 +603,7 @@ double		Image_Cylinder_Direct	(Cylinder *pC, SarGeometry *pSG, PolSARproSim_Reco
    /***************************************************/
    /* Combine contribution into SAR image accumulator */
    /***************************************************/
-   weight_average	= Accumulate_SAR_Contribution (focus_x, focus_y, focus_srange, Shh, Shv, Svv, pPR, pSG->track, focus_angle);
+   weight_average	= Accumulate_SAR_Contribution (focus_x, focus_y, focus_srange, Shh, Shv, Svv, pPR, pSG->track, focus_angle, (int)SSM_ACCUM_VOL);
    /*****************************/
    /* populate Max Height image */
    /*****************************/
@@ -702,7 +702,7 @@ double		Image_Foliage_Direct	(Leaf *pL, SarGeometry *pSG, PolSARproSim_Record *p
    /***************************************************/
    /* Combine contribution into SAR image accumulator */
    /***************************************************/
-   weight_average	= Accumulate_SAR_Contribution (focus_x, focus_y, focus_srange, Shh, Shv, Svv, pPR, pSG->track, focus_angle);
+   weight_average	= Accumulate_SAR_Contribution (focus_x, focus_y, focus_srange, Shh, Shv, Svv, pPR, pSG->track, focus_angle, (int)SSM_ACCUM_VOL);
    /*****************************/
    /* populate Max Height image */
    /*****************************/
@@ -869,7 +869,7 @@ double		Image_Foliage_Bounce	(Leaf *pL, SarGeometry *pSG, PolSARproSim_Record *p
             /***************************************************/
             /* Combine contribution into SAR image accumulator */
             /***************************************************/
-            weight_average	= Accumulate_SAR_Contribution (focus_x, focus_y, focus_srange, Shh, Shv, Svv, pPR, pSG->track, focus_angle);
+            weight_average	= Accumulate_SAR_Contribution (focus_x, focus_y, focus_srange, Shh, Shv, Svv, pPR, pSG->track, focus_angle, (int)SSM_ACCUM_GND);
             /*****************************/
             /* populate Max Height image */
             /*****************************/
@@ -1065,7 +1065,7 @@ double		Image_Cylinder_Bounce	(Cylinder *pC, SarGeometry *pSG, PolSARproSim_Reco
             /***************************************************/
             /* Combine contribution into SAR image accumulator */
             /***************************************************/
-            weight_average	= Accumulate_SAR_Contribution (focus_x, focus_y, focus_srange, Shh, Shv, Svv, pPR, pSG->track, focus_angle);
+            weight_average	= Accumulate_SAR_Contribution (focus_x, focus_y, focus_srange, Shh, Shv, Svv, pPR, pSG->track, focus_angle, (int)SSM_ACCUM_GND);
             /*****************************/
             /* populate Max Height image */
             /*****************************/            
