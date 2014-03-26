@@ -278,11 +278,11 @@ int main(int argc, char *argv[])
       /********************************************/
       /* Calculate the direct ground contribution */
       /********************************************/
-#ifdef ENABLE_THREADS
-      PolSARproSim_Direct_Ground_SMP            (&Master_Record);
-#else
+//#ifdef ENABLE_THREADS
+//      PolSARproSim_Direct_Ground_SMP            (&Master_Record);
+//#else
       PolSARproSim_Direct_Ground                (&Master_Record);
-#endif      
+//#endif      
       /***********************************************/
       /* Calculate the short vegetation contribution */
       /***********************************************/
