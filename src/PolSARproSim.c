@@ -328,7 +328,7 @@ int main(int argc, char *argv[])
    /****************************************/
    /* Add thermal noise to the image stack */
    /****************************************/
-   //Add_Thermal_Noise                            (&Master_Record);
+   Add_Thermal_Noise                            (&Master_Record);
 
    /****************************************/
    /* Optional flat earth phase correction */

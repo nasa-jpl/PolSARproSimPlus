@@ -299,19 +299,19 @@
 #define  DRAW_FOREST_IMAGE                            1
 #define	FOREST_GRAPHIC_DRAW_STEM
 /* Draw tree stems in graphic image if defined			*/
-#define	FOREST_GRAPHIC_DRAW_CROWN
+//#define	FOREST_GRAPHIC_DRAW_CROWN
 /* Draw tree crowns in graphic image if defined			*/
-//#define  FOREST_GRAPHIC_DRAW_PRIMARY
+#define  FOREST_GRAPHIC_DRAW_PRIMARY
 
 /*#define	FOREST_GRAPHIC_DRAW_SHORTV_ELEMENTS					*/
 /* Draw a few leaves and stems in the understorey				*/
 /*#define	FOREST_GRAPHIC_DRAW_SHORTV_SURFACE					*/
 /* Draw the surface of the short vegetation layer				*/
-// #define	FOREST_GRAPHIC_DRAW_SECONDARY						   
+ #define	FOREST_GRAPHIC_DRAW_SECONDARY						   
 /* Draw secondary branches in graphic image if defined			*/
-//#define	FOREST_GRAPHIC_DRAW_TERTIARY						
+#define	FOREST_GRAPHIC_DRAW_TERTIARY						
 /* Draw tertiary elements in graphic image if defined			*/
-//#define	FOREST_GRAPHIC_DRAW_FOLIAGE							
+#define	FOREST_GRAPHIC_DRAW_FOLIAGE							
 /* Draw foliage elements in graphic image if defined			*/
 
 /*******************/
@@ -412,6 +412,12 @@
 /***************************************************/
 /* if this is defined hyperthreading is enabled    */
 //#define  ENABLE_THREADS
+
+/***************************************************/
+/* Include Thermal Noise                           */
+/***************************************************/
+/* if this is defined Gaussian noise will be added */
+//#define  ADD_THERMAL_NOISE
 
 /***************************************************/
 /* Temporal Decorrelation Model                    */

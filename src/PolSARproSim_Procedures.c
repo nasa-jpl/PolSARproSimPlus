@@ -7058,7 +7058,7 @@ void		Flat_Earth_Phase_Removal		(PolSARproSim_Record *pPR)
       p_height    = p_srange*cos(thetai);
       p_height2	= p_height*p_height;
       p_grange    = p_srange*sin(thetai);
-
+      
       /* loop over range pixels */
       for (j = 0; j < pPR->ny; j++) {
          y		= ymid - j * dy;
@@ -7078,6 +7078,20 @@ void		Flat_Earth_Phase_Removal		(PolSARproSim_Record *pPR)
             s.data.cf.x	= (float) cs.x;
             s.data.cf.y	= (float) cs.y;
             putSIMpixel (&(pPR->HHstack[track].Image), s, i, j);
+            if(pPR->SSM_Flag == SSM_ENABLE){
+               s			= getSIMpixel (&(pPR->HHgndstack[track].Image), i, j);
+               cs			= xy_complex (s.data.cf.x, s.data.cf.y);
+               cs			= complex_mul (cs, c_phase);
+               s.data.cf.x	= (float) cs.x;
+               s.data.cf.y	= (float) cs.y;
+               putSIMpixel (&(pPR->HHgndstack[track].Image), s, i, j);
+               s			= getSIMpixel (&(pPR->HHvolstack[track].Image), i, j);
+               cs			= xy_complex (s.data.cf.x, s.data.cf.y);
+               cs			= complex_mul (cs, c_phase);
+               s.data.cf.x	= (float) cs.x;
+               s.data.cf.y	= (float) cs.y;
+               putSIMpixel (&(pPR->HHvolstack[track].Image), s, i, j);
+            }                  
             /* remove phase from HV image */
             s			= getSIMpixel (&(pPR->HVstack[track].Image), i, j);
             cs			= xy_complex (s.data.cf.x, s.data.cf.y);
@@ -7085,6 +7099,20 @@ void		Flat_Earth_Phase_Removal		(PolSARproSim_Record *pPR)
             s.data.cf.x	= (float) cs.x;
             s.data.cf.y	= (float) cs.y;
             putSIMpixel (&(pPR->HVstack[track].Image), s, i, j);
+            if(pPR->SSM_Flag == SSM_ENABLE){
+               s			= getSIMpixel (&(pPR->HVgndstack[track].Image), i, j);
+               cs			= xy_complex (s.data.cf.x, s.data.cf.y);
+               cs			= complex_mul (cs, c_phase);
+               s.data.cf.x	= (float) cs.x;
+               s.data.cf.y	= (float) cs.y;
+               putSIMpixel (&(pPR->HVgndstack[track].Image), s, i, j);
+               s			= getSIMpixel (&(pPR->HVvolstack[track].Image), i, j);
+               cs			= xy_complex (s.data.cf.x, s.data.cf.y);
+               cs			= complex_mul (cs, c_phase);
+               s.data.cf.x	= (float) cs.x;
+               s.data.cf.y	= (float) cs.y;
+               putSIMpixel (&(pPR->HVvolstack[track].Image), s, i, j);
+            }                  
             /* remove phase from VH image */
             s			= getSIMpixel (&(pPR->VHstack[track].Image), i, j);
             cs			= xy_complex (s.data.cf.x, s.data.cf.y);
@@ -7092,6 +7120,20 @@ void		Flat_Earth_Phase_Removal		(PolSARproSim_Record *pPR)
             s.data.cf.x	= (float) cs.x;
             s.data.cf.y	= (float) cs.y;
             putSIMpixel (&(pPR->VHstack[track].Image), s, i, j);
+            if(pPR->SSM_Flag == SSM_ENABLE){
+               s			= getSIMpixel (&(pPR->VHgndstack[track].Image), i, j);
+               cs			= xy_complex (s.data.cf.x, s.data.cf.y);
+               cs			= complex_mul (cs, c_phase);
+               s.data.cf.x	= (float) cs.x;
+               s.data.cf.y	= (float) cs.y;
+               putSIMpixel (&(pPR->VHgndstack[track].Image), s, i, j);
+               s			= getSIMpixel (&(pPR->VHvolstack[track].Image), i, j);
+               cs			= xy_complex (s.data.cf.x, s.data.cf.y);
+               cs			= complex_mul (cs, c_phase);
+               s.data.cf.x	= (float) cs.x;
+               s.data.cf.y	= (float) cs.y;
+               putSIMpixel (&(pPR->VHvolstack[track].Image), s, i, j);
+            }                  
             /* remove phase from VV image */
             s			= getSIMpixel (&(pPR->VVstack[track].Image), i, j);
             cs			= xy_complex (s.data.cf.x, s.data.cf.y);
@@ -7099,8 +7141,22 @@ void		Flat_Earth_Phase_Removal		(PolSARproSim_Record *pPR)
             s.data.cf.x	= (float) cs.x;
             s.data.cf.y	= (float) cs.y;
             putSIMpixel (&(pPR->VVstack[track].Image), s, i, j);
+            if(pPR->SSM_Flag == SSM_ENABLE){
+               s			= getSIMpixel (&(pPR->VVgndstack[track].Image), i, j);
+               cs			= xy_complex (s.data.cf.x, s.data.cf.y);
+               cs			= complex_mul (cs, c_phase);
+               s.data.cf.x	= (float) cs.x;
+               s.data.cf.y	= (float) cs.y;
+               putSIMpixel (&(pPR->VVgndstack[track].Image), s, i, j);
+               s			= getSIMpixel (&(pPR->VVvolstack[track].Image), i, j);
+               cs			= xy_complex (s.data.cf.x, s.data.cf.y);
+               cs			= complex_mul (cs, c_phase);
+               s.data.cf.x	= (float) cs.x;
+               s.data.cf.y	= (float) cs.y;
+               putSIMpixel (&(pPR->VVvolstack[track].Image), s, i, j);
+            }                  
          }
-
+         
       }
    }
    return;
@@ -7505,12 +7561,14 @@ void		Add_Thermal_Noise		(PolSARproSim_Record *pPR)
    double			ymid		= pPR->ymid;
    int            i, j;
    double			x, y;
-   sim_pixel		s, svh;
+   sim_pixel		s, svh, svh_vol, svh_gnd;
    Complex        cs, noise;
    int            track;
    double         noise_amp[4];
+#ifdef ADD_THERMAL_NOISE
    double         min_noise_amp = -pow(10, (NOISE_POWER_MAX/20));
    double         max_noise_amp = pow(10, (NOISE_POWER_MAX/20));
+#endif
    double         noise_real, noise_imag;
 
    /* calculate the polarimetric channel dependent noise */
@@ -7529,49 +7587,137 @@ void		Add_Thermal_Noise		(PolSARproSim_Record *pPR)
          /* loop over azimuth pixels */
          for (i = 0; i < pPR->nx; i++) {
             x           = i * dx - xmid;
-            /* add noise to HH image */
+            /* add noise to HH images */
             s           = getSIMpixel (&(pPR->HHstack[track].Image), i, j);
             cs          = xy_complex (s.data.cf.x, s.data.cf.y);
+#ifdef ADD_THERMAL_NOISE
             noise_real  = Gaussian_drand	(0.0, noise_amp[0], min_noise_amp, max_noise_amp);
             noise_imag  = Gaussian_drand	(0.0, noise_amp[0], min_noise_amp, max_noise_amp);
+#else
+            noise_real  = 0.0;
+            noise_imag  = 0.0;
+#endif
             Cartesian_Assign_Complex (&noise, noise_real, noise_imag);
             cs          = complex_add (cs, noise);
             s.data.cf.x	= (float) cs.x;
             s.data.cf.y	= (float) cs.y;
             putSIMpixel (&(pPR->HHstack[track].Image), s, i, j);
-            /* add noise to HV image */
+            if(pPR->SSM_Flag == SSM_ENABLE){
+               /* Add noise to the volume stack */
+               s           = getSIMpixel (&(pPR->HHvolstack[track].Image), i, j);
+               cs          = xy_complex (s.data.cf.x, s.data.cf.y);
+               cs          = complex_add (cs, noise);
+               s.data.cf.x	= (float) cs.x;
+               s.data.cf.y	= (float) cs.y;
+               putSIMpixel (&(pPR->HHvolstack[track].Image), s, i, j);
+               /* Add noise to the ground stack */
+               s           = getSIMpixel (&(pPR->HHgndstack[track].Image), i, j);
+               cs          = xy_complex (s.data.cf.x, s.data.cf.y);
+               cs          = complex_add (cs, noise);
+               s.data.cf.x	= (float) cs.x;
+               s.data.cf.y	= (float) cs.y;
+               putSIMpixel (&(pPR->HHgndstack[track].Image), s, i, j);
+            }
+
+            /* add noise to HV images */
             s			= getSIMpixel (&(pPR->HVstack[track].Image), i, j);
-            svh		= getSIMpixel (&(pPR->HVstack[track].Image), i, j);
+            svh		= getSIMpixel (&(pPR->HVstack[track].Image), i, j); /* get this before any noise is added */
+            if(pPR->SSM_Flag == SSM_ENABLE){
+               svh_vol		= getSIMpixel (&(pPR->HVvolstack[track].Image), i, j); /* get this before any noise is added */
+               svh_gnd		= getSIMpixel (&(pPR->HVgndstack[track].Image), i, j); /* get this before any noise is added */
+               
+            }
             cs			= xy_complex (s.data.cf.x, s.data.cf.y);
+#ifdef ADD_THERMAL_NOISE
             noise_real  = Gaussian_drand	(0.0, noise_amp[1], min_noise_amp, max_noise_amp);
             noise_imag  = Gaussian_drand	(0.0, noise_amp[1], min_noise_amp, max_noise_amp);
+#else
+            noise_real  = 0.0;
+            noise_imag  = 0.0;
+#endif
             Cartesian_Assign_Complex (&noise, noise_real, noise_imag);
             cs          = complex_add (cs, noise);
             s.data.cf.x	= (float) cs.x;
             s.data.cf.y	= (float) cs.y;
             putSIMpixel (&(pPR->HVstack[track].Image), s, i, j);
+            if(pPR->SSM_Flag == SSM_ENABLE){
+               /* Add noise to the volume stack */
+               s           = getSIMpixel (&(pPR->HVvolstack[track].Image), i, j);
+               cs          = xy_complex (s.data.cf.x, s.data.cf.y);
+               cs          = complex_add (cs, noise);
+               s.data.cf.x	= (float) cs.x;
+               s.data.cf.y	= (float) cs.y;
+               putSIMpixel (&(pPR->HVvolstack[track].Image), s, i, j);
+               /* Add noise to the ground stack */
+               s           = getSIMpixel (&(pPR->HVgndstack[track].Image), i, j);
+               cs          = xy_complex (s.data.cf.x, s.data.cf.y);
+               cs          = complex_add (cs, noise);
+               s.data.cf.x	= (float) cs.x;
+               s.data.cf.y	= (float) cs.y;
+               putSIMpixel (&(pPR->HVgndstack[track].Image), s, i, j);
+            }
+
             /* add noise to VH image */
             cs          = xy_complex (svh.data.cf.x, svh.data.cf.y);
+#ifdef ADD_THERMAL_NOISE
             noise_real  = Gaussian_drand	(0.0, noise_amp[2], min_noise_amp, max_noise_amp);
             noise_imag  = Gaussian_drand	(0.0, noise_amp[2], min_noise_amp, max_noise_amp);
+#else
+            noise_real  = 0.0;
+            noise_imag  = 0.0;
+#endif
             Cartesian_Assign_Complex (&noise, noise_real, noise_imag);
             cs          = complex_add (cs, noise);
             s.data.cf.x	= (float) cs.x;
             s.data.cf.y	= (float) cs.y;
             putSIMpixel (&(pPR->VHstack[track].Image), s, i, j);
+            if(pPR->SSM_Flag == SSM_ENABLE){
+               /* Add noise to the volume stack */
+               cs          = xy_complex (svh_vol.data.cf.x, svh_vol.data.cf.y);
+               cs          = complex_add (cs, noise);
+               s.data.cf.x	= (float) cs.x;
+               s.data.cf.y	= (float) cs.y;
+               putSIMpixel (&(pPR->VHvolstack[track].Image), s, i, j);
+               /* Add noise to the ground stack */
+               cs          = xy_complex (svh_gnd.data.cf.x, svh_gnd.data.cf.y);
+               cs          = complex_add (cs, noise);
+               s.data.cf.x	= (float) cs.x;
+               s.data.cf.y	= (float) cs.y;
+               putSIMpixel (&(pPR->VHgndstack[track].Image), s, i, j);
+            }
+
             /* add noise to VV image */
             s			= getSIMpixel (&(pPR->VVstack[track].Image), i, j);
             cs			= xy_complex (s.data.cf.x, s.data.cf.y);
+#ifdef ADD_THERMAL_NOISE
             noise_real  = Gaussian_drand	(0.0, noise_amp[3], min_noise_amp, max_noise_amp);
             noise_imag  = Gaussian_drand	(0.0, noise_amp[3], min_noise_amp, max_noise_amp);
+#else
+            noise_real  = 0.0;
+            noise_imag  = 0.0;
+#endif
             Cartesian_Assign_Complex (&noise, noise_real, noise_imag);
             cs          = complex_add (cs, noise);
             s.data.cf.x	= (float) cs.x;
             s.data.cf.y	= (float) cs.y;
             putSIMpixel (&(pPR->VVstack[track].Image), s, i, j);
-
+            if(pPR->SSM_Flag == SSM_ENABLE){
+               /* Add noise to the volume stack */
+               s           = getSIMpixel (&(pPR->VVvolstack[track].Image), i, j);
+               cs          = xy_complex (s.data.cf.x, s.data.cf.y);
+               cs          = complex_add (cs, noise);
+               s.data.cf.x	= (float) cs.x;
+               s.data.cf.y	= (float) cs.y;
+               putSIMpixel (&(pPR->VVvolstack[track].Image), s, i, j);
+               /* Add noise to the ground stack */
+               s           = getSIMpixel (&(pPR->VVgndstack[track].Image), i, j);
+               cs          = xy_complex (s.data.cf.x, s.data.cf.y);
+               cs          = complex_add (cs, noise);
+               s.data.cf.x	= (float) cs.x;
+               s.data.cf.y	= (float) cs.y;
+               putSIMpixel (&(pPR->VVgndstack[track].Image), s, i, j);
+            }
          }
-
       }
    }
    return;
@@ -7635,4 +7781,5 @@ void     Create_Ground_Surface            (PolSARproSim_Record *pPR)
 
    return;
 }
+
 
