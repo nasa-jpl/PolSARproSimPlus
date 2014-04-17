@@ -72,6 +72,8 @@
 #define  CROWN_LIVE_ALPHA_XMLTAG             "crown_live_alpha"
 #define  CROWN_DRY_ALPHA_XMLTAG              "crown_dry_alpha"
 #define  CROWN_RADIUS_FACTOR_XMLTAG          "crown_radius_factor"
+/* general stem/branch parameters */
+#define  BRANCH_RIGIDITY_FACTOR_XMLTAG       "branch_rigidity_factor"
 /* stem parameters */
 #define  STEM_START_RADIUS_FACTOR_XMLTAG     "stem_start_radius_factor"
 #define  STEM_MAX_POLAR_ANGLE_XMLTAG         "stem_maximum_polar_angle"
@@ -173,6 +175,9 @@
 #define MAX_CROWN_DRY_ALPHA               1.0
 #define MIN_CROWN_RADIUS_FACTOR           0.0
 #define MAX_CROWN_RADIUS_FACTOR           1.0
+/* general branch/stem parameters */
+#define MIN_BRANCH_RIGIDITY_FACTOR        0.0
+#define MAX_BRANCH_RIGIDITY_FACTOR        1.0
 /* stem parameters */
 #define MIN_STEM_START_RADIUS_FACTOR      0.0
 #define MAX_STEM_START_RADIUS_FACTOR      1.0

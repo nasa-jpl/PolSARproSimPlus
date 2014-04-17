@@ -34,6 +34,7 @@
 		<crown_live_alpha		units="none">	0.410		</crown_live_alpha>			<!-- to est. live crown depth (unless forest primitives used)	-->  
 		<crown_dry_alpha		units="none">	0.000		</crown_dry_alpha>			<!-- to est. dry crown depth (unless forest primitives used)	-->  
 		<crown_radius_factor		units="none">	0.410		</crown_radius_factor>			<!-- to est. crown radius (unless forest primitives used)	-->  
+		<branch_rigidity_factor		units="none">	1.000		</branch_rigidity_factor>		<!-- regulates branch motion (0: no motion -> 1: as specified) 	-->  
 		<stem_start_radius_factor	units="none">	0.7925		</stem_start_radius_factor>		<!-- to est. stem start radius (unless forest primitives used)	-->  
 		<stem_maximum_polar_angle	units="deg">  	10.0		</stem_maximum_polar_angle>		<!-- maximum stem angle (from vertical) 			--> 
 		<stem_radius_end_factor		units="none">	0.7345		</stem_radius_end_factor>		<!-- factor to determine stem end radius as function of height	-->
@@ -110,6 +111,7 @@
 		<crown_live_alpha		units="none">	0.4693		</crown_live_alpha>			<!-- to est. live crown depth (unless forest primitives used)	-->  
 		<crown_dry_alpha		units="none">	0.4147		</crown_dry_alpha>			<!-- to est. dry crown depth (unless forest primitives used)	-->  
 		<crown_radius_factor		units="none">	0.4221		</crown_radius_factor>			<!-- to est. crown radius (unless forest primitives used)	-->  
+		<branch_rigidity_factor		units="none">	1.000		</branch_rigidity_factor>		<!-- regulates branch motion (0: no motion -> 1: as specified) 	-->  
 		<stem_start_radius_factor	units="none">	0.5721		</stem_start_radius_factor>		<!-- to est. stem start radius (unless forest primitives used)	-->  
 		<stem_maximum_polar_angle	units="deg">  	1.0		</stem_maximum_polar_angle>		<!-- maximum stem angle (from vertical) 			--> 
 		<stem_radius_end_factor		units="none">	0.5302		</stem_radius_end_factor>		<!-- factor to determine stem end radius as function of height	-->

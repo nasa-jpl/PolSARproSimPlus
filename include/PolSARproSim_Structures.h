@@ -93,6 +93,7 @@ typedef struct allometry_tag {
    double         crown_live_alpha;          /* to est. lcdepth as fn of hgt (unused if given in treeloc)   */
    double         crown_dry_alpha;           /* to est. dcdepth as fn of hgt (unused if given in treeloc)   */
    double         crown_radius_factor;       /* to est. cr. rad. as fn of hgt (unused if given in treeloc)  */
+   double         branch_rigidity_factor;    /* regulates branch motion (0: no motion -> 1: as specified)   */
    double         stem_start_radius_factor;  /* to est. stem rad. as fn of hgt (unused if given in treeloc) */
    double         stem_max_angle;            /* maximum stem angle (from vertical) in degrees               */
    double         stem_end_radius_factor;    /* determines end radius of tree stem as a function of height  */
@@ -176,6 +177,9 @@ typedef struct polsarprosim_record_tag {
    /* Random number sequence seed */
    /*******************************/
    int            seed;                   /* From which all else follows                                 */
+   double         *gndrandarray1;          /* Array of random variables for SMP direct ground scattering  */
+   double         *gndrandarray2;          /* Array of random variables for SMP direct ground scattering  */
+   double         *gndrandarray3;          /* Array of random variables for SMP direct ground scattering  */
    /***************************************************/
    /* Variables governing SAR image area and geometry */
    /***************************************************/

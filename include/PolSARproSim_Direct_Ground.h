@@ -85,6 +85,7 @@ int		PolSARproSim_Direct_Ground				(PolSARproSim_Record *pPR);
 typedef struct direct_ground_threadarg_tag{
    double                  x;                /* x-axis location */
    int                     thread_id;        /* thread, i.d. */
+   int                     block_size;
    PolSARproSim_Record     *pPR;             
    double                  weight_average;   
    double                  weight_count;
@@ -100,5 +101,6 @@ typedef struct direct_ground_threadarg_tag{
 pthread_mutex_t PolSARproSim_GNDmutex;
 
 #define	NO_POLSARPROSIM_DIRECTGROUND_ERRORS			0
+#define  DIRECT_GROUND_SMP_BLOCK_SIZE              30 /* the number of azimuth lines imaged by a single thread */
 
 #endif

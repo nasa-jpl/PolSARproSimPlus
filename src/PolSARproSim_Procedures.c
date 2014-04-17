@@ -725,6 +725,7 @@ int		Input_PolSARproSim_Record		(const char *filename, PolSARproSim_Record *pPR)
 {
    const double	max_packing_fraction	= DPI_RAD/(2.0*sqrt(3.0));
    int            i;
+   long           irand, rndarraysz;
    double			image_width, image_height;
    FILE           *pInputFile;
    FILE           *pDEMFile;
@@ -1034,7 +1035,7 @@ for (i = 0; i < pPR->Tracks; i++) {
    /**************************************/
 
    srand (pPR->seed);
-
+   
    /*************************************/
    /* Central wavelength and wavenumber */
    /*************************************/
@@ -1085,7 +1086,7 @@ for (i = 0; i < pPR->Tracks; i++) {
       /******************************************************/
 
       pPR->mean_crown_radius  = Mean_Tree_Crown_Radius (pPR->species, pPR->mean_tree_height, pPR);
-      printf("\nAlpha = %f, Mean crown radius = %f\n",  pPR->SpeciesDataBase[pPR->species].crown_radius_factor, pPR->mean_crown_radius);
+      //printf("\nAlpha = %f, Mean crown radius = %f\n",  pPR->SpeciesDataBase[pPR->species].crown_radius_factor, pPR->mean_crown_radius);
 
       pPR->Layover_Distance	= pPR->mean_tree_height / tan(pPR->incidence_angle[0]);
       pPR->Shadow_Distance		= pPR->mean_tree_height * tan(pPR->incidence_angle[0]);
@@ -1362,6 +1363,22 @@ for (i = 0; i < pPR->Tracks; i++) {
       }else{
          fprintf (pPR->pLogFile, "Track %d will be run in fast-mode\n", i);
       }
+   }
+
+   /***********************************************************************/
+   /* Initialize random number arrays for Direct Ground Scatteirng module */
+   /***********************************************************************/
+   srand (pPR->seed);
+   rndarraysz = (long)(POLSARPROSIM_DIRECTGROUND_SPECKLE_FACTOR * POLSARPROSIM_DIRECTGROUND_FACETS * pPR->nx * pPR->ny);
+   /* Allocate space in memory for random array used in direct ground scattering module */
+   pPR->gndrandarray1                = (double *) calloc (rndarraysz, sizeof(double));
+   pPR->gndrandarray2                = (double *) calloc (rndarraysz, sizeof(double));
+   pPR->gndrandarray3                = (double *) calloc (rndarraysz, sizeof(double));
+   /* populate the random number array */
+   for (irand = 0; irand < rndarraysz; irand ++){
+      pPR->gndrandarray1[irand]      = sqrt (erand (1.0));
+      pPR->gndrandarray2[irand]      = drand ()-0.5;
+      pPR->gndrandarray3[irand]      = drand()-0.5;
    }
 
    /*********************************/
@@ -6159,22 +6176,21 @@ void		Create_SAR_Filenames			(PolSARproSim_Record *pPR, int track)
       strncat(pPR->VVvol_string, polname, strlen(polname));
    }
    
-   printf("File names\n");
-   printf("HH: %s\n", pPR->HH_string);
-   printf("HV: %s\n", pPR->HV_string);
-   printf("VV: %s\n", pPR->VV_string);
-   printf("VH: %s\n\n", pPR->VH_string);
-   
-   if(pPR->SSM_Flag == SSM_ENABLE){
-      printf("HHgnd: %s\n", pPR->HHgnd_string);
-      printf("HVgnd: %s\n", pPR->HVgnd_string);
-      printf("VVgnd: %s\n", pPR->VVgnd_string);
-      printf("VHgnd: %s\n\n", pPR->VHgnd_string);
-      printf("HHvol: %s\n", pPR->HHvol_string);
-      printf("HVvol: %s\n", pPR->HVvol_string);
-      printf("VVvol: %s\n", pPR->VVvol_string);
-      printf("VHvol: %s\n", pPR->VHvol_string);
-   }   
+//   printf("File names\n");
+//   printf("HH: %s\n", pPR->HH_string);
+//   printf("HV: %s\n", pPR->HV_string);
+//   printf("VV: %s\n", pPR->VV_string);
+//   printf("VH: %s\n\n", pPR->VH_string);   
+//   if(pPR->SSM_Flag == SSM_ENABLE){
+//      printf("HHgnd: %s\n", pPR->HHgnd_string);
+//      printf("HVgnd: %s\n", pPR->HVgnd_string);
+//      printf("VVgnd: %s\n", pPR->VVgnd_string);
+//      printf("VHgnd: %s\n\n", pPR->VHgnd_string);
+//      printf("HHvol: %s\n", pPR->HHvol_string);
+//      printf("HVvol: %s\n", pPR->HVvol_string);
+//      printf("VVvol: %s\n", pPR->VVvol_string);
+//      printf("VHvol: %s\n", pPR->VHvol_string);
+//   }   
    
    return;
 }

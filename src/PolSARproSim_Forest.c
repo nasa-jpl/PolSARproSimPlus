@@ -288,14 +288,13 @@ int		Delete_SAR_Geometry			(SarGeometry *pSG)
 /***********************************************************************/
 int      Model_Change        (Tree *pT, PolSARproSim_Record *pPR, int current_track, d3Vector *motion, double *moisture, double obj_z, unsigned short *pseed)
 {
-   double      tree_altitude  = pT->base.x[2];           //tree altitutde (this includes ground height)
-   //double      normalizestd         = 3.464101615;       // square root of 12, to normalize the standard deviation of a uniform RV to 1
+   double      tree_altitude  = pT->base.x[2];           /* tree altitutde (this includes ground height) */
    /* parameters to be computed */
-   double      delta_x, delta_y, delta_z;                //motion offsets
-   double      change_stdev;                             //standard deviation of the amount of change 
-   double      change_mean;                              //mean of the amount of change
-   double      obj_height;//, obj_height2;                               //height of cylinder (branch approximation) that needs to be moved
-   double      damping_factor = 1;                       //branch_radius/pT->dbh/2; //damp the motion by branch radius         
+   double      delta_x, delta_y, delta_z;                /* motion offsets */
+   double      change_stdev;                             /* standard deviation of the amount of change */
+   double      change_mean;                              /* mean of the amount of change */
+   double      obj_height;                               /* height of cylinder (branch approximation) that needs to be moved */
+   double      motion_damping_factor, moisture_damping_factor; /* damp the motion and moisture */     
    Crown       *pC            = pT->CrownVolume.head;
 
 
@@ -313,6 +312,9 @@ int      Model_Change        (Tree *pT, PolSARproSim_Record *pPR, int current_tr
    //this is deliberately keep thread-unsafe to preserve randomness of applied change between tracks
    //srand(rand());
 
+   /* set the damping factor for motion and moisture */
+   motion_damping_factor = pPR->SpeciesDataBase[pT->species].branch_rigidity_factor;
+   moisture_damping_factor = 1;
    
    /* no change on reference track */
    if(current_track == 0){
@@ -326,9 +328,9 @@ int      Model_Change        (Tree *pT, PolSARproSim_Record *pPR, int current_tr
       if(pPR->Position_Change_Model[current_track]       == CHANGE_MODEL_NONE){
          change_stdev   = 0.0;
       }else if(pPR->Position_Change_Model[current_track] == CHANGE_MODEL_POLYNOMIAL){
-         change_stdev   = (pPR->motion_coeff_A[current_track] * obj_height * obj_height + pPR->motion_coeff_B[current_track] * obj_height + pPR->motion_coeff_C[current_track]) * damping_factor;
+         change_stdev   = (pPR->motion_coeff_A[current_track] * obj_height * obj_height + pPR->motion_coeff_B[current_track] * obj_height + pPR->motion_coeff_C[current_track]) * motion_damping_factor;
       }else if(pPR->Position_Change_Model[current_track] == CHANGE_MODEL_EXPONENTIAL){
-         change_stdev   = (pPR->motion_coeff_A[current_track] * exp(pPR->motion_coeff_B[current_track] * obj_height) + pPR->motion_coeff_C[current_track]) * damping_factor;
+         change_stdev   = (pPR->motion_coeff_A[current_track] * exp(pPR->motion_coeff_B[current_track] * obj_height) + pPR->motion_coeff_C[current_track]) * motion_damping_factor;
       }else{
          change_stdev = 0.0;
       }
@@ -344,9 +346,9 @@ int      Model_Change        (Tree *pT, PolSARproSim_Record *pPR, int current_tr
       if(pPR->Moisture_Change_Model[current_track]       == CHANGE_MODEL_NONE){
          change_mean   = 0.0;
       }else if(pPR->Moisture_Change_Model[current_track] == CHANGE_MODEL_POLYNOMIAL){
-         change_mean   = (pPR->moisture_coeff_A[current_track] * obj_height * obj_height + pPR->moisture_coeff_B[current_track] * obj_height + pPR->moisture_coeff_C[current_track]) * damping_factor;
+         change_mean   = (pPR->moisture_coeff_A[current_track] * obj_height * obj_height + pPR->moisture_coeff_B[current_track] * obj_height + pPR->moisture_coeff_C[current_track]) * moisture_damping_factor;
       }else if(pPR->Moisture_Change_Model[current_track] == CHANGE_MODEL_EXPONENTIAL){
-         change_mean   = (pPR->moisture_coeff_A[current_track] * exp(pPR->moisture_coeff_B[current_track] * obj_height) + pPR->moisture_coeff_C[current_track]) * damping_factor;
+         change_mean   = (pPR->moisture_coeff_A[current_track] * exp(pPR->moisture_coeff_B[current_track] * obj_height) + pPR->moisture_coeff_C[current_track]) * moisture_damping_factor;
       }else{
          change_mean = 0.0;
       }
@@ -415,7 +417,7 @@ double      Change_Cylinder      (Cylinder *pC, Branch *pB, PolSARproSim_Record 
    }
    change_profile_bin_index   = change_profile_bin_index*pPR->Tracks+current_track;
    
-   pthread_mutex_lock         (&PolSARproSim_Statmutex);
+   //pthread_mutex_lock         (&PolSARproSim_Statmutex);
       /* motion */
       change_profile_bin_count   = pPR->motion_profile_count[change_profile_bin_index];
       motion_profile_mean        = pPR->motion_profile_mean[change_profile_bin_index];
@@ -430,7 +432,7 @@ double      Change_Cylinder      (Cylinder *pC, Branch *pB, PolSARproSim_Record 
       pPR->moisture_profile_mean [change_profile_bin_index] = moisture_profile_mean + (moisture_offset - moisture_profile_mean)/(double)(change_profile_bin_count+1);
       pPR->moisture_profile_var  [change_profile_bin_index] = moisture_profile_var  + (moisture_offset - moisture_profile_mean) * (moisture_offset - pPR->moisture_profile_mean[change_profile_bin_index]); 
       pPR->moisture_profile_count[change_profile_bin_index]++;
-   pthread_mutex_unlock       (&PolSARproSim_Statmutex);
+   //pthread_mutex_unlock       (&PolSARproSim_Statmutex);
 
 #endif 
 

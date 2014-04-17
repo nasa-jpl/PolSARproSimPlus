@@ -50,6 +50,7 @@ void getSpeciesData (xmlDocPtr doc, xmlNodePtr cur, PolSARproSim_Record *pPR, in
    double   crown_live_alpha           = 0.4693;
    double   crown_dry_alpha            = 0.4147;
    double   crown_radius_factor        = 0.4221;
+   double   branch_rigidity_factor     = 1.0;
    double   stem_start_radius_factor   = 0.5721;
    double   stem_max_angle             = 0;
    double   stem_end_radius_factor     = 0.5;
@@ -127,6 +128,7 @@ void getSpeciesData (xmlDocPtr doc, xmlNodePtr cur, PolSARproSim_Record *pPR, in
    int      crown_live_alpha_errflag            = XML_READ_ERROR;
    int      crown_dry_alpha_errflag             = XML_READ_ERROR;
    int      crown_radius_factor_errflag         = XML_READ_ERROR;
+   int      branch_rigidity_factor_errflag      = XML_READ_ERROR;
    int      stem_start_radius_factor_errflag    = XML_READ_ERROR;
    int      stem_max_angle_errflag              = XML_READ_ERROR;
    int      stem_end_radius_factor_errflag      = XML_READ_ERROR;
@@ -298,6 +300,16 @@ void getSpeciesData (xmlDocPtr doc, xmlNodePtr cur, PolSARproSim_Record *pPR, in
          crown_radius_factor = (double) atof((const char*)key);
          if(crown_radius_factor > MAX_CROWN_RADIUS_FACTOR || crown_radius_factor < MIN_CROWN_RADIUS_FACTOR){
             crown_radius_factor_errflag = XML_READ_ERROR;
+         }
+         xmlFree(key);
+      }
+      /* look for branch rigidity factor */
+      if ((!xmlStrcmp(cur->name, (const xmlChar *)BRANCH_RIGIDITY_FACTOR_XMLTAG))) {
+         branch_rigidity_factor_errflag = XML_READ_SUCCESS;
+         key = xmlNodeListGetString(doc, cur->xmlChildrenNode, 1);
+         branch_rigidity_factor = (double) atof((const char*)key);
+         if(branch_rigidity_factor > MAX_BRANCH_RIGIDITY_FACTOR || branch_rigidity_factor < MIN_BRANCH_RIGIDITY_FACTOR){
+            branch_rigidity_factor_errflag = XML_READ_ERROR;
          }
          xmlFree(key);
       }
@@ -1012,6 +1024,10 @@ void getSpeciesData (xmlDocPtr doc, xmlNodePtr cur, PolSARproSim_Record *pPR, in
       fprintf(pPR->pLogFile,"WARNING: Crown radius factor not specified or not between %f and %f for species '%s' in Species database file, reading in default value from the %s category\n", MIN_CROWN_RADIUS_FACTOR, MAX_CROWN_RADIUS_FACTOR, pPR->SpeciesDataBase[ispecies].species_name, category_string);
       crown_radius_factor = pPR->CategoryDataBase[category].crown_radius_factor;
    }
+   if(branch_rigidity_factor_errflag == XML_READ_ERROR){
+      fprintf(pPR->pLogFile,"WARNING: Branch rigidity factor not specified or not between %f and %f for species '%s' in Species database file, reading in default value from the %s category\n", MIN_BRANCH_RIGIDITY_FACTOR, MAX_BRANCH_RIGIDITY_FACTOR, pPR->SpeciesDataBase[ispecies].species_name, category_string);
+      branch_rigidity_factor = pPR->CategoryDataBase[category].branch_rigidity_factor;
+   }
    if(stem_start_radius_factor_errflag == XML_READ_ERROR){
       fprintf(pPR->pLogFile,"WARNING: Stem start radius factor not specified or not between %f and %f for species '%s' in Species database file, reading in default value from the %s category\n", MIN_STEM_START_RADIUS_FACTOR, MAX_STEM_START_RADIUS_FACTOR, pPR->SpeciesDataBase[ispecies].species_name, category_string);
       stem_start_radius_factor = pPR->CategoryDataBase[category].stem_start_radius_factor;
@@ -1291,6 +1307,7 @@ void getSpeciesData (xmlDocPtr doc, xmlNodePtr cur, PolSARproSim_Record *pPR, in
    pPR->SpeciesDataBase[ispecies].crown_live_alpha             = crown_live_alpha;
    pPR->SpeciesDataBase[ispecies].crown_dry_alpha              = crown_dry_alpha;
    pPR->SpeciesDataBase[ispecies].crown_radius_factor          = crown_radius_factor;
+   pPR->SpeciesDataBase[ispecies].branch_rigidity_factor       = branch_rigidity_factor;
    pPR->SpeciesDataBase[ispecies].stem_start_radius_factor     = stem_start_radius_factor;
    pPR->SpeciesDataBase[ispecies].stem_max_angle               = stem_max_angle;
    pPR->SpeciesDataBase[ispecies].stem_end_radius_factor       = stem_end_radius_factor;
@@ -1570,6 +1587,7 @@ void getCategoryData (xmlDocPtr doc, xmlNodePtr cur, PolSARproSim_Record *pPR, i
    double   crown_live_alpha           = 0.4693;
    double   crown_dry_alpha            = 0.4147;
    double   crown_radius_factor        = 0.4221;
+   double   branch_rigidity_factor     = 1.0;
    double   stem_start_radius_factor   = 0.5721;
    double   stem_max_angle             = 0;
    double   stem_end_radius_factor     = 0.5;
@@ -1646,6 +1664,7 @@ void getCategoryData (xmlDocPtr doc, xmlNodePtr cur, PolSARproSim_Record *pPR, i
    int      crown_live_alpha_errflag            = XML_READ_ERROR;
    int      crown_dry_alpha_errflag             = XML_READ_ERROR;
    int      crown_radius_factor_errflag         = XML_READ_ERROR;
+   int      branch_rigidity_factor_errflag      = XML_READ_ERROR;
    int      stem_start_radius_factor_errflag    = XML_READ_ERROR;
    int      stem_max_angle_errflag              = XML_READ_ERROR;
    int      stem_end_radius_factor_errflag      = XML_READ_ERROR;
@@ -1807,6 +1826,17 @@ void getCategoryData (xmlDocPtr doc, xmlNodePtr cur, PolSARproSim_Record *pPR, i
          }
          xmlFree(key);
       }
+      /* look for branch rigidity factor */
+      if ((!xmlStrcmp(cur->name, (const xmlChar *)BRANCH_RIGIDITY_FACTOR_XMLTAG))) {
+         branch_rigidity_factor_errflag = XML_READ_SUCCESS;
+         key = xmlNodeListGetString(doc, cur->xmlChildrenNode, 1);
+         branch_rigidity_factor = (double) atof((const char*)key);
+         if(branch_rigidity_factor > MAX_BRANCH_RIGIDITY_FACTOR || branch_rigidity_factor < MIN_BRANCH_RIGIDITY_FACTOR){
+            branch_rigidity_factor_errflag = XML_READ_ERROR;
+         }
+         xmlFree(key);
+      }
+
       /* look for stem start radius factor */
       if ((!xmlStrcmp(cur->name, (const xmlChar *)STEM_START_RADIUS_FACTOR_XMLTAG))) {
          stem_start_radius_factor_errflag = XML_READ_SUCCESS;
@@ -2510,6 +2540,11 @@ void getCategoryData (xmlDocPtr doc, xmlNodePtr cur, PolSARproSim_Record *pPR, i
       fprintf(stderr,"ERROR: Crown radius factor not specified or not between %f and %f for category '%s' in Species database file\n", MIN_CROWN_RADIUS_FACTOR, MAX_CROWN_RADIUS_FACTOR, pPR->CategoryDataBase[icategories].species_name);
       exit(0);
    }
+   if(branch_rigidity_factor_errflag == XML_READ_ERROR){
+      fprintf(stderr,"ERROR: Branch rigidity factor not specified or not between %f and %f for category '%s' in Species database file\n", MIN_BRANCH_RIGIDITY_FACTOR, MAX_BRANCH_RIGIDITY_FACTOR, pPR->CategoryDataBase[icategories].species_name);
+      exit(0);
+   }
+
    if(stem_start_radius_factor_errflag == XML_READ_ERROR){
       fprintf(stderr,"ERROR: Stem start radius factor not specified or not between %f and %f for category '%s' in Species database file\n", MIN_STEM_START_RADIUS_FACTOR, MAX_STEM_START_RADIUS_FACTOR, pPR->CategoryDataBase[icategories].species_name);
       exit(0);
@@ -2792,6 +2827,7 @@ void getCategoryData (xmlDocPtr doc, xmlNodePtr cur, PolSARproSim_Record *pPR, i
    pPR->CategoryDataBase[icategories].crown_live_alpha            = crown_live_alpha;
    pPR->CategoryDataBase[icategories].crown_dry_alpha             = crown_dry_alpha;
    pPR->CategoryDataBase[icategories].crown_radius_factor         = crown_radius_factor;
+   pPR->CategoryDataBase[icategories].branch_rigidity_factor      = branch_rigidity_factor;
    pPR->CategoryDataBase[icategories].stem_start_radius_factor    = stem_start_radius_factor;
    pPR->CategoryDataBase[icategories].stem_max_angle              = stem_max_angle;
    pPR->CategoryDataBase[icategories].stem_end_radius_factor      = stem_end_radius_factor;

@@ -278,11 +278,11 @@ int main(int argc, char *argv[])
       /********************************************/
       /* Calculate the direct ground contribution */
       /********************************************/
-//#ifdef ENABLE_THREADS
-//      PolSARproSim_Direct_Ground_SMP            (&Master_Record);
-//#else
+#ifdef ENABLE_THREADS
+      PolSARproSim_Direct_Ground_SMP            (&Master_Record);
+#else
       PolSARproSim_Direct_Ground                (&Master_Record);
-//#endif      
+#endif      
       /***********************************************/
       /* Calculate the short vegetation contribution */
       /***********************************************/
@@ -376,6 +376,9 @@ int main(int argc, char *argv[])
    Destroy_SIM_Record               (&(Master_Record.Surface_Normal_Y));
    Destroy_SIM_Record               (&(Master_Record.Surface_Normal_Z));
    Destroy_SAR_Stack                (&Master_Record);
+   free(Master_Record.gndrandarray1);
+   free(Master_Record.gndrandarray2);
+   free(Master_Record.gndrandarray3);
    /***********/
    /* Time it */
    /***********/   

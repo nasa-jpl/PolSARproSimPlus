@@ -252,10 +252,10 @@
 /**********************************************/
 
 //#define	POLSARPROSIM_DIRECTGROUND_SPECKLE_FACTOR	2            /* Controls how many facets there are per resolution cell: n = 4f^2, f=2, n=16	*/
-#define	POLSARPROSIM_DIRECTGROUND_SPECKLE_FACTOR     2                /* Controls how many facets there are per resolution cell: n = 4f^2, f=2, n=16	*/ 
+#define	POLSARPROSIM_DIRECTGROUND_SPECKLE_FACTOR     2            /* Controls how many facets there are per resolution cell: n = 4f^2, f=2, n=16	*/ 
 //#define	POLSARPROSIM_DIRECTGROUND_DELTAB_FACTOR		15.0         /* Beta rotation angle factor for increased entropy	(range 0-100, default 33.0)	*/
-#define	POLSARPROSIM_DIRECTGROUND_DELTAB_FACTOR		0.1              /* Beta rotation angle factor for increased entropy	(range 0-100, default 33.0)	*/ 
-
+#define	POLSARPROSIM_DIRECTGROUND_DELTAB_FACTOR		0.1         /* Beta rotation angle factor for increased entropy	(range 0-100, default 33.0)	*/ 
+#define  POLSARPROSIM_DIRECTGROUND_FACETS             8           /* number of facets in a direct ground pixel */
 /*****************************/
 /* Short vegetation controls */
 /*****************************/

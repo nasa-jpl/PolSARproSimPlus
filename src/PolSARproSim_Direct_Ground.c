@@ -108,6 +108,7 @@ int		PolSARproSim_Direct_Ground		(PolSARproSim_Record *pPR)
    double				gH, gV;
 #endif
    d3Vector          pixel_normal;
+   double            rand1, rand2, rand3;
    /******************************************/
    /* Report call if running in VERBOSE mode */
    /******************************************/
@@ -249,9 +250,16 @@ int		PolSARproSim_Direct_Ground		(PolSARproSim_Record *pPR)
          /****************************************************/
          /* Sample random factors for scattering calculation */
          /****************************************************/
-         modf			= sqrt (erand (1.0));
-         argf			= TwoPi*(drand ()-0.5);
-         beta_xbragg	= 2.0*(drand()-0.5)*beta1;
+//         modf			= sqrt (erand (1.0));
+//         argf			= TwoPi*(drand ()-0.5);
+//         beta_xbragg	= 2.0*(drand()-0.5)*beta1;
+         rand1       = (double)pPR->gndrandarray1[(long)(ix)*n_facets + i_facet];
+         rand2       = (double)pPR->gndrandarray2[(long)(ix)*n_facets + i_facet];
+         rand3       = (double)pPR->gndrandarray3[(long)(ix)*n_facets + i_facet];
+         modf        = rand1;
+         argf        = TwoPi*(rand2);
+         beta_xbragg	= 2.0*(rand3)*beta1;
+         
          /*****************************/
          /* Take facet from list head */
          /*****************************/
@@ -471,11 +479,15 @@ void  *Direct_Ground_RangeLine   (void *threadarg)
    PolSARproSim_Record        *pPR;
    double                     x;
    double                     *pRandArray;
+   int                        ix;
+   int                        block_size;
    /* do thread assignments */
    pTA                                 = (Direct_Ground_Thread_Arg *)threadarg;
    pPR                                 = pTA->pPR;  // address to Master_Record   
    x                                   = pTA->x;   // along-track location relative to scene center
+   ix                                  = pTA->thread_id;
    pRandArray                          = (double *) pTA->pRA;
+   block_size                          = pTA->block_size;
    /* constants */
    const double		Pi                = 4.0*atan(1.0);
    const double		TwoPi             = 8.0*atan(1.0);
@@ -525,9 +537,9 @@ void  *Direct_Ground_RangeLine   (void *threadarg)
    int               rtn_lookup;
    double				gH, gV;
 #endif
-
    double            rand1, rand2, rand3;
    d3Vector          pixel_normal;
+
    /******************/
    /* Initialisation */
    /******************/
@@ -539,144 +551,146 @@ void  *Direct_Ground_RangeLine   (void *threadarg)
    /********************************************/
    /* Build a facet list for this azimuth line */
    /********************************************/
-   for (iy=0; iy<ny; iy++) {
-      y	= iy*deltay - Ly/2.0;
-      y	= -y;
-      /***************************************/
-      /* Find ground grid corners and centre */
-      /***************************************/
-      vertex[0]	= Cartesian_Assign_d3Vector (x, y, ground_height (pPR, x, y));
-      vertex[1]	= Cartesian_Assign_d3Vector (x+deltax, y, ground_height (pPR, x+deltax, y));
-      vertex[2]	= Cartesian_Assign_d3Vector (x+deltax, y-deltay, ground_height (pPR, x+deltax, y-deltay));
-      vertex[3]	= Cartesian_Assign_d3Vector (x, y-deltay, ground_height (pPR, x, y-deltay));
-      vertex[4]	= Cartesian_Assign_d3Vector (x+(deltax/2.0), y-(deltay/2.0), ground_height (pPR, x+(deltax/2.0), y-(deltay/2.0)));
-      /*************************************/
-      /* Turn ground grid into four facets */
-      /*************************************/
-      Assign_Facet	(&(ground_facet[0]), &(vertex[4]), &(vertex[1]), &(vertex[0]));
-      Assign_Facet	(&(ground_facet[1]), &(vertex[4]), &(vertex[2]), &(vertex[1]));
-      Assign_Facet	(&(ground_facet[2]), &(vertex[4]), &(vertex[3]), &(vertex[2]));
-      Assign_Facet	(&(ground_facet[3]), &(vertex[4]), &(vertex[0]), &(vertex[3]));
-      /* use average facet normal as pixel normal */
-      pixel_normal = Cartesian_Assign_d3Vector((ground_facet[0].n.x[0]+ground_facet[1].n.x[0]+ground_facet[2].n.x[0]+ground_facet[3].n.x[0])/4, 
-                                               (ground_facet[0].n.x[1]+ground_facet[1].n.x[1]+ground_facet[2].n.x[1]+ground_facet[3].n.x[1])/4, 
-                                               (ground_facet[0].n.x[2]+ground_facet[1].n.x[2]+ground_facet[2].n.x[2]+ground_facet[3].n.x[2])/4);
-      Fill_Surface_Normal_Layers    (x, y, pixel_normal, pPR);
-      /****************************************************/
-      /* Add facets to facet list : tail is at near range */
-      /****************************************************/
-      Facet_tail_add (&AzimuthList, &(ground_facet[2]));
-      Facet_tail_add (&AzimuthList, &(ground_facet[3]));
-      Facet_tail_add (&AzimuthList, &(ground_facet[1]));
-      Facet_tail_add (&AzimuthList, &(ground_facet[0]));
-   }
-   /*************************************************/
-   /* For each facet in the azimuth line facet list */
-   /*************************************************/
-   n_facets	= Facet_List_length (&AzimuthList);
-   for (i_facet = 0L; i_facet < n_facets; i_facet++) {
-      /****************************************************/
-      /* Sample random factors for scattering calculation */
-      /****************************************************/
-      rand1       = ((double *)pRandArray)[(pTA->thread_id*n_facets + i_facet + 0) % (pPR->nx*pPR->ny)];
-      rand2       = ((double *)pRandArray)[(pTA->thread_id*n_facets + i_facet + 1) % (pPR->nx*pPR->ny)];
-      rand3       = ((double *)pRandArray)[(pTA->thread_id*n_facets + i_facet + 2) % (pPR->nx*pPR->ny)];
-      modf        = sqrt(-1*log(rand1));
-      argf        = TwoPi*(rand2-0.5);
-      beta_xbragg	= 2.0*(rand3-0.5)*beta1;
-      /*****************************/
-      /* Take facet from list head */
-      /*****************************/
-      Facet_head_sub (&AzimuthList, &f1);
-      /******************************/
-      /* Determine facet visibility */
-      /******************************/
-      ndotp	= d3Vector_scalar_product (f1.n, antenna);
-      /*******************************************************************************************/
-      /* NOTE : In the current implementation visibility depends only upon local incidence angle */
-      /*******************************************************************************************/
-      /*******************************/
-      /* If the facet is visible ... */
-      /*******************************/
-      if (ndotp > 0.0) {
-         thetail		= acos (ndotp);
-         cos_thetail	= ndotp;
-         sin_thetail	= sqrt(1.0-ndotp*ndotp);
-         argbf		= f1.n.x[1]*cos_thetai + f1.n.x[2]*sin_thetai;
-         if (fabs(argbf) > FLT_EPSILON) {
-            beta_facet	= atan (-f1.n.x[0]/argbf);
-         } else {
-            beta_facet	= Pi/2.0;
-         }
-         /********************************************/
-         /* calculate the facet scattering amplitude */
-         /********************************************/
-         SigHH         = monostatic_soil_sigma0HH (thetail, pPR->ground_eps[pPR->current_track], pPR->k0, pPR->small_scale_height_stdev, pPR->small_scale_length);
-         SigVV         = monostatic_soil_sigma0VV (thetail, pPR->ground_eps[pPR->current_track], pPR->k0, pPR->small_scale_height_stdev, pPR->small_scale_length);
-         fArea         = facet_area (&f1);
-         RootSigHH     = sqrt (fArea*SigHH);
-         RootSigVV     = sqrt (fArea*SigVV);
-         Polar_Assign_Complex (&Shhl, modf*RootSigHH, argf);
-         Polar_Assign_Complex (&Svvl, modf*RootSigVV, argf);
+   int ixc;
+   for (ixc=ix; ixc<ix+block_size; ixc++) {
+      x	= ixc*deltax - Lx/2.0;
+      for (iy=0; iy<ny; iy++) {
+         y	= iy*deltay - Ly/2.0;
+         y	= -y;
+         /***************************************/
+         /* Find ground grid corners and centre */
+         /***************************************/
+         vertex[0]	= Cartesian_Assign_d3Vector (x, y, ground_height (pPR, x, y));
+         vertex[1]	= Cartesian_Assign_d3Vector (x+deltax, y, ground_height (pPR, x+deltax, y));
+         vertex[2]	= Cartesian_Assign_d3Vector (x+deltax, y-deltay, ground_height (pPR, x+deltax, y-deltay));
+         vertex[3]	= Cartesian_Assign_d3Vector (x, y-deltay, ground_height (pPR, x, y-deltay));
+         vertex[4]	= Cartesian_Assign_d3Vector (x+(deltax/2.0), y-(deltay/2.0), ground_height (pPR, x+(deltax/2.0), y-(deltay/2.0)));
+         /*************************************/
+         /* Turn ground grid into four facets */
+         /*************************************/
+         Assign_Facet	(&(ground_facet[0]), &(vertex[4]), &(vertex[1]), &(vertex[0]));
+         Assign_Facet	(&(ground_facet[1]), &(vertex[4]), &(vertex[2]), &(vertex[1]));
+         Assign_Facet	(&(ground_facet[2]), &(vertex[4]), &(vertex[3]), &(vertex[2]));
+         Assign_Facet	(&(ground_facet[3]), &(vertex[4]), &(vertex[0]), &(vertex[3]));
+         /* use average facet normal as pixel normal */
+         pixel_normal = Cartesian_Assign_d3Vector((ground_facet[0].n.x[0]+ground_facet[1].n.x[0]+ground_facet[2].n.x[0]+ground_facet[3].n.x[0])/4, 
+                                                  (ground_facet[0].n.x[1]+ground_facet[1].n.x[1]+ground_facet[2].n.x[1]+ground_facet[3].n.x[1])/4, 
+                                                  (ground_facet[0].n.x[2]+ground_facet[1].n.x[2]+ground_facet[2].n.x[2]+ground_facet[3].n.x[2])/4);
+         Fill_Surface_Normal_Layers    (x, y, pixel_normal, pPR);
          /****************************************************/
-         /* In the new algorithm the random X-Bragg angle is */
-         /* added to the facet angle for a single rotation.  */
+         /* Add facets to facet list : tail is at near range */
          /****************************************************/
-         cosb          = cos(beta_xbragg + beta_facet);
-         sinb          = sin(beta_xbragg + beta_facet);
-         //printf("%d, %ld) vv/hh %f\t", ix, i_facet, SigVV/SigHH);
-         cosb2         = cosb*cosb;
-         sinb2         = sinb*sinb;
-         Shh           = complex_add   (complex_rmul (Shhl, cosb2), complex_rmul (Svvl, sinb2));
-         Svv           = complex_add   (complex_rmul (Svvl, cosb2), complex_rmul (Shhl, sinb2));
-         Shv           = complex_rmul  (complex_sub  (Shhl, Svvl),  cosb*sinb);
-         Svh           = Shv;
+         Facet_tail_add (&AzimuthList, &(ground_facet[2]));
+         Facet_tail_add (&AzimuthList, &(ground_facet[3]));
+         Facet_tail_add (&AzimuthList, &(ground_facet[1]));
+         Facet_tail_add (&AzimuthList, &(ground_facet[0]));
+      }
+      /*************************************************/
+      /* For each facet in the azimuth line facet list */
+      /*************************************************/
+      n_facets	= Facet_List_length (&AzimuthList);
+      for (i_facet = 0L; i_facet < n_facets; i_facet++) {
+         /****************************************************/
+         /* Sample random factors for scattering calculation */
+         /****************************************************/
+         rand1       = (double)pPR->gndrandarray1[(long)(ixc)*n_facets + i_facet];// % (8*pPR->nx*pPR->ny)];
+         rand2       = (double)pPR->gndrandarray2[(long)(ixc)*n_facets + i_facet];// % (8*pPR->nx*pPR->ny)];
+         rand3       = (double)pPR->gndrandarray3[(long)(ixc)*n_facets + i_facet];// % (8*pPR->nx*pPR->ny)];
+         modf        = rand1;
+         argf        = TwoPi*(rand2);
+         beta_xbragg	= 2.0*(rand3)*beta1;
+                  
+         /*****************************/
+         /* Take facet from list head */
+         /*****************************/
+         Facet_head_sub (&AzimuthList, &f1);
+         /******************************/
+         /* Determine facet visibility */
+         /******************************/
+         ndotp	= d3Vector_scalar_product (f1.n, antenna);
+         /*******************************************************************************************/
+         /* NOTE : In the current implementation visibility depends only upon local incidence angle */
+         /*******************************************************************************************/
+         /*******************************/
+         /* If the facet is visible ... */
+         /*******************************/
+         if (ndotp > 0.0) {
+            thetail		= acos (ndotp);
+            cos_thetail	= ndotp;
+            sin_thetail	= sqrt(1.0-ndotp*ndotp);
+            argbf		= f1.n.x[1]*cos_thetai + f1.n.x[2]*sin_thetai;
+            if (fabs(argbf) > FLT_EPSILON) {
+               beta_facet	= atan (-f1.n.x[0]/argbf);
+            } else {
+               beta_facet	= Pi/2.0;
+            }
+            /********************************************/
+            /* calculate the facet scattering amplitude */
+            /********************************************/
+            SigHH         = monostatic_soil_sigma0HH (thetail, pPR->ground_eps[pPR->current_track], pPR->k0, pPR->small_scale_height_stdev, pPR->small_scale_length);
+            SigVV         = monostatic_soil_sigma0VV (thetail, pPR->ground_eps[pPR->current_track], pPR->k0, pPR->small_scale_height_stdev, pPR->small_scale_length);
+            fArea         = facet_area (&f1);
+            RootSigHH     = sqrt (fArea*SigHH);
+            RootSigVV     = sqrt (fArea*SigVV);
+            Polar_Assign_Complex (&Shhl, modf*RootSigHH, argf);
+            Polar_Assign_Complex (&Svvl, modf*RootSigVV, argf);
+            /****************************************************/
+            /* In the new algorithm the random X-Bragg angle is */
+            /* added to the facet angle for a single rotation.  */
+            /****************************************************/
+            cosb          = cos(beta_xbragg + beta_facet);
+            sinb          = sin(beta_xbragg + beta_facet);
+            cosb2         = cosb*cosb;
+            sinb2         = sinb*sinb;
+            Shh           = complex_add   (complex_rmul (Shhl, cosb2), complex_rmul (Svvl, sinb2));
+            Svv           = complex_add   (complex_rmul (Svvl, cosb2), complex_rmul (Shhl, sinb2));
+            Shv           = complex_rmul  (complex_sub  (Shhl, Svvl),  cosb*sinb);
+            Svh           = Shv;
 #ifdef SWITCH_ATTENUATION_ON
-         /***********************************/
-         /* Incorporate attenuation effects */
-         /***********************************/
-         rtn_lookup    = Lookup_Direct_Attenuation (f1.r[3], pPR, &gH, &gV);
-         Shh           = complex_rmul  (Shh, gH*gH);
-         Shv           = complex_rmul  (Shv, gH*gV);
-         Svh           = complex_rmul  (Svh, gV*gH);
-         Svv           = complex_rmul  (Svv, gV*gV);
+            /***********************************/
+            /* Incorporate attenuation effects */
+            /***********************************/
+            rtn_lookup    = Lookup_Direct_Attenuation (f1.r[3], pPR, &gH, &gV);
+            Shh           = complex_rmul  (Shh, gH*gH);
+            Shv           = complex_rmul  (Shv, gH*gV);
+            Svh           = complex_rmul  (Svh, gV*gH);
+            Svv           = complex_rmul  (Svv, gV*gV);
 #endif
-         /**************************************/
-         /* Monitor backscattering coefficient */
-         /**************************************/
-         Sigma0HH      += Shh.r*Shh.r/fArea;
-         Sigma0HV      += Shv.r*Shv.r/fArea;
-         Sigma0VH      += Svh.r*Svh.r/fArea;
-         Sigma0VV      += Svv.r*Svv.r/fArea;
-         Polar_Assign_Complex (&zhhvv, Shh.r*Svv.r/fArea, Shh.phi-Svv.phi);
-         AvgShhvv      = complex_add (AvgShhvv, zhhvv);
-         Sigma0_count	+= 1.0;
-         //printf("\t 0VV/0HH %f\n",Sigma0VV/Sigma0HH);
-         /***************************************/
-         /* Calculate the facet centre of focus */
-         /***************************************/
-         facet_x        = f1.r[3].x[0];
-         facet_y        = f1.r[3].x[1];
-         facet_height	= f1.r[3].x[2];
-         facet_grange	= p_grange + facet_y;
-         facet_srange	= sqrt ((p_height-facet_height)*(p_height-facet_height) + facet_grange*facet_grange);
-         focus_grange	= sqrt (facet_srange*facet_srange - p_height*p_height);
-         focus_x        = facet_x;
-         focus_y        = focus_grange - p_grange;
-         focus_height	= 0.0;
-         focus_srange	= sqrt ((p_height-focus_height)*(p_height-focus_height) + (p_grange+focus_y)*(p_grange+focus_y));
-         focus_angle    = atan2 ( focus_grange, p_height);
-         /***************************************************/
-         /* Combine contribution into SAR image accumulator */
-         /***************************************************/
-         weight_average	+= Accumulate_SAR_Contribution (focus_x, focus_y, focus_srange, Shh, Shv, Svv, pPR, pPR->current_track, focus_angle, (int)SSM_ACCUM_GND);
-         weight_count	+= 1.0;
-         /********************/
-         /* end (if visible) */
-         /********************/
+            /**************************************/
+            /* Monitor backscattering coefficient */
+            /**************************************/
+            Sigma0HH      += Shh.r*Shh.r/fArea;
+            Sigma0HV      += Shv.r*Shv.r/fArea;
+            Sigma0VH      += Svh.r*Svh.r/fArea;
+            Sigma0VV      += Svv.r*Svv.r/fArea;
+            Polar_Assign_Complex (&zhhvv, Shh.r*Svv.r/fArea, Shh.phi-Svv.phi);
+            AvgShhvv      = complex_add (AvgShhvv, zhhvv);
+            Sigma0_count	+= 1.0;
+            /***************************************/
+            /* Calculate the facet centre of focus */
+            /***************************************/
+            facet_x        = f1.r[3].x[0];
+            facet_y        = f1.r[3].x[1];
+            facet_height	= f1.r[3].x[2];
+            facet_grange	= p_grange + facet_y;
+            facet_srange	= sqrt ((p_height-facet_height)*(p_height-facet_height) + facet_grange*facet_grange);
+            focus_grange	= sqrt (facet_srange*facet_srange - p_height*p_height);
+            focus_x        = facet_x;
+            focus_y        = focus_grange - p_grange;
+            focus_height	= 0.0;
+            focus_srange	= sqrt ((p_height-focus_height)*(p_height-focus_height) + (p_grange+focus_y)*(p_grange+focus_y));
+            focus_angle    = atan2 ( focus_grange, p_height);
+            /***************************************************/
+            /* Combine contribution into SAR image accumulator */
+            /***************************************************/
+            weight_average	+= Accumulate_SAR_Contribution (focus_x, focus_y, focus_srange, Shh, Shv, Svv, pPR, pPR->current_track, focus_angle, (int)SSM_ACCUM_GND);
+            weight_count	+= 1.0;
+            /********************/
+            /* end (if visible) */
+            /********************/
+         }
       }
    }
-   
    /*********************/
    /* Assign Outputs    */
    /*********************/
@@ -763,11 +777,11 @@ int		PolSARproSim_Direct_Ground_SMP		(PolSARproSim_Record        *pPR)
    double				mnsqrpxlHH, mnsqrpxlHV, mnsqrpxlVV;
    int               ipix, jpix;
    sim_pixel			spix;
-   
-   double            *RandArray; // this to store a huge amount of random variables
-   const long        randarraylength = pPR->nx * pPR->ny; 
-   long              irand;
-   
+   int               ixblocksz         = (int)DIRECT_GROUND_SMP_BLOCK_SIZE; /* initialize block size to default */
+   int               nthreads          = (int)(nx/DIRECT_GROUND_SMP_BLOCK_SIZE)+1;  /* number of threads */
+   int               ixcnt, ixleft;   
+
+     
    /******************************************/
    /* Report call if running in VERBOSE mode */
    /******************************************/
@@ -792,17 +806,14 @@ int		PolSARproSim_Direct_Ground_SMP		(PolSARproSim_Record        *pPR)
    fprintf (pPR->pLogFile, "XBragg beta1 value\t\t\t\t\t%lf rads.\n", beta1);
    fprintf (pPR->pLogFile, "Ground dielectric value\t\t\t\t\t%lf \t%lf\n", pPR->ground_eps[pPR->current_track].x, pPR->ground_eps[pPR->current_track].y);
    fflush  (pPR->pLogFile);
+
    /******************/
    /* Initialisation */
    /******************/
-   /* initialzie the random number generator */
-   srand(pPR->seed);
-   /* Allocate space in memory for random array*/
-   RandArray      = (double *) calloc (randarraylength, sizeof(double));
-   /* populate the random number array */
-   for (irand = 0; irand < randarraylength; irand ++){
-      RandArray[irand] = drand();
-   }
+   /* Initialize some thread variables */
+   threadarg = (Direct_Ground_Thread_Arg *)calloc(nthreads,sizeof(Direct_Ground_Thread_Arg));
+   threads   = (pthread_t *)calloc(nthreads,sizeof(pthread_t));
+
    /**************************************************/
    /* Use the far-field model for the look direction */
    /**************************************************/
@@ -857,34 +868,41 @@ int		PolSARproSim_Direct_Ground_SMP		(PolSARproSim_Record        *pPR)
    fprintf (pPR->pLogFile, "<ShhSvv*>\t= %lf dB\n\n", 10.0*log10(Thavg_Shhvv));
    fflush  (pPR->pLogFile);
 
-   /* Initialize some thread variables */
-   threadarg = (Direct_Ground_Thread_Arg *)calloc(nx,sizeof(Direct_Ground_Thread_Arg));
-   threads   = (pthread_t *)calloc(nx,sizeof(pthread_t));
 
-   /******************************************************/
-   /* Loop over lines and create imaging thread for each */
-   /******************************************************/
-   for (ix=0; ix<nx; ix++) {
+   /******************************************************************/
+   /* Loop over lines and create imaging thread for a block of lines */
+   /******************************************************************/
+   ixcnt =0;
+   for (ix=0; ix<nx; ix=ix+(int)DIRECT_GROUND_SMP_BLOCK_SIZE) {
+      /* compute block size */
+      ixleft = nx - ix;
+      if(ixleft < (int)DIRECT_GROUND_SMP_BLOCK_SIZE){
+         ixblocksz = ixleft;
+      }
       x	= ix*deltax - Lx/2.0;
       /* set the thread argument */
-      threadarg[ix].x         = x;
-      threadarg[ix].pPR       = pPR;
-      threadarg[ix].thread_id = ix;
-      threadarg[ix].pRA       = &RandArray[0];
+      threadarg[ixcnt].x            = x;
+      threadarg[ixcnt].pPR          = pPR;
+      threadarg[ixcnt].thread_id    = ix;
+      threadarg[ixcnt].pRA          = pPR->gndrandarray1;
+      threadarg[ixcnt].block_size   = ixblocksz;
       /* create threads */
-      rc=pthread_create(&threads[ix], &attr, Direct_Ground_RangeLine, (void *)&threadarg[ix]);
+      rc=pthread_create(&threads[ixcnt], &attr, Direct_Ground_RangeLine, (void *)&threadarg[ixcnt]);
       if(rc){
-         printf("Oops! Thread for azimuth line %d was not created in PolSARproSim_Direct_Ground_SMP\n", ix);
+         printf("Oops! Thread for azimuth line %d was not created in PolSARproSim_Direct_Ground_SMP\n", ixcnt);
          exit(-1);
       }
+      ixcnt++;
    }
    /* loop to join the created threads (runs blocking) */   
-   for (ix=0; ix<nx; ix++) {
-      rc=pthread_join(threads[ix], &status);
+   ixcnt =0;
+   for (ix=0; ix<nx; ix=ix+(int)DIRECT_GROUND_SMP_BLOCK_SIZE) {
+      rc=pthread_join(threads[ixcnt], &status);
       if(rc){
          printf("ERR: unable to join thread for azimuth line %d in PolSARproSim_Direct_Ground_SMP, code: %d\n", ix,rc);
          exit(-1);
       }
+      ixcnt++;
    }
    /*********************/
    /* Zero accumulators */
@@ -1019,8 +1037,7 @@ int		PolSARproSim_Direct_Ground_SMP		(PolSARproSim_Record        *pPR)
    /***************/
    /* Clean up    */
    /***************/
-   free(RandArray);
-   
+   free(threadarg);
    /********************/
    /* Return to caller */
    /********************/
