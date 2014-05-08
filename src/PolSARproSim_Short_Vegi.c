@@ -1168,6 +1168,16 @@ void		*Image_Short_Veg_Bounce_Stems		(void *threadarg)
    Complex           zhhvv;
    double            randn;
    d3Vector          lnorm; //local normal
+
+   /*******************************/
+   /* Initialise bounce variables */
+   /*******************************/
+   switch (POLSARPROSIM_RAYLEIGH_ROUGHNESS_MODEL) {
+      case 0:	std_h	= pPR->large_scale_height_stdev; break;
+      case 1:	std_h	= pPR->small_scale_height_stdev; break;
+      case 2:	std_h	= pPR->small_scale_height_stdev + pPR->large_scale_height_stdev; break;
+      default:	std_h	= pPR->small_scale_height_stdev + pPR->large_scale_height_stdev; break;
+   }
    /*********************************/
    /* Reset random number generator */
    /*********************************/
@@ -1516,6 +1526,16 @@ void		*Image_Short_Veg_Bounce_Leaves		(void *threadarg)
    Complex           zhhvv;
    double            randn;
    d3Vector          lnorm;
+   /*******************************/
+   /* Initialise bounce variables */
+   /*******************************/
+   switch (POLSARPROSIM_RAYLEIGH_ROUGHNESS_MODEL) {
+      case 0:	std_h	= pPR->large_scale_height_stdev; break;
+      case 1:	std_h	= pPR->small_scale_height_stdev; break;
+      case 2:	std_h	= pPR->small_scale_height_stdev + pPR->large_scale_height_stdev; break;
+      default:	std_h	= pPR->small_scale_height_stdev + pPR->large_scale_height_stdev; break;
+   }
+
    /************************************/
    /* seed for random number generator */
    /************************************/

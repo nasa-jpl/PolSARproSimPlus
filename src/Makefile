@@ -5,7 +5,7 @@ INCDIR 	= -I$(HOME)/include -I/usr/include/libxml2/
 BINDIR 	= $(HOME)/bin/
 
 CC = gcc
-CFLAGS = -g -Wall -DENABLE_THREADS $(INCDIR)
+CFLAGS = -g -Wall -DENABLE_THREADS -pthread $(INCDIR)
 LDFLAGS = -lm -lxml2
 RM = rm -rf
 
