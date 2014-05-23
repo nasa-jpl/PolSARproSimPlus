@@ -795,6 +795,7 @@ int		Input_PolSARproSim_Record		(const char *filename, PolSARproSim_Record *pPR)
    for (i = 1; i < pPR->Tracks; i++) {
       sprintf(buff,              "baseline_track_%d", i);
       read_dvector   (pInputFile,   buff,                      (double *)&baseline,2);
+      //printf("Baseline %d, %f, %f\n", i, baseline[0],baseline[1]);
       slave_ground_range      = master_track_ground_range + baseline[0];
       slave_height            = master_track_height + baseline[1];
       pPR->slant_range[i]     = sqrt(slave_height*slave_height + slave_ground_range*slave_ground_range);

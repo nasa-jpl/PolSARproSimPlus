@@ -32,6 +32,7 @@
 #include	<stdio.h>
 #include	<stdlib.h>
 #include	<math.h>
+#include <unistd.h>
 
 #include	"Allometrics.h"
 #include	"Attenuation.h"
@@ -175,6 +176,11 @@ typedef struct imgtree_threadarg_tag{
    int                    itree;
 }ImageTree_Thread_Arg;
 
+
+/* Global counter for keeping track of the number of threads */
+int      PolSARproSim_Forest_Thread_Counter;
+
+#define  POLSARPROSIM_FOREST_MAXTHREADS      16
 
 
 #endif

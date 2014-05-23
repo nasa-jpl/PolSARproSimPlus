@@ -2287,6 +2287,10 @@ void		*Image_Tree_SMP		(void *threadarg)
    c4Vector          *Sdirect, *Sbounce;
    unsigned short    seed[3];                      // seed for re-entrantly safe random number generators
    seed[0]           = (unsigned short)(itree+pPR->seed);
+   
+   /* Increment the thread pool counter */
+   PolSARproSim_Forest_Thread_Counter++;
+   
    /************************/
    /* Initialise variables */
    /************************/
@@ -2533,6 +2537,10 @@ void		*Image_Tree_SMP		(void *threadarg)
    Destroy_Tree(pT);
    free(Sdirect);
    free(Sbounce);
+   
+   /* Decrement the thread pool counter */
+   PolSARproSim_Forest_Thread_Counter--;
+   
    /********************/
    /* ... and go home. */
    /********************/
@@ -2610,6 +2618,12 @@ int		PolSARproSim_Forest_SMP		(PolSARproSim_Record *pPR)
          printf("Oops! Thread for tree %d was not created in PolSARproSim_Forest_SMP, (ERR code: %d)\n", itree, rc);
          exit(-1);
       }
+    
+    /* Check to see if any threads are avialable */
+    while(PolSARproSim_Forest_Thread_Counter >POLSARPROSIM_FOREST_MAXTHREADS) {
+        usleep(100);
+    }
+
    }
    /* loop over the trees to join threads */
    for (itree=0; itree<pPR->Trees; itree++) {
