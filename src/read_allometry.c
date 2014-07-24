@@ -3145,3 +3145,39 @@ void Report_PolSARproSim_Allometry(PolSARproSim_Record *pPR)
    }
    return;
 }   
+
+/******************************************************************/
+/* Check variables that cause knwon issues (this should evolve)   */
+/******************************************************************/
+void Check_PolSARproSim_Allometry(PolSARproSim_Record *pPR)
+{
+   int ispecies;
+
+   /* print out a message for the logfile */
+   fprintf(pPR->pLogFile, "\n<====== Checking allometric parameters for each species ======>\n");
+
+   /* loop over all species and perform checks for known issues */
+   for(ispecies=0;ispecies<pPR->Nspecies;ispecies++){
+
+      /* Zeroed coefficients of the primary radius cause NaNs in effective permittivity calculations */
+      if((fabs(pPR->SpeciesDataBase[ispecies].primary_radius_A) < FLT_EPSILON) && (fabs(pPR->SpeciesDataBase[ispecies].primary_radius_B) < FLT_EPSILON) && (fabs(pPR->SpeciesDataBase[ispecies].primary_radius_C) < FLT_EPSILON)){
+         fprintf(pPR->pLogFile, "WARNING: Primary radius coefficients are all zero for %s, this causes the effective permittivity module to return NaNs, changing to default values \n", pPR->SpeciesDataBase[ispecies].species_name);
+         pPR->SpeciesDataBase[ispecies].primary_radius_A             = DEF_PRIMARY_RADIUS_A;
+         pPR->SpeciesDataBase[ispecies].primary_radius_B             = DEF_PRIMARY_RADIUS_B;
+         pPR->SpeciesDataBase[ispecies].primary_radius_C             = DEF_PRIMARY_RADIUS_C;
+      }
+      
+      /* Having leaf thickness same as leaf width cuases NaNs in effective permittiviy calcluations */
+      if((fabs(pPR->SpeciesDataBase[ispecies].leaf_width_mean - pPR->SpeciesDataBase[ispecies].leaf_thickness_mean) < FLT_EPSILON)){
+         fprintf(pPR->pLogFile, "WARNING: Leaf thickness is the same as leaf width %s, this causes the effective permittivity module to return NaNs, changing leaf thickness to default value \n", pPR->SpeciesDataBase[ispecies].species_name);
+         pPR->SpeciesDataBase[ispecies].leaf_thickness_mean          = DEF_LEAF_THICKNESS_MEAN;
+         pPR->SpeciesDataBase[ispecies].leaf_thickness_stdev         = DEF_LEAF_THICKNESS_STDEV;
+      }
+      
+   }
+   
+   fprintf(pPR->pLogFile, "\n<====== Done checking allometric parameters for each species ======>\n");
+   return;
+}   
+
+

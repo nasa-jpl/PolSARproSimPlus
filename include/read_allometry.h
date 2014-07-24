@@ -218,10 +218,13 @@
 #define MAX_PRIMARY_AZIMUTH_FACTOR        360.0
 #define MIN_PRIMARY_RADIUS_A              -1.0
 #define MAX_PRIMARY_RADIUS_A              1.0
+#define DEF_PRIMARY_RADIUS_A              -0.51532;
 #define MIN_PRIMARY_RADIUS_B              -1.0
 #define MAX_PRIMARY_RADIUS_B              1.0
+#define DEF_PRIMARY_RADIUS_B              0.53288;
 #define MIN_PRIMARY_RADIUS_C              -1.0
 #define MAX_PRIMARY_RADIUS_C              1.0
+#define DEF_PRIMARY_RADIUS_C              0.038638;
 #define MIN_PRIMARY_TROPISM_FACTOR        0.0
 #define MAX_PRIMARY_TROPISM_FACTOR        1.0
 #define MIN_PRIMARY_TROPISM_THETA         0.0
@@ -305,8 +308,10 @@
 #define MAX_LEAF_HEIGHT_STDEV             10.0
 #define MIN_LEAF_THICKNESS_MEAN           0.0
 #define MAX_LEAF_THICKNESS_MEAN           10.0
+#define DEF_LEAF_THICKNESS_MEAN           0.002
 #define MIN_LEAF_THICKNESS_STDEV          0.0
 #define MAX_LEAF_THICKNESS_STDEV          10.0
+#define DEF_LEAF_THICKNESS_STDEV          0.0005
 #define MIN_LEAF_VOLUME_FRACTION          0.0
 #define MAX_LEAF_VOLUME_FRACTION          1.0
 #define MIN_LEAF_NUMBER_FACTOR            0.0
@@ -317,6 +322,7 @@
 
 
 void Input_PolSARproSim_Allometry   (PolSARproSim_Record *pPR);
+void Check_PolSARproSim_Allometry   (PolSARproSim_Record *pPR);
 void Report_PolSARproSim_Allometry  (PolSARproSim_Record *pPR);
 void getCategoryList                (xmlDocPtr doc, xmlNodePtr cur, PolSARproSim_Record *pPR);
 void getCategoryData                (xmlDocPtr doc, xmlNodePtr cur, PolSARproSim_Record *pPR, int icategories);

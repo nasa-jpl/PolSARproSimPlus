@@ -914,7 +914,8 @@ int		PolSARproSim_Direct_Ground_SMP		(PolSARproSim_Record        *pPR)
    Polar_Assign_Complex (&AvgShhvv, 0.0, 0.0);
    Sigma0_count	= 0.0;
    /* loop to add results */   
-   for (ix=0; ix<nx; ix++) {
+   for (ix=0; ix<nx; ix=ix+(int)DIRECT_GROUND_SMP_BLOCK_SIZE) {
+   //for (ix=0; ix<nx; ix++) {
       weight_average += threadarg[ix].weight_average;
       weight_count   += threadarg[ix].weight_count;
       Sigma0HH       += threadarg[ix].Sigma0HH;
@@ -1019,10 +1020,10 @@ int		PolSARproSim_Direct_Ground_SMP		(PolSARproSim_Record        *pPR)
    /******************************************/
 #ifdef VERBOSE_POLSARPROSIM
    printf ("\n");
-   printf ("... Returning from call to PolSARproSim_Direct_Ground\n");
+   printf ("... Returning from call to PolSARproSim_Direct_Ground_SMP\n");
    printf ("\n");
 #endif
-   fprintf (pPR->pLogFile, "... Returning from call to PolSARproSim_Direct_Ground\n\n");
+   fprintf (pPR->pLogFile, "... Returning from call to PolSARproSim_Direct_Ground_SMP\n\n");
    fflush  (pPR->pLogFile);
    /********************************/
    /* Increment progress indicator */

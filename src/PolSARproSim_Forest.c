@@ -2618,12 +2618,12 @@ int		PolSARproSim_Forest_SMP		(PolSARproSim_Record *pPR)
          printf("Oops! Thread for tree %d was not created in PolSARproSim_Forest_SMP, (ERR code: %d)\n", itree, rc);
          exit(-1);
       }
-    
-    /* Check to see if any threads are avialable */
-    while(PolSARproSim_Forest_Thread_Counter >POLSARPROSIM_FOREST_MAXTHREADS) {
-        usleep(100);
-    }
-
+      
+      /* Check to see if any threads are avialable */
+      while(PolSARproSim_Forest_Thread_Counter > POLSARPROSIM_FOREST_MAXTHREADS) {
+         usleep(100);
+      }
+      
    }
    /* loop over the trees to join threads */
    for (itree=0; itree<pPR->Trees; itree++) {

@@ -1060,6 +1060,7 @@ for (i = 0; i < pPR->Tracks; i++) {
    /******************************************************/
 
    Input_PolSARproSim_Allometry(pPR);     /* Read in the species database first */
+   Check_PolSARproSim_Allometry(pPR);     /* Check the Specie Database -- this is an evolving function  */
    Report_PolSARproSim_Allometry(pPR);    /* Report the Specie Database         */
 
    /******************************************************/
@@ -3529,7 +3530,7 @@ void     *Compute_Alphas   (void *threadarg)
          leaf_count              += 1.0;
          pL = pL->next;
       }
-   }
+    }
 
    /*********************/
    /* Assign Outputs    */
@@ -3692,7 +3693,7 @@ void		Effective_Permittivities_SMP	(PolSARproSim_Record *pPR)
          }
          itree++;
       }
-
+              
       /* zero out the counters */
       crown_volume               = 0.0;
       dry_crown_volume           = 0.0;
@@ -3771,9 +3772,7 @@ void		Effective_Permittivities_SMP	(PolSARproSim_Record *pPR)
          leaf_count                += threadarg[itree].leaf_count;
          crown_foliage_vol_frac    += threadarg[itree].crown_foliage_vol_frac;
          Alpha_Leaf_Sum             = c33Matrix_sum (Alpha_Leaf_Sum, threadarg[itree].Alpha_Leaf_Sum);
-
       }
-
       if(dry_count > 0){ /* Use dry_count to avoid using pPR->species as a check --RAedit  */
          crown_dry_vol_frac         /= dry_crown_volume;
          dry_number_density         = dry_count / dry_crown_volume;
@@ -3949,6 +3948,10 @@ void		Effective_Permittivities_SMP	(PolSARproSim_Record *pPR)
       fprintf (pPR->pLogFile, "Crown living effective permittivity\t= %10.3e + j %10.3e  ... \n", CrownLiving_EpsEff.m[4].x, fabs(CrownLiving_EpsEff.m[4].y));
       fprintf (pPR->pLogFile, "Crown living effective permittivity\t= %10.3e + j %10.3e  ... \n", CrownLiving_EpsEff.m[8].x, fabs(CrownLiving_EpsEff.m[8].y));
       fprintf (pPR->pLogFile, "\n");
+      
+      /* clean up */
+      free(threads);
+      free(threadarg);
    }
 
    /*********************************************************/
@@ -7217,6 +7220,27 @@ void     Write_Forest_XML      (PolSARproSim_Record *pPR)
       fprintf(pForestXMLFile, "\t\t<dry_depth\tunits=\"meters\">%12f\t</dry_depth>\t\t<!-- The depth of the dry part of the canopy\t\t\t-->\n", tree1.canopy_dry_depth);
       fprintf(pForestXMLFile, "\t\t<stem_diameter\tunits=\"meters\">%12f\t</stem_diameter>\t<!-- Diameter of trunk at breast height (dbh)\t\t\t-->\n", tree1.dbh);
       fprintf(pForestXMLFile, "\t</tree>\n");
+      
+//      /* print the forest to stdout */
+//      printf("%d %f %f %d %f %f %f %f %f\n", itree, pPR->Tree_Location[itree].x, 
+//                                                    pPR->Tree_Location[itree].y,
+//                                                    pPR->Tree_Location[itree].species, 
+//                                                    pPR->Tree_Location[itree].height,
+//                                                    pPR->Tree_Location[itree].dbh, 
+//                                                    pPR->Tree_Location[itree].radius, 
+//                                                    pPR->Tree_Location[itree].canopy_depth, 
+//                                                    pPR->Tree_Location[itree].canopy_dry_depth);
+     /* print the forest to stdout */
+      printf("%d %f %f %d %f %f %f %f %f\n", itree, tree1.base.x[0], 
+                                                    tree1.base.x[1],
+                                                    tree1.species, 
+                                                    tree1.height,
+                                                    tree1.dbh, 
+                                                    tree1.radius, 
+                                                    tree1.canopy_depth, 
+                                                    tree1.canopy_dry_depth);
+
+
    }
 
    fprintf(pForestXMLFile, "</forest>\n");

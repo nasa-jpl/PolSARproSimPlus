@@ -455,6 +455,11 @@ void      Leaf_Size               (Tree *pT, PolSARproSim_Record *pPR, double *d
          }
       }
    }
+   /* make sure the dimensions aren't the same */
+   /* if thickness is the same as the height, then divide thickness by a tenth */
+   if(fabs(leaf_dim[1]-leaf_dim[0]) < FLT_EPSILON){
+      leaf_dim[0] = leaf_dim[0]/10;
+   }
    
    *d1 = leaf_dim[2];
    *d2 = leaf_dim[1];
