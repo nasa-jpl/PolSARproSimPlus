@@ -62,12 +62,12 @@ typedef struct crown_tag {
 /* Crown function prototypes */
 /*****************************/
 
-void		Create_Crown	(Crown *p_cwn);
-void		Destroy_Crown	(Crown *p_cwn);
-void		Copy_Crown		(Crown *p_cwnCopy, Crown *p_cwnOriginal);
-void		Print_Crown		(Crown *p_cwn);
-void		Assign_Crown	(Crown *p_cwn, int shape, double beta, double d1, double d2, double d3,
-                         d3Vector base, d3Vector axis, double sx, double sy);
+void        Create_Crown         (Crown *p_cwn);
+void        Destroy_Crown        (Crown *p_cwn);
+void        Copy_Crown           (Crown *p_cwnCopy, Crown *p_cwnOriginal);
+void        Print_Crown          (Crown *p_cwn);
+void        Assign_Crown         (Crown *p_cwn, int shape, double beta, double d1, double d2, double d3,
+                                    d3Vector base, d3Vector axis, double sx, double sy);
 
 /*************************************/
 /* Doubly linked list implementation */
@@ -107,9 +107,9 @@ void        Crown_List_Copy		(Crown_List *pCL_Copy, Crown_List *pCL_Org);
 /* Crown shape enumerations */
 /****************************/
 
-#define		CROWN_CYLINDER		0
-#define		CROWN_CONE			1
-#define		CROWN_SPHEROID		2
-#define		CROWN_NULL_SHAPE	99
+#define		CROWN_CYLINDER       0
+#define		CROWN_CONE           1
+#define		CROWN_SPHEROID       2
+#define		CROWN_NULL_SHAPE     99
 
 #endif

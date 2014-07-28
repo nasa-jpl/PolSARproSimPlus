@@ -44,7 +44,7 @@
 #include	"Sinc.h"
 #include	"Trig.h"
 
-#define	POLSARPROSIM_DPOL_FACTOR_M	10
+#define	POLSARPROSIM_DPOL_FACTOR_M       10
 
 void        Leaf_Depolarization_Factors	(Leaf *pLeaf, double *pL1, double *pL2, double *pL3);
 c33Matrix	Leaf_Polarisability           (Leaf *pLeaf, double L1, double L2, double L3);

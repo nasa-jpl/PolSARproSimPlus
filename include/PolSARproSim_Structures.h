@@ -177,9 +177,9 @@ typedef struct polsarprosim_record_tag {
    /* Random number sequence seed */
    /*******************************/
    int            seed;                   /* From which all else follows                                 */
-   double         *gndrandarray1;          /* Array of random variables for SMP direct ground scattering  */
-   double         *gndrandarray2;          /* Array of random variables for SMP direct ground scattering  */
-   double         *gndrandarray3;          /* Array of random variables for SMP direct ground scattering  */
+   double         *gndrandarray1;         /* Array of random variables for SMP direct ground scattering  */
+   double         *gndrandarray2;         /* Array of random variables for SMP direct ground scattering  */
+   double         *gndrandarray3;         /* Array of random variables for SMP direct ground scattering  */
    /***************************************************/
    /* Variables governing SAR image area and geometry */
    /***************************************************/
@@ -229,9 +229,9 @@ typedef struct polsarprosim_record_tag {
    /**************************************************/
    /* Variables governing small-scale ground surface */
    /**************************************************/
-   double			small_scale_length;			/* Correlation length of small-scale surface in metres      */
+   double			small_scale_length;		/* Correlation length of small-scale surface in metres      */
    double			small_scale_height_stdev;	/* Height standard deviation for small-scale ground surface (m)	*/
-   Complex        *ground_eps;             /* Soil dielectric permittivity                                */
+   Complex        *ground_eps;            /* Soil dielectric permittivity                                */
    /******************************************/
    /* Variables governing forest description */
    /******************************************/

@@ -50,12 +50,12 @@ typedef struct graphic_pixel_tab  {
 /**********************************/
 
 typedef struct graphic_record_tag {
- int			nx;				/* Image dimension in the x-dirn in pixels		*/
- int			ny;				/* Image dimension in the y-dirn in pixels		*/
- int			Ninfo;			/* Number of bytes of additional information	*/
- char			*pInfo;			/* ASCII information field						*/
- char			*filename;		/* Name of associated file						*/
- long			np;				/* Total number of pixels						*/
+ int           nx;				/* Image dimension in the x-dirn in pixels		*/
+ int           ny;				/* Image dimension in the y-dirn in pixels		*/
+ int           Ninfo;			/* Number of bytes of additional information	*/
+ char          *pInfo;			/* ASCII information field						*/
+ char          *filename;		/* Name of associated file						*/
+ long          np;				/* Total number of pixels						*/
  graphic_pixel	*image;			/* Points to the data							*/
 } Graphic_Record;
 
@@ -63,33 +63,33 @@ typedef struct graphic_record_tag {
 /* Graphic library function prototypes */
 /***************************************/
 	
-FILE*			open_graphic_file_read			(const char *filename);
-FILE*			open_graphic_file_write			(const char *filename);
-void			close_graphic_file				(FILE* fp);
-void			Create_Graphic_Record			(Graphic_Record *pGR);
-void			Destroy_Graphic_Record			(Graphic_Record *pGR);
-void			Initialise_Graphic_Record		(Graphic_Record *pGR, const char *filename, int nx, int ny, const char *comments);
-int				Write_Graphic_Record			(Graphic_Record *pGR);
-int				Read_Graphic_Record				(Graphic_Record *pGR, const char *filename);
-void			Rename_Graphic_Record			(Graphic_Record *pGR, const char *new_filename);
-graphic_pixel	getGraphicpixel					(Graphic_Record *pGR, int i, int j);
-void			putGraphicpixel					(Graphic_Record *pGR, graphic_pixel p, int i, int j);
-graphic_pixel	getGraphicpixel_periodic		(Graphic_Record *pGR, int i, int j);
-void			putGraphicpixel_periodic		(Graphic_Record *pGR, graphic_pixel p, int i, int j);
-void			Background_Graphic_Record		(Graphic_Record *pGR, unsigned char red, char unsigned green, unsigned char blue);
+FILE*          open_graphic_file_read           (const char *filename);
+FILE*          open_graphic_file_write          (const char *filename);
+void           close_graphic_file               (FILE* fp);
+void           Create_Graphic_Record            (Graphic_Record *pGR);
+void           Destroy_Graphic_Record           (Graphic_Record *pGR);
+void           Initialise_Graphic_Record        (Graphic_Record *pGR, const char *filename, int nx, int ny, const char *comments);
+int				Write_Graphic_Record             (Graphic_Record *pGR);
+int				Read_Graphic_Record              (Graphic_Record *pGR, const char *filename);
+void           Rename_Graphic_Record            (Graphic_Record *pGR, const char *new_filename);
+graphic_pixel	getGraphicpixel                  (Graphic_Record *pGR, int i, int j);
+void           putGraphicpixel                  (Graphic_Record *pGR, graphic_pixel p, int i, int j);
+graphic_pixel	getGraphicpixel_periodic         (Graphic_Record *pGR, int i, int j);
+void           putGraphicpixel_periodic         (Graphic_Record *pGR, graphic_pixel p, int i, int j);
+void           Background_Graphic_Record        (Graphic_Record *pGR, unsigned char red, char unsigned green, unsigned char blue);
 
 /******************/
 /* Alpha blending */
 /******************/
 
-void			putGraphicpixel_alphab				(Graphic_Record *pGR, graphic_pixel p, int i, int j, double alpha);
-void			putGraphicpixel_periodic_alphab		(Graphic_Record *pGR, graphic_pixel p, int i, int j, double alpha);
+void           putGraphicpixel_alphab				(Graphic_Record *pGR, graphic_pixel p, int i, int j, double alpha);
+void           putGraphicpixel_periodic_alphab	(Graphic_Record *pGR, graphic_pixel p, int i, int j, double alpha);
 
 /**********************/
 /* Error return codes */
 /**********************/
 
-#define			NO_GRAPHIC_ERRORS					0
+#define			NO_GRAPHIC_ERRORS                0
 #define			NULL_PTR2GIM_HEADER					0
 
 /******************************/
@@ -100,6 +100,6 @@ void			putGraphicpixel_periodic_alphab		(Graphic_Record *pGR, graphic_pixel p, i
 //#define			GRI_SWAP_BMP
 //#endif
 
-void			Write_GRIasRGBbmp					(const char *s, Graphic_Record *pGR);
+void           Write_GRIasRGBbmp                (const char *s, Graphic_Record *pGR);
 
 #endif

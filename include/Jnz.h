@@ -37,7 +37,7 @@
 
 #include	"Complex.h"
 
-#define		NO_JNZ_ERRORS		0
+#define        NO_JNZ_ERRORS		0
 
 Complex			Jn		(Complex z, int n);
 Complex			dJndz	(Complex z, int n);

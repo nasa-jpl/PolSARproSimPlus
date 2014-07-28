@@ -52,15 +52,15 @@ typedef struct facet_tag {
 /* Facet function prototypes */
 /*****************************/
 
-void		Create_Facet	(Facet *p_f);
-void		Destroy_Facet	(Facet *p_f);
-void		Copy_Facet		(Facet *p_fCopy, Facet *p_fOriginal);
-void		Print_Facet		(Facet *p_f);
-void		Assign_Facet	(Facet *p_f, d3Vector *p_r0, d3Vector *p_r1, d3Vector *p_r2);
+void		Create_Facet         (Facet *p_f);
+void		Destroy_Facet        (Facet *p_f);
+void		Copy_Facet           (Facet *p_fCopy, Facet *p_fOriginal);
+void		Print_Facet          (Facet *p_f);
+void		Assign_Facet         (Facet *p_f, d3Vector *p_r0, d3Vector *p_r1, d3Vector *p_r2);
 
-void		facet_normal	(Facet *p_f);
-void		facet_centre	(Facet *p_f);
-double		facet_area		(Facet *p_f);
+void		facet_normal         (Facet *p_f);
+void		facet_centre         (Facet *p_f);
+double	facet_area           (Facet *p_f);
 
 /*************************************/
 /* Doubly linked list implementation */
@@ -72,18 +72,18 @@ typedef struct facet_list_tag {
  long		n;
 } Facet_List;
 
-void		Facet_init_list			(Facet_List *p_fl);
-int			Facet_head_add			(Facet_List *p_fl, Facet *p_f);
-int			Facet_head_sub			(Facet_List *p_fl, Facet *p_f);
+void		Facet_init_list		(Facet_List *p_fl);
+int		Facet_head_add			(Facet_List *p_fl, Facet *p_f);
+int		Facet_head_sub			(Facet_List *p_fl, Facet *p_f);
 void		Facet_head_print		(Facet_List *p_fl);
-int			Facet_tail_add			(Facet_List *p_fl, Facet *p_f);
-int			Facet_tail_sub			(Facet_List *p_fl, Facet *p_f);
+int		Facet_tail_add			(Facet_List *p_fl, Facet *p_f);
+int		Facet_tail_sub			(Facet_List *p_fl, Facet *p_f);
 void		Facet_tail_print		(Facet_List *p_fl);
 long		Facet_List_length		(Facet_List *p_fl);
-Facet*		Facet_List_head			(Facet_List *p_fl);
-Facet*		Facet_List_tail			(Facet_List *p_fl);
-int			Facet_insert			(Facet_List *p_fl, Facet *p_f, long m);
-int			Facet_delete			(Facet_List *p_fl, Facet *p_f, long m);
+Facet*	Facet_List_head		(Facet_List *p_fl);
+Facet*	Facet_List_tail		(Facet_List *p_fl);
+int		Facet_insert			(Facet_List *p_fl, Facet *p_f, long m);
+int		Facet_delete			(Facet_List *p_fl, Facet *p_f, long m);
 void		Facet_empty_list		(Facet_List *p_fl);
 
 /************************/
@@ -91,7 +91,7 @@ void		Facet_empty_list		(Facet_List *p_fl);
 /************************/
 
 #define		NO_FACET_ERRORS		0
-#define		NULL_PTR2FACET		0
+#define		NULL_PTR2FACET       0
 #define		NULL_PTR2FACET_LIST	0
 
 #endif

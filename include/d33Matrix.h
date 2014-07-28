@@ -40,17 +40,17 @@ typedef struct d33matrix_tag {
  double  m[9];
 } d33Matrix;
 
-void		Create_d33Matrix			(d33Matrix *p_d33m);
-void		Destroy_d33Matrix			(d33Matrix *p_d33m);
-d33Matrix	Zero_d33Matrix				(void);
-d33Matrix	Idem_d33Matrix				(void);
-void		Print_d33Matrix				(d33Matrix d33m);
+void        Create_d33Matrix           (d33Matrix *p_d33m);
+void        Destroy_d33Matrix          (d33Matrix *p_d33m);
+d33Matrix	Zero_d33Matrix             (void);
+d33Matrix	Idem_d33Matrix             (void);
+void        Print_d33Matrix				(d33Matrix d33m);
 d33Matrix	d33Matrix_double_product	(d33Matrix d33m,	double x);
-d3Vector	d33Matrix_d3Vector_product	(d33Matrix d33m,	d3Vector d3v);
+d3Vector    d33Matrix_d3Vector_product	(d33Matrix d33m,	d3Vector d3v);
 d33Matrix	d3vector_dyadic_product		(d3Vector d3v1,		d3Vector d3v2);
-d33Matrix	d33Matrix_product			(d33Matrix d33m1,	d33Matrix d33m2);
-d33Matrix	d33Matrix_sum				(d33Matrix d33m1,	d33Matrix d33m2);
-d33Matrix	d33Matrix_difference		(d33Matrix d33m1,	d33Matrix d33m2);
+d33Matrix	d33Matrix_product          (d33Matrix d33m1,	d33Matrix d33m2);
+d33Matrix	d33Matrix_sum              (d33Matrix d33m1,	d33Matrix d33m2);
+d33Matrix	d33Matrix_difference       (d33Matrix d33m1,	d33Matrix d33m2);
 d33Matrix	d33Matrix_xRotation			(double theta);
 d33Matrix	d33Matrix_yRotation			(double theta);
 d33Matrix	d33Matrix_zRotation			(double theta);

@@ -102,7 +102,6 @@ typedef struct short_veg_threadarg_tag{
 
 pthread_mutex_t ShortVeg_mutex;
 
-
 #define	NO_POLSARPROSIM_SHORT_VEGI_ERRORS			0
 
 #endif

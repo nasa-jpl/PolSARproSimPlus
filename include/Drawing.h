@@ -77,7 +77,7 @@
 
 void	drawFacet		(Graphic_Record *pGR, graphic_pixel p, SIM_Record *pZb, Facet *pF, Perspective *pP);
 void	drawFacetList	(Graphic_Record *pGR, graphic_pixel p, SIM_Record *pZb, Facet_List *pFL, Perspective *pP);
-void	drawTree		(Tree *pT, Graphic_Record *pGR, SIM_Record *pZb, Drawing_Record *pD);
+void	drawTree       (Tree *pT, Graphic_Record *pGR, SIM_Record *pZb, Drawing_Record *pD);
 
 /***************/
 /* Definitions */

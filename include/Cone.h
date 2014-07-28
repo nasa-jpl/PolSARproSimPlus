@@ -43,11 +43,11 @@
 typedef struct cone_tag {
  double		height;				/* The height of the cone in metres						*/
  double		radius;				/* The base radius of the cone in metres				*/
- double		beta;				/* The cone internal half angle, atan(radius/height)	*/
- d3Vector	base;				/* A point in the centre of the base of the cone		*/
- d3Vector	axis;				/* A unit vector in the cone axial direction			*/
- d3Vector	x;					/* A unit vector normal to the axial direction			*/
- d3Vector	y;					/* A unit vector normal to both axis and x				*/
+ double		beta;             /* The cone internal half angle, atan(radius/height)	*/
+ d3Vector	base;             /* A point in the centre of the base of the cone		*/
+ d3Vector	axis;             /* A unit vector in the cone axial direction			*/
+ d3Vector	x;                /* A unit vector normal to the axial direction			*/
+ d3Vector	y;                /* A unit vector normal to both axis and x				*/
  struct		cone_tag *next;
  struct		cone_tag *prev;
 } Cone;
@@ -56,11 +56,11 @@ typedef struct cone_tag {
 /* Cone function prototypes */
 /****************************/
 
-void		Create_Cone		(Cone *p_c);
-void		Destroy_Cone	(Cone *p_c);
-void		Copy_Cone		(Cone *p_cCopy, Cone *p_cOriginal);
-void		Print_Cone		(Cone *p_c);
-void		Assign_Cone		(Cone *p_c, double height, double radius, d3Vector axis, d3Vector base);
+void		Create_Cone          (Cone *p_c);
+void		Destroy_Cone         (Cone *p_c);
+void		Copy_Cone            (Cone *p_cCopy, Cone *p_cOriginal);
+void		Print_Cone           (Cone *p_c);
+void		Assign_Cone          (Cone *p_c, double height, double radius, d3Vector axis, d3Vector base);
 
 /*************************************/
 /* Doubly linked list implementation */
@@ -73,25 +73,25 @@ typedef struct cone_list_tag {
 } Cone_List;
 
 void		Cone_init_list			(Cone_List *p_cl);
-int			Cone_head_add			(Cone_List *p_cl, Cone *p_c);
-int			Cone_head_sub			(Cone_List *p_cl, Cone *p_c);
-void		Cone_head_print			(Cone_List *p_cl);
-int			Cone_tail_add			(Cone_List *p_cl, Cone *p_c);
-int			Cone_tail_sub			(Cone_List *p_cl, Cone *p_c);
-void		Cone_tail_print			(Cone_List *p_cl);
+int		Cone_head_add			(Cone_List *p_cl, Cone *p_c);
+int		Cone_head_sub			(Cone_List *p_cl, Cone *p_c);
+void		Cone_head_print		(Cone_List *p_cl);
+int		Cone_tail_add			(Cone_List *p_cl, Cone *p_c);
+int		Cone_tail_sub			(Cone_List *p_cl, Cone *p_c);
+void		Cone_tail_print		(Cone_List *p_cl);
 long		Cone_List_length		(Cone_List *p_cl);
 Cone*		Cone_List_head			(Cone_List *p_cl);
 Cone*		Cone_List_tail			(Cone_List *p_cl);
-int			Cone_insert				(Cone_List *p_cl, Cone *p_c, long m);
-int			Cone_delete				(Cone_List *p_cl, Cone *p_c, long m);
-void		Cone_empty_list			(Cone_List *p_cl);
+int		Cone_insert				(Cone_List *p_cl, Cone *p_c, long m);
+int		Cone_delete				(Cone_List *p_cl, Cone *p_c, long m);
+void		Cone_empty_list		(Cone_List *p_cl);
 
 /********************/
 /* Cone definitions */
 /********************/
 
-#define		NO_CONE_ERRORS		0
-#define		NULL_PTR2CONE		0
+#define		NO_CONE_ERRORS       0
+#define		NULL_PTR2CONE        0
 #define		NULL_PTR2CONE_LIST	0
 
 #endif

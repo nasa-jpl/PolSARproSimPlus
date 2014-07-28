@@ -37,32 +37,32 @@
 #include "Complex.h"
 #include "d3Vector.h"
 
-/******************************/
+/*********************************/
 /* Cylinder structure definition */
-/******************************/
+/*********************************/
 
 typedef struct cylinder_tag {
- double		length;			/* The length of the cylinder in metres						*/
- double		radius;			/* The radius of the cylinder in metres						*/
- d3Vector	base;          /* A point in the centre of the end of the cylinder		*/
- d3Vector	axis;          /* A unit vector in the cylinder axial direction			*/
- d3Vector	x;             /* A unit vector normal to the axial direction				*/
- d3Vector	y;             /* A unit vector normal to both axis and x					*/
- Complex    permittivity;	/* The effective dielectric permittivity of the cylinder	*/
+ double		length;                    /* The length of the cylinder in metres						*/
+ double		radius;                    /* The radius of the cylinder in metres						*/
+ d3Vector	base;                      /* A point in the centre of the end of the cylinder		*/
+ d3Vector	axis;                      /* A unit vector in the cylinder axial direction			*/
+ d3Vector	x;                         /* A unit vector normal to the axial direction				*/
+ d3Vector	y;                         /* A unit vector normal to both axis and x					*/
+ Complex    permittivity;              /* The effective dielectric permittivity of the cylinder	*/
  struct		cylinder_tag *next;
  struct		cylinder_tag *prev;
 } Cylinder;
 
-/*****************************/
+/********************************/
 /* Cylinder function prototypes */
-/*****************************/
+/********************************/
 
-void		Create_Cylinder		(Cylinder *p_c);
-void		Destroy_Cylinder     (Cylinder *p_c);
-void		Copy_Cylinder        (Cylinder *p_cCopy, Cylinder *p_cOriginal);
-void		Print_Cylinder       (Cylinder *p_c);
-void		Assign_Cylinder		(Cylinder *p_c, double length, double radius, Complex permittivity, d3Vector axis,
-                                 d3Vector base);
+void        Create_Cylinder            (Cylinder *p_c);
+void        Destroy_Cylinder           (Cylinder *p_c);
+void        Copy_Cylinder              (Cylinder *p_cCopy, Cylinder *p_cOriginal);
+void        Print_Cylinder             (Cylinder *p_c);
+void        Assign_Cylinder            (Cylinder *p_c, double length, double radius, Complex permittivity, d3Vector axis,
+                                          d3Vector base);
 
 /*************************************/
 /* Doubly linked list implementation */
@@ -92,8 +92,8 @@ void        Cylinder_empty_list			(Cylinder_List *p_cl);
 /* Cylinder definitions */
 /************************/
 
-#define		NO_CYLINDER_ERRORS		0
-#define		NULL_PTR2CYLINDER       0
-#define		NULL_PTR2CYLINDER_LIST	0
+#define		NO_CYLINDER_ERRORS         0
+#define		NULL_PTR2CYLINDER          0
+#define		NULL_PTR2CYLINDER_LIST     0
 
 #endif

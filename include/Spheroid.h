@@ -36,13 +36,13 @@
 
 #include "d3Vector.h"
 
-/*****************************/
+/*********************************/
 /* Spheroid structure definition */
-/*****************************/
+/*********************************/
 
 typedef struct spheroid_tag {
- double		a1;						/* The axial semi-axis in metres						*/
- double		a2;						/* The semi-minor-axis in metres						*/
+ double		a1;					/* The axial semi-axis in metres						*/
+ double		a2;					/* The semi-minor-axis in metres						*/
  double		h;						/* The tip to base distance in metres					*/
  double		beta;					/* The internal half angle, atan(a2/a1)					*/
  d3Vector	base;					/* A point in the centre of the base of the spheroid	*/
@@ -53,15 +53,15 @@ typedef struct spheroid_tag {
  struct		spheroid_tag *prev;
 } Spheroid;
 
-/****************************/
+/********************************/
 /* Spheroid function prototypes */
-/****************************/
+/********************************/
 
-void		Create_Spheroid		(Spheroid *p_s);
-void		Destroy_Spheroid	(Spheroid *p_s);
-void		Copy_Spheroid		(Spheroid *p_sCopy, Spheroid *p_sOriginal);
-void		Print_Spheroid		(Spheroid *p_s);
-void		Assign_Spheroid		(Spheroid *p_s, double a1, double a2, double h, d3Vector axis, d3Vector base);
+void        Create_Spheroid         (Spheroid *p_s);
+void        Destroy_Spheroid        (Spheroid *p_s);
+void        Copy_Spheroid           (Spheroid *p_sCopy, Spheroid *p_sOriginal);
+void        Print_Spheroid          (Spheroid *p_s);
+void        Assign_Spheroid         (Spheroid *p_s, double a1, double a2, double h, d3Vector axis, d3Vector base);
 
 /*************************************/
 /* Doubly linked list implementation */
@@ -73,26 +73,26 @@ typedef struct spheroid_list_tag {
  long		n;
 } Spheroid_List;
 
-void		Spheroid_init_list			(Spheroid_List *p_sl);
+void        Spheroid_init_list		(Spheroid_List *p_sl);
 int			Spheroid_head_add			(Spheroid_List *p_sl, Spheroid *p_s);
 int			Spheroid_head_sub			(Spheroid_List *p_sl, Spheroid *p_s);
-void		Spheroid_head_print			(Spheroid_List *p_sl);
+void        Spheroid_head_print		(Spheroid_List *p_sl);
 int			Spheroid_tail_add			(Spheroid_List *p_sl, Spheroid *p_s);
 int			Spheroid_tail_sub			(Spheroid_List *p_sl, Spheroid *p_s);
-void		Spheroid_tail_print			(Spheroid_List *p_sl);
-long		Spheroid_List_length		(Spheroid_List *p_sl);
-Spheroid*	Spheroid_List_head			(Spheroid_List *p_sl);
-Spheroid*	Spheroid_List_tail			(Spheroid_List *p_sl);
-int			Spheroid_insert				(Spheroid_List *p_sl, Spheroid *p_s, long m);
-int			Spheroid_delete				(Spheroid_List *p_sl, Spheroid *p_s, long m);
-void		Spheroid_empty_list			(Spheroid_List *p_sl);
+void        Spheroid_tail_print		(Spheroid_List *p_sl);
+long        Spheroid_List_length		(Spheroid_List *p_sl);
+Spheroid*	Spheroid_List_head		(Spheroid_List *p_sl);
+Spheroid*	Spheroid_List_tail		(Spheroid_List *p_sl);
+int			Spheroid_insert			(Spheroid_List *p_sl, Spheroid *p_s, long m);
+int			Spheroid_delete			(Spheroid_List *p_sl, Spheroid *p_s, long m);
+void        Spheroid_empty_list		(Spheroid_List *p_sl);
 
-/********************/
+/************************/
 /* Spheroid definitions */
-/********************/
+/************************/
 
 #define		NO_SPHEROID_ERRORS		0
-#define		NULL_PTR2SPHEROID		0
+#define		NULL_PTR2SPHEROID       0
 #define		NULL_PTR2SPHEROID_LIST	0
 
 #endif

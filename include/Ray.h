@@ -41,8 +41,8 @@
 /******************************/
 
 typedef struct ray_tag {
- d3Vector	s0;					/* The starting point of the ray					*/
- double		theta;				/* The polar angle of the ray direction				*/
+ d3Vector	s0;				/* The starting point of the ray					*/
+ double		theta;			/* The polar angle of the ray direction				*/
  double		phi;				/* The azimuth angle of the ray direction			*/
  d3Vector	a;					/* The unit vector in the ray direction 			*/
  struct		ray_tag *next;
@@ -53,12 +53,12 @@ typedef struct ray_tag {
 /* Ray function prototypes */
 /*****************************/
 
-void		Create_Ray		(Ray *p_r);
-void		Destroy_Ray		(Ray *p_r);
-void		Copy_Ray		(Ray *p_rCopy, Ray *p_rOriginal);
-void		Print_Ray		(Ray *p_r);
-void		Assign_Ray		(Ray *p_r, d3Vector *p_s0, double theta, double phi);
-void		Assign_Ray_d3V	(Ray *p_r, d3Vector *p_s0, d3Vector *p_a);
+void		Create_Ray        (Ray *p_r);
+void		Destroy_Ray       (Ray *p_r);
+void		Copy_Ray          (Ray *p_rCopy, Ray *p_rOriginal);
+void		Print_Ray         (Ray *p_r);
+void		Assign_Ray        (Ray *p_r, d3Vector *p_s0, double theta, double phi);
+void		Assign_Ray_d3V    (Ray *p_r, d3Vector *p_s0, d3Vector *p_a);
 
 /*************************************/
 /* Doubly linked list implementation */
@@ -67,21 +67,21 @@ void		Assign_Ray_d3V	(Ray *p_r, d3Vector *p_s0, d3Vector *p_a);
 typedef struct ray_list_tag {
  struct		ray_tag *head;
  struct		ray_tag *tail;
- long		n;
+ long       n;
 } Ray_List;
 
 void		Ray_init_list		(Ray_List *p_rl);
-int			Ray_head_add		(Ray_List *p_rl, Ray *p_r);
-int			Ray_head_sub		(Ray_List *p_rl, Ray *p_r);
+int		Ray_head_add		(Ray_List *p_rl, Ray *p_r);
+int		Ray_head_sub		(Ray_List *p_rl, Ray *p_r);
 void		Ray_head_print		(Ray_List *p_rl);
-int			Ray_tail_add		(Ray_List *p_rl, Ray *p_r);
-int			Ray_tail_sub		(Ray_List *p_rl, Ray *p_r);
+int		Ray_tail_add		(Ray_List *p_rl, Ray *p_r);
+int		Ray_tail_sub		(Ray_List *p_rl, Ray *p_r);
 void		Ray_tail_print		(Ray_List *p_rl);
-long		Ray_List_length		(Ray_List *p_rl);
+long		Ray_List_length	(Ray_List *p_rl);
 Ray*		Ray_List_head		(Ray_List *p_rl);
 Ray*		Ray_List_tail		(Ray_List *p_rl);
-int			Ray_insert			(Ray_List *p_rl, Ray *p_r, long m);
-int			Ray_delete			(Ray_List *p_rl, Ray *p_r, long m);
+int		Ray_insert			(Ray_List *p_rl, Ray *p_r, long m);
+int		Ray_delete			(Ray_List *p_rl, Ray *p_r, long m);
 void		Ray_empty_list		(Ray_List *p_rl);
 
 /************************/

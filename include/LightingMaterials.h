@@ -75,20 +75,20 @@ typedef struct material_colour_tag {
 
 typedef struct material_tag {
  Material_Reflectivity	mR;
- Material_Colour		mC;
+ Material_Colour        mC;
 } Material;
 
 /************************************/
 /* Lighting and Material Prototypes */
 /************************************/
 
- void			Create_Lighting_Record	(Lighting_Record *pLR, double Ia, double Ii, 
-										 d3Vector *pl, d3Vector *pv);
- double			intensity				(Lighting_Record *pLR, Material *pM, d3Vector n);
- graphic_pixel	colour					(Lighting_Record *pLR, Material *pM, d3Vector n);
- d3Vector		CalculateH				(d3Vector l, d3Vector v);
- void			Create_Material			(Material *pM, double ka, double kd, double ks,
-										 double sr, double sg, double sb);
+ void          Create_Lighting_Record	(Lighting_Record *pLR, double Ia, double Ii, 
+                                          d3Vector *pl, d3Vector *pv);
+ double			intensity               (Lighting_Record *pLR, Material *pM, d3Vector n);
+ graphic_pixel	colour                  (Lighting_Record *pLR, Material *pM, d3Vector n);
+ d3Vector		CalculateH              (d3Vector l, d3Vector v);
+ void          Create_Material         (Material *pM, double ka, double kd, double ks,
+                                          double sr, double sg, double sb);
 /*********************/
 /* Error return code */
 /*********************/

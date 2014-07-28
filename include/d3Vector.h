@@ -43,30 +43,30 @@ typedef struct d3vector_tag {
  struct		d3vector_tag *prev;
 } d3Vector;
 
-void		Create_d3Vector						(d3Vector *p_d3v);
-void		Destroy_d3Vector					(d3Vector *p_d3v);
-void		Polar_d3Vector						(d3Vector *p_d3v);
-void		Cartesian_d3Vector					(d3Vector *p_d3v);
-void		Read_d3Vector						(FILE *pF, d3Vector *p_d3v);
-void		Write_d3Vector						(FILE *pF, d3Vector *p_d3v);
-void		Print_d3Vector						(d3Vector *p_d3v);
-void		Copy_d3Vector						(d3Vector *p_d3vCopy, d3Vector *p_d3vOriginal);
-d3Vector	Cartesian_Assign_d3Vector			(double x, double y, double z);
-d3Vector	Polar_Assign_d3Vector				(double r, double theta, double phi);
-d3Vector	Zero_d3Vector						(void);
+void        Create_d3Vector						(d3Vector *p_d3v);
+void        Destroy_d3Vector                 (d3Vector *p_d3v);
+void        Polar_d3Vector                   (d3Vector *p_d3v);
+void        Cartesian_d3Vector					(d3Vector *p_d3v);
+void        Read_d3Vector                    (FILE *pF, d3Vector *p_d3v);
+void        Write_d3Vector                   (FILE *pF, d3Vector *p_d3v);
+void        Print_d3Vector                   (d3Vector *p_d3v);
+void        Copy_d3Vector                    (d3Vector *p_d3vCopy, d3Vector *p_d3vOriginal);
+d3Vector    Cartesian_Assign_d3Vector			(double x, double y, double z);
+d3Vector    Polar_Assign_d3Vector				(double r, double theta, double phi);
+d3Vector    Zero_d3Vector                    (void);
 
-void		d3Vector_insitu_double_multiply		(d3Vector *p_d3v, double x);
-void		d3Vector_insitu_double_divide		(d3Vector *p_d3v, double x);
-void		d3Vector_insitu_normalise			(d3Vector *p_d3v);
-d3Vector	d3Vector_double_multiply			(d3Vector d3v, double x);
-d3Vector	d3Vector_double_divide				(d3Vector d3v, double x);
-d3Vector	d3Vector_normalise					(d3Vector d3v);
-double		d3Vector_scalar_product				(d3Vector d3v1, d3Vector d3v2);
-d3Vector	d3Vector_difference					(d3Vector d3v1, d3Vector d3v2);
-d3Vector	d3Vector_cross_product				(d3Vector d3v1, d3Vector d3v2);
-d3Vector	d3Vector_reflect					(d3Vector d3v,  d3Vector n);
-d3Vector	d3Vector_sum						(d3Vector d3v1, d3Vector d3v2);
-d3Vector	d3Vector_hadamard_product	(d3Vector d3v1, d3Vector d3v2);
+void        d3Vector_insitu_double_multiply	(d3Vector *p_d3v, double x);
+void        d3Vector_insitu_double_divide		(d3Vector *p_d3v, double x);
+void        d3Vector_insitu_normalise			(d3Vector *p_d3v);
+d3Vector    d3Vector_double_multiply			(d3Vector d3v, double x);
+d3Vector    d3Vector_double_divide				(d3Vector d3v, double x);
+d3Vector    d3Vector_normalise					(d3Vector d3v);
+double      d3Vector_scalar_product				(d3Vector d3v1, d3Vector d3v2);
+d3Vector    d3Vector_difference					(d3Vector d3v1, d3Vector d3v2);
+d3Vector    d3Vector_cross_product				(d3Vector d3v1, d3Vector d3v2);
+d3Vector    d3Vector_reflect                 (d3Vector d3v,  d3Vector n);
+d3Vector    d3Vector_sum                     (d3Vector d3v1, d3Vector d3v2);
+d3Vector    d3Vector_hadamard_product        (d3Vector d3v1, d3Vector d3v2);
 
 /*************************************/
 /* Doubly linked list implementation */
@@ -78,26 +78,26 @@ typedef struct d3vector_list_tag {
  long		n;
 } d3Vector_List;
 
-void		d3Vector_init_list			(d3Vector_List *p_d3vl);
-int			d3Vector_head_add			(d3Vector_List *p_d3vl, d3Vector *p_d3v);
-int			d3Vector_head_sub			(d3Vector_List *p_d3vl, d3Vector *p_d3v);
-void		d3Vector_head_print			(d3Vector_List *p_d3vl);
-int			d3Vector_tail_add			(d3Vector_List *p_d3vl, d3Vector *p_d3v);
-int			d3Vector_tail_sub			(d3Vector_List *p_d3vl, d3Vector *p_d3v);
-void		d3Vector_tail_print			(d3Vector_List *p_d3vl);
-long		d3Vector_List_length		(d3Vector_List *p_d3vl);
-d3Vector*	d3Vector_List_head			(d3Vector_List *p_d3vl);
-d3Vector*	d3Vector_List_tail			(d3Vector_List *p_d3vl);
-int			d3Vector_insert				(d3Vector_List *p_d3vl, d3Vector *p_d3v, long m);
-int			d3Vector_delete				(d3Vector_List *p_d3vl, d3Vector *p_d3v, long m);
-void		d3Vector_empty_list			(d3Vector_List *p_d3vl);
+void        d3Vector_init_list               (d3Vector_List *p_d3vl);
+int         d3Vector_head_add                (d3Vector_List *p_d3vl, d3Vector *p_d3v);
+int         d3Vector_head_sub                (d3Vector_List *p_d3vl, d3Vector *p_d3v);
+void        d3Vector_head_print              (d3Vector_List *p_d3vl);
+int         d3Vector_tail_add                (d3Vector_List *p_d3vl, d3Vector *p_d3v);
+int         d3Vector_tail_sub                (d3Vector_List *p_d3vl, d3Vector *p_d3v);
+void        d3Vector_tail_print              (d3Vector_List *p_d3vl);
+long        d3Vector_List_length             (d3Vector_List *p_d3vl);
+d3Vector*	d3Vector_List_head               (d3Vector_List *p_d3vl);
+d3Vector*	d3Vector_List_tail               (d3Vector_List *p_d3vl);
+int			d3Vector_insert                  (d3Vector_List *p_d3vl, d3Vector *p_d3v, long m);
+int			d3Vector_delete                  (d3Vector_List *p_d3vl, d3Vector *p_d3v, long m);
+void        d3Vector_empty_list              (d3Vector_List *p_d3vl);
 
 /************************/
 /* d3Vector definitions */
 /************************/
 
-#define		NO_D3VECTOR_ERRORS		0
-#define		NULL_PTR2D3VECTOR		0
-#define		NULL_PTR2D3VECTOR_LIST	0
+#define		NO_D3VECTOR_ERRORS               0
+#define		NULL_PTR2D3VECTOR                0
+#define		NULL_PTR2D3VECTOR_LIST           0
 
 #endif

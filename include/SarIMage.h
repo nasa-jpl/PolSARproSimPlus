@@ -75,7 +75,6 @@ typedef SIM_Complex_Double		sim_complex_double;
 /*********************************/
 /* SIM library type definitions  */
 /*********************************/
-
 typedef union  sim_type_tag {
 	sim_byte             b;
 	sim_word             w;
@@ -89,7 +88,6 @@ typedef union  sim_type_tag {
 /******************************/
 /* SAR Image record structure */
 /******************************/
-
 typedef struct sim_record_tag {
    int         nx;				/* Image dimension in the x-dirn in pixels		*/
    int         ny;				/* Image dimension in the y-dirn in pixels		*/
@@ -117,7 +115,6 @@ typedef struct sim_stack_tag {
 /***********************************/
 /* SIM library function prototypes */
 /***********************************/
-
 void        Report_SIM_Type_Sizes		(FILE* fp);
 FILE*       open_SIM_file_read			(const char *filename);
 FILE*       open_SIM_file_write			(const char *filename);
@@ -138,24 +135,23 @@ void        Rescale_SIM_Record         (SIM_Record *pSIMR, double scale_factor);
 int         Trim_SIM_Record            (SIM_Record *pSIMR, double Lx, double Ly);
 int         Add_SIM_Records            (SIM_Record *pIMG1, SIM_Record *pIMG2);
 void        Print_SIM_Record           (SIM_Record *pSIMR);
+
 /**********************/
 /* Error return codes */
 /**********************/
-
 #define  NO_SIMPRIMITIVE_ERRORS        0
 #define	NULL_PTR2SIM_HEADER				0
 
 /******************************************************/
 /* Binary format output for compliance with PolSARPro */
 /******************************************************/
+int         Write_SIM_Record_As_BINARY	(SIM_Record *pSIMR);
+int         Read_BINARY_As_SIM_Record	(SIM_Record *pSIMR, const char *filename, int nx, int ny, double dx, double dy);
+int         Read_FLOAT_BINARY_As_SIM_Record	(SIM_Record *pSIMR, const char *filename, int nx, int ny, double dx, double dy);
 
-int		Write_SIM_Record_As_BINARY	(SIM_Record *pSIMR);
-int      Read_BINARY_As_SIM_Record	(SIM_Record *pSIMR, const char *filename, int nx, int ny, double dx, double dy);
-int      Read_FLOAT_BINARY_As_SIM_Record	(SIM_Record *pSIMR, const char *filename, int nx, int ny, double dx, double dy);
 /******************************************************/
 /* Image rotation for testing binary image compliance */
 /******************************************************/
-
-int		Rotate_SIM_Record			(SIM_Record *pOrg, SIM_Record *pRot);
+int         Rotate_SIM_Record			(SIM_Record *pOrg, SIM_Record *pRot);
 
 #endif

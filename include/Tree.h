@@ -49,13 +49,13 @@
 /******************************/
 
 typedef struct tree_tag {
- int            species;			/* Species of tree                                              */
- d3Vector       base;         /* Stem base position                                           */
- double         height;				/* Length of stem in the stem direction                         */
- double         radius;				/* The nominal maximum crownn radius                            */
- double         dbh;          /* This is the stem diameter at breast height     --RAedit      */
- double         canopy_depth; /* This is the canopy depth                       --RAedit      */
- double         canopy_dry_depth;  /* This the dry canopy depth                 --RAedit      */
+ int              species;			/* Species of tree                                              */
+ d3Vector         base;         /* Stem base position                                           */
+ double           height;				/* Length of stem in the stem direction                         */
+ double           radius;				/* The nominal maximum crownn radius                            */
+ double           dbh;          /* This is the stem diameter at breast height     --RAedit      */
+ double           canopy_depth; /* This is the canopy depth                       --RAedit      */
+ double           canopy_dry_depth;  /* This the dry canopy depth                 --RAedit      */
  Branch_List		Stem;         /* List of tree trunks, can be more than one                    */
  Branch_List		Primary;			/* List of living primary branches                              */
  Branch_List		Dry;          /* List of dry primary branches                                 */
@@ -63,8 +63,8 @@ typedef struct tree_tag {
  Branch_List		Tertiary;			/* List of tertiary branches                                    */
  Leaf_List			Foliage;			/* List of leaves                                               */
  Crown_List			CrownVolume;	/* List of volumes occupied by tertiary branches and leaves			*/
- struct	tree_tag	*next;
- struct	tree_tag	*prev;
+ struct tree_tag	*next;
+ struct tree_tag	*prev;
 } Tree;
 
 /*****************************/
@@ -81,33 +81,33 @@ void		Print_Tree		(Tree *p_t);
 /*************************************/
 
 typedef struct tree_list_tag {
- struct		tree_tag *head;
- struct		tree_tag *tail;
- long		n;
+ struct           tree_tag *head;
+ struct           tree_tag *tail;
+ long             n;
 } Tree_List;
 
 void		Tree_init_list			(Tree_List *p_tl);
-int			Tree_head_add			(Tree_List *p_tl, Tree *p_t);
-int			Tree_head_sub			(Tree_List *p_tl, Tree *p_t);
-void		Tree_head_print			(Tree_List *p_tl);
-int			Tree_tail_add			(Tree_List *p_tl, Tree *p_t);
-int			Tree_tail_sub			(Tree_List *p_tl, Tree *p_t);
-void		Tree_tail_print			(Tree_List *p_tl);
+int		Tree_head_add			(Tree_List *p_tl, Tree *p_t);
+int		Tree_head_sub			(Tree_List *p_tl, Tree *p_t);
+void		Tree_head_print		(Tree_List *p_tl);
+int		Tree_tail_add			(Tree_List *p_tl, Tree *p_t);
+int		Tree_tail_sub			(Tree_List *p_tl, Tree *p_t);
+void		Tree_tail_print		(Tree_List *p_tl);
 long		Tree_List_length		(Tree_List *p_tl);
 Tree*		Tree_List_head			(Tree_List *p_tl);
 Tree*		Tree_List_tail			(Tree_List *p_tl);
-int			Tree_insert				(Tree_List *p_tl, Tree *p_t, long m);
-int			Tree_delete				(Tree_List *p_tl, Tree *p_t, long m);
-void		Tree_empty_list			(Tree_List *p_tl);
+int		Tree_insert				(Tree_List *p_tl, Tree *p_t, long m);
+int		Tree_delete				(Tree_List *p_tl, Tree *p_t, long m);
+void		Tree_empty_list		(Tree_List *p_tl);
 
 /********************/
 /* Tree definitions */
 /********************/
 
-#define		NO_TREE_ERRORS		0
-#define		NULL_PTR2TREE		0
+#define		NO_TREE_ERRORS       0
+#define		NULL_PTR2TREE        0
 #define		NULL_PTR2TREE_LIST	0
 
-#define		TREE_NULL_SPECIES	99
+#define		TREE_NULL_SPECIES    99
 
 #endif

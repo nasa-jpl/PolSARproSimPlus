@@ -38,8 +38,8 @@
 #define		NO_JLKP_ERRORS		0
 
 typedef struct Jn_lookup_table {
- int		nmax;		/* Maximum ordinate number	*/
- double		dx;			/* Ordinate separation		*/
+ int        nmax;		/* Maximum ordinate number	*/
+ double		dx;		/* Ordinate separation		*/
  double		*pJ0;		/* Array of J0 values		*/	
  double		*pJ1;		/* Array of J1 values		*/
  double		*pJ2;		/* Array of J2 values		*/	
@@ -55,6 +55,6 @@ typedef struct Jn_lookup_table {
 
 int			Initialise_Standard_Jnlookup	(Jn_Lookup *pJLkp);
 int			Delete_Jnlookup					(Jn_Lookup *pJLkp);
-int			Jlookup							(double x, int Nmax, double *pJ, Jn_Lookup *pJLkp);
+int			Jlookup                       (double x, int Nmax, double *pJ, Jn_Lookup *pJLkp);
 
 #endif

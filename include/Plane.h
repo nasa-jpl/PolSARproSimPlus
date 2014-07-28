@@ -55,11 +55,11 @@ typedef struct plane_tag {
 /* Plane function prototypes */
 /*****************************/
 
-void		Create_Plane		(Plane *p_p);
-void		Destroy_Plane		(Plane *p_p);
-void		Copy_Plane			(Plane *p_pCopy, Plane *p_pOriginal);
-void		Print_Plane			(Plane *p_p);
-void		Assign_Plane		(Plane *p_p, d3Vector *p_p0, double sx, double sy);
+void		Create_Plane         (Plane *p_p);
+void		Destroy_Plane        (Plane *p_p);
+void		Copy_Plane           (Plane *p_pCopy, Plane *p_pOriginal);
+void		Print_Plane          (Plane *p_p);
+void		Assign_Plane         (Plane *p_p, d3Vector *p_p0, double sx, double sy);
 void		Plane_Orthonormals	(Plane *p_p);
 
 /*************************************/
@@ -69,21 +69,21 @@ void		Plane_Orthonormals	(Plane *p_p);
 typedef struct plane_list_tag {
  struct		plane_tag *head;
  struct		plane_tag *tail;
- long		n;
+ long       n;
 } Plane_List;
 
-void		Plane_init_list			(Plane_List *p_pl);
-int			Plane_head_add			(Plane_List *p_pl, Plane *p_p);
-int			Plane_head_sub			(Plane_List *p_pl, Plane *p_p);
+void		Plane_init_list		(Plane_List *p_pl);
+int		Plane_head_add			(Plane_List *p_pl, Plane *p_p);
+int		Plane_head_sub			(Plane_List *p_pl, Plane *p_p);
 void		Plane_head_print		(Plane_List *p_pl);
-int			Plane_tail_add			(Plane_List *p_pl, Plane *p_p);
-int			Plane_tail_sub			(Plane_List *p_pl, Plane *p_p);
+int		Plane_tail_add			(Plane_List *p_pl, Plane *p_p);
+int		Plane_tail_sub			(Plane_List *p_pl, Plane *p_p);
 void		Plane_tail_print		(Plane_List *p_pl);
 long		Plane_List_length		(Plane_List *p_pl);
-Plane*		Plane_List_head			(Plane_List *p_pl);
-Plane*		Plane_List_tail			(Plane_List *p_pl);
-int			Plane_insert			(Plane_List *p_pl, Plane *p_p, long m);
-int			Plane_delete			(Plane_List *p_pl, Plane *p_p, long m);
+Plane*	Plane_List_head		(Plane_List *p_pl);
+Plane*	Plane_List_tail		(Plane_List *p_pl);
+int		Plane_insert			(Plane_List *p_pl, Plane *p_p, long m);
+int		Plane_delete			(Plane_List *p_pl, Plane *p_p, long m);
 void		Plane_empty_list		(Plane_List *p_pl);
 
 /************************/
@@ -91,7 +91,7 @@ void		Plane_empty_list		(Plane_List *p_pl);
 /************************/
 
 #define		NO_PLANE_ERRORS		0
-#define		NULL_PTR2PLANE		0
+#define		NULL_PTR2PLANE       0
 #define		NULL_PTR2PLANE_LIST	0
 
 #endif

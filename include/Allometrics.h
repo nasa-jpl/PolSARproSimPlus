@@ -71,24 +71,24 @@
 /* Good event return value */
 /***************************/
 
-#define	NO_ALLOMETRICS_ERRORS										0
+#define	NO_ALLOMETRICS_ERRORS				0
 
 /********************************/
 /* PERMITTIVITY MODEL CONSTANTS */
 /********************************/
 
-#define		VTF0													7.5
-#define		VDTF0													2.5
-#define		TEMP													20.0
-#define		EPSINF_FW											4.9
-#define		SIGMA_FW												1.27
-#define		TWOPIE0_INV											17.97548488
-#define		EPSINF_BW											2.9
-#define		E0_BW													57.9
-#define		F0_BW													0.18
-#define		E0_FW													80.0888
-#define		TWOPITAU_FW											0.0582852
-#define		F0_FW													17.15701413
+#define		VTF0									7.5
+#define		VDTF0									2.5
+#define		TEMP									20.0
+#define		EPSINF_FW							4.9
+#define		SIGMA_FW								1.27
+#define		TWOPIE0_INV							17.97548488
+#define		EPSINF_BW							2.9
+#define		E0_BW									57.9
+#define		F0_BW									0.18
+#define		E0_FW									80.0888
+#define		TWOPITAU_FW							0.0582852
+#define		F0_FW									17.15701413
 
 /***********************************/
 /* Tree allometric implementations */
@@ -132,13 +132,13 @@ double		Secondary_Lamdacy             (Tree *pT, PolSARproSim_Record *pPR);
 double		Secondary_Gamma					(Tree *pT, PolSARproSim_Record *pPR);
 
 double		Tertiary_Branch_Volume_Fraction	(Tree *pT, PolSARproSim_Record *pPR);
-double		Tertiary_Branch_Moisture         (Tree *pT, PolSARproSim_Record *pPR);
+double		Tertiary_Branch_Moisture      (Tree *pT, PolSARproSim_Record *pPR);
 
-int			Leaf_Species					(int species, PolSARproSim_Record *pPR);
-double		Leaf_Volume_Fraction			(int species, PolSARproSim_Record *pPR);
-double		Leaf_Moisture					(int species, PolSARproSim_Record *pPR);
-double		Leaf_Moisture_r				(int species, PolSARproSim_Record *pPR, double randn);
-void        Leaf_Size                  (Tree *pT, PolSARproSim_Record *pPR, double *d1, double *d2, double *d3);
+int			Leaf_Species                  (int species, PolSARproSim_Record *pPR);
+double		Leaf_Volume_Fraction          (int species, PolSARproSim_Record *pPR);
+double		Leaf_Moisture                 (int species, PolSARproSim_Record *pPR);
+double		Leaf_Moisture_r               (int species, PolSARproSim_Record *pPR, double randn);
+void        Leaf_Size                     (Tree *pT, PolSARproSim_Record *pPR, double *d1, double *d2, double *d3);
 
 /****************************************/
 /* LEFTOVER PARAMETRIC MODEL PARAMETERS */

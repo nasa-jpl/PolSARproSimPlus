@@ -70,15 +70,15 @@ typedef struct branch_tag {
 /*****************************/
 /* Branch function prototypes */
 /*****************************/
-
-void		Create_Branch	(Branch *p_b);
-void		Destroy_Branch	(Branch *p_b);
-void		Copy_Branch		(Branch *p_bCopy, Branch *p_bOriginal);
-void		Print_Branch	(Branch *p_b);
-void		Assign_Branch	(Branch *p_b, double sr, double er, d3Vector b0, d3Vector z0, d3Vector p,
-							 double dp, double phix, double phiy, double phicx, double phicy,
-							 double lamdacx, double lamdacy, double gamma, double moisture,
-							 double l, Complex permittivity, int id, int idorg);
+   
+void        Create_Branch        (Branch *p_b);
+void        Destroy_Branch       (Branch *p_b);
+void        Copy_Branch          (Branch *p_bCopy, Branch *p_bOriginal);
+void        Print_Branch         (Branch *p_b);
+void        Assign_Branch        (Branch *p_b, double sr, double er, d3Vector b0, d3Vector z0, d3Vector p,
+                                    double dp, double phix, double phiy, double phicx, double phicy,
+                                    double lamdacx, double lamdacy, double gamma, double moisture,
+                                    double l, Complex permittivity, int id, int idorg);
 
 /*************************************/
 /* Doubly linked list implementation */

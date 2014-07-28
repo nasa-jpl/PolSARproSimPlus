@@ -40,8 +40,8 @@
 #define		NO_YLKP_ERRORS		0
 
 typedef struct Yn_lookup_table {
- int		nmax;		/* Maximum ordinate number	*/
- double		dx;			/* Ordinate separation		*/
+ int        nmax;		/* Maximum ordinate number	*/
+ double		dx;		/* Ordinate separation		*/
  double		*pY0;		/* Array of Y0 values		*/	
  double		*pY1;		/* Array of Y1 values		*/
  double		*pY2;		/* Array of Y2 values		*/	
@@ -57,6 +57,6 @@ typedef struct Yn_lookup_table {
 
 int			Initialise_Standard_Ynlookup	(Yn_Lookup *pYLkp);
 int			Delete_Ynlookup					(Yn_Lookup *pYLkp);
-int			Ylookup							(double x, int Nmax, double *pY, Yn_Lookup *pYLkp, Jn_Lookup *pJLkp);
+int			Ylookup                       (double x, int Nmax, double *pY, Yn_Lookup *pYLkp, Jn_Lookup *pJLkp);
 
 #endif

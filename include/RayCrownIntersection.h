@@ -57,24 +57,24 @@
 /* Ray intersection prototypes */
 /*******************************/
 
-int			RayPlaneIntersection			(Ray *pR, Plane *pP,	d3Vector *pS,	double *alpha);
-int			RayCylinderIntersection			(Ray *pR, Cylinder *pC,	d3Vector *pS1,	double *alpha1, 
-											 d3Vector *pS2, double *alpha2);
-int			RayConeIntersection				(Ray *pR, Cone *pC,		d3Vector *pS1,	double *alpha1, 
-											 d3Vector *pS2, double *alpha2);
-int			RaySpheroidIntersection			(Ray *pR, Spheroid *pS,	d3Vector *pS1,	double *alpha1, 
-											 d3Vector *pS2, double *alpha2);
-int			RayCrownIntersection			(Ray *pR, Crown *pC,	d3Vector *pS1,	double *alpha1, 
-											 d3Vector *pS2, double *alpha2);
-int			RayCrownCylinderIntersection	(Ray *pR, Crown *pC, d3Vector *pS1, double *alpha1, 
-											 d3Vector *pS2, double *alpha2);
-int			RayCrownConeIntersection		(Ray *pR, Crown *pC, d3Vector *pS1, double *alpha1, 
-											 d3Vector *pS2, double *alpha2);
-int			RayCrownSpheroidIntersection	(Ray *pR, Crown *pC, d3Vector *pS1, double *alpha1, 
-											 d3Vector *pS2, double *alpha2);
-int			RayCrownIntersection_Amap			(Ray *pR, Crown *pC,	d3Vector *pS1,	double *alpha1, 
-                                        d3Vector *pS2, double *alpha2);
+int			RayPlaneIntersection                (Ray *pR, Plane *pP,	d3Vector *pS,	double *alpha);
+int			RayCylinderIntersection             (Ray *pR, Cylinder *pC,	d3Vector *pS1,	double *alpha1, 
+                                                   d3Vector *pS2, double *alpha2);
+int			RayConeIntersection                 (Ray *pR, Cone *pC,		d3Vector *pS1,	double *alpha1, 
+                                                   d3Vector *pS2, double *alpha2);
+int			RaySpheroidIntersection             (Ray *pR, Spheroid *pS,	d3Vector *pS1,	double *alpha1, 
+                                                   d3Vector *pS2, double *alpha2);
+int			RayCrownIntersection                (Ray *pR, Crown *pC,	d3Vector *pS1,	double *alpha1, 
+                                                   d3Vector *pS2, double *alpha2);
+int			RayCrownCylinderIntersection        (Ray *pR, Crown *pC, d3Vector *pS1, double *alpha1, 
+                                                   d3Vector *pS2, double *alpha2);
+int			RayCrownConeIntersection            (Ray *pR, Crown *pC, d3Vector *pS1, double *alpha1, 
+                                                   d3Vector *pS2, double *alpha2);
+int			RayCrownSpheroidIntersection        (Ray *pR, Crown *pC, d3Vector *pS1, double *alpha1, 
+                                                   d3Vector *pS2, double *alpha2);
+int			RayCrownIntersection_Amap           (Ray *pR, Crown *pC,	d3Vector *pS1,	double *alpha1, 
+                                                   d3Vector *pS2, double *alpha2);
 int			RayCrownSpheroidIntersection_Amap	(Ray *pR, Crown *pC, d3Vector *pS1, double *alpha1, 
-											 d3Vector *pS2, double *alpha2);
+                                                   d3Vector *pS2, double *alpha2);
 
 #endif

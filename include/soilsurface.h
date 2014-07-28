@@ -40,11 +40,11 @@
 #define		WATER_INF			4.90
 #define		WATER_TAU			9.230986699e-12
 #define		TF0					7.5
-#define		DTF0				2.5
+#define		DTF0              2.5
 
-Complex	water_permittivity		(double freq);
-Complex ground_permittivity		(double dd, double mpf, double sand, double clay, double mv, double freq);
-double  monostatic_soil_sigma0HH (double theta, Complex eps, double k, double rmsh, double clen);
-double  monostatic_soil_sigma0VV (double theta, Complex eps, double k, double rmsh, double clen);
+Complex  water_permittivity         (double freq);
+Complex  ground_permittivity        (double dd, double mpf, double sand, double clay, double mv, double freq);
+double   monostatic_soil_sigma0HH   (double theta, Complex eps, double k, double rmsh, double clen);
+double   monostatic_soil_sigma0VV   (double theta, Complex eps, double k, double rmsh, double clen);
 
 #endif

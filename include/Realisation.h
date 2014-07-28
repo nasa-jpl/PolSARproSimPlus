@@ -82,8 +82,8 @@ double		vegi_polar_angle_r         (double randn);
 /* Tree generation */
 /*******************/
 
-void		Realise_Tree                  (Tree *pT, int i, PolSARproSim_Record *pPR);			/* Generate the realisation of the ith tree at its location				*/
-void		Realise_Tree_Crown_Only       (Tree *pT, int i, PolSARproSim_Record *pPR);			/* Generate the realisation of the ith tree without branches or foliage	*/
+void        Realise_Tree               (Tree *pT, int i, PolSARproSim_Record *pPR);		/* Generate the realisation of the ith tree at its location				*/
+void        Realise_Tree_Crown_Only    (Tree *pT, int i, PolSARproSim_Record *pPR);    /* Generate the realisation of the ith tree without branches or foliage	*/
 
 /************************************/
 /* Random crown location generation */

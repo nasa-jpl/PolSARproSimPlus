@@ -40,9 +40,9 @@
 #include	"Trig.h"
 #include	"YLkp.h"
 
-  #define		INFCYL_TERMS		5				/* No. of terms to sum for truncated infinite cylinder scattering series	*/
-  #define		INF_CYL_HH_PHASE					/* Adopt HH phase (or HH phase + PI) if making a polarimetric correction	*/
-  #define		INF_CYL_POL_CORR					/* Make a polarimetric correction if defined								*/
+#define		INFCYL_TERMS		5				/* No. of terms to sum for truncated infinite cylinder scattering series	*/
+#define		INF_CYL_HH_PHASE					/* Adopt HH phase (or HH phase + PI) if making a polarimetric correction	*/
+#define		INF_CYL_POL_CORR					/* Make a polarimetric correction if defined								*/
 /*#define		INF_CYL_ZERO_LOCAL_XPOL										*/
 /* Local model follows GRG approximation									*/
 

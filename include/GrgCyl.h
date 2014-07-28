@@ -41,6 +41,6 @@
 #include	"YLkp.h"
 
 c33Matrix	GrgCylSa			(Cylinder *pCyl, d3Vector *pks, d3Vector *pki);
-c33Matrix	GrgCylP				(Cylinder *pCyl, d3Vector *pki);
+c33Matrix	GrgCylP			(Cylinder *pCyl, d3Vector *pki);
 
 #endif
