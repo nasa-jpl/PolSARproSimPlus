@@ -244,7 +244,7 @@ int main(int argc, char *argv[])
    /* Calculate the vegetation effective permittivities */
    /*****************************************************/
 #ifdef ENABLE_THREADS
-   Effective_Permittivities_SMP     (&Master_Record);
+  // Effective_Permittivities_SMP     (&Master_Record);
 #else
    Effective_Permittivities         (&Master_Record);
 #endif
@@ -253,7 +253,7 @@ int main(int argc, char *argv[])
    /* Calculate the spatial attenuation look-up table */
    /***************************************************/
 #ifdef ENABLE_THREADS
-   Attenuation_Map_SMP              (&Master_Record);
+   //Attenuation_Map_SMP              (&Master_Record);
 #else
    Attenuation_Map                  (&Master_Record);
 #endif
@@ -278,11 +278,11 @@ int main(int argc, char *argv[])
       /********************************************/
       /* Calculate the direct ground contribution */
       /********************************************/
-#ifdef ENABLE_THREADS
-      PolSARproSim_Direct_Ground_SMP            (&Master_Record);
-#else
-      PolSARproSim_Direct_Ground                (&Master_Record);
-#endif      
+//#ifdef ENABLE_THREADS
+//      PolSARproSim_Direct_Ground_SMP            (&Master_Record);
+//#else
+//      PolSARproSim_Direct_Ground                (&Master_Record);
+//#endif      
       /***********************************************/
       /* Calculate the short vegetation contribution */
       /***********************************************/
@@ -315,7 +315,7 @@ int main(int argc, char *argv[])
    /*************************************/
 #ifdef ENABLE_THREADS
    time(&startforest);
-   PolSARproSim_Forest_SMP                      (&Master_Record);
+   //PolSARproSim_Forest_SMP                      (&Master_Record);
    time(&stopforest);
    printf("Finished Imaging forest about %f seconds. \n",difftime(stopforest, startforest));
 #else

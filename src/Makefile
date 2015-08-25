@@ -1,7 +1,8 @@
 HOME  	= $(CURDIR)/..
 SRCDIR 	= $(HOME)/src
 LIBDIR 	= $(HOME)/lib
-INCDIR 	= -I$(HOME)/include -I/usr/include/libxml2/
+#INCDIR 	= -I$(HOME)/include -I/usr/include/libxml2/
+INCDIR 	= -I$(HOME)/include -I/opt/local/include/libxml2
 BINDIR 	= $(HOME)/bin/
 
 CC = gcc
