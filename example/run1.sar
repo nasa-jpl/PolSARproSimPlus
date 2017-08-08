@@ -54,7 +54,7 @@ roughness_model			0			# surface roughness model: 0 = perfectly smooth, 10 = very
 #-----------------------------------------------------------------------------------------------------------------------------------------------#
 # Forest parameters                  														#
 #-----------------------------------------------------------------------------------------------------------------------------------------------#
-input_forest			0			# 1: Input forest from forest xml file 0: generate forest of global tree species	#
+input_forest			1			# 1: Input forest from forest xml file 0: generate forest of global tree species	#
 forest_file			forest.xml		# Input forest XML file									#
 allometry_file			allometry.xml		# Input Allometry file									#
 global_tree_species		PIRE			# Tree species: this should be matched with a species tag in allometry file		#

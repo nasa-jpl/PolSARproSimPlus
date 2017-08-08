@@ -13,4 +13,7 @@ This is the internal JPL repository for PolSARproSim+
  * Compiling:
    * In `<dir>/src`: type make install. If succesful you should have `pspsim_dev` in `<dir>/bin`
    * requires libxml, and lpthreads
-
+ * Running:	
+   * add `<dir>/bin` to your bash path
+   * in your workdir type `pspsim_dev`. This will tell you how to use it. 
+     * To run the example type `pspsim_dev run1.sar <prefix> <outputdir>`. This will put simulated SLC images and ancilliary data in `<outputdir>`
