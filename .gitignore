@@ -8,7 +8,7 @@
 *.o
 
 # Binaries
-bin/
+bin/pspsim_dev
 
 # Xcode stuff
 pspsim_dev.xcodeproj/
@@ -18,3 +18,5 @@ project.pbxproj
 
 #cscope output
 cscope.out
+
+*/*.dSYM/
