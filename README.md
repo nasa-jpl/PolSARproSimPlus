@@ -28,5 +28,6 @@ This is the internal JPL repository for PolSARproSim+
  4. Change LD_LIBRARY_PATH
     * In my .bashrc I added: `export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/home/rahmed/miniconda2/lib/"`
 
- If on Zodiac, one should be able to use these libraries from Razi's folder and run polsarprosim.
+ If on Zodiac, one should be able to use these libraries from Razi's folder and compile polsarprosim as:
+ * in `pspsim_dev/src`: `make -f Makefile-zodiac install`
 
