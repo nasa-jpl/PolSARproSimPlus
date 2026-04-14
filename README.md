@@ -35,16 +35,4 @@ The code can be compiled two ways, using `make` or the `meson` build system
         * `$ cd <dir>/example`
         * `$ pspsim run1.sar <prefix> <outputdir>`. This will put simulated SLC images and ancilliary data in `<outputdir>`
 
-# what I had to do to make this software run on Zodiac
- 1. Install miniconda2 (https://conda.io/miniconda.html)
- 2. Install libmxl2 using miniconda
-    * `conda install libxml2` (this installs `libxml`, `liconv` and `lz` on `/home/<username>/miniconda2/lib` & `/home/rahmed/miniconda2/include/`
- 3. Change makefile to point to libxml installation
-    * set: `LDFLAGS = -lm -L/home/<username>/miniconda2/lib -lxml2 -liconv -lz`
-    * set: `INCDIR = -I$(HOME)/include -I/home/<username>/miniconda2/include/libxml2`
- 4. Change LD_LIBRARY_PATH
-    * In my .bashrc I added: `export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/home/<username>/miniconda2/lib/"`
-
- If on Zodiac, one should be able to use these libraries from Razi's folder and compile polsarprosim as:
- * in `pspsim_dev/src`: `make -f Makefile-zodiac install`
 
