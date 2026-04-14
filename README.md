@@ -1,11 +1,9 @@
 PolSARproSim+: A coherent, polarimetric simulation of forests
 ================================================================================
 
-This is the This is the internal JPL repository for PolSARproSim+, an ANSI-C based software to simulate SAR/PolSAR/PolInSAR/TomoSAR echoes from forests.
+This is the This is the Public Open Source repository for PolSARproSim+, an ANSI-C based software to simulate SAR/PolSAR/PolInSAR/TomoSAR echoes from forests.
 
- * Get the source code:
-   * type `git clone https://github.jpl.nasa.gov/rahmed/pspsim.git <dir>`, where `<dir>` is the optional directory name for whatever you want the software directory to be called. If you don't provide this name, git will clone the software in `<where you are>/pspsim`
- * Directory Structure:
+ ## Directory Structure:
    * `<dir>/src`: This folder contains the c-source files
    * `<dir>/include`: This folder contains the c-header files
    * `<dir>/bin`: this folder should contain the simulator binary: `pspsim` once compiled
